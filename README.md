@@ -66,6 +66,11 @@ curl -s https://api.unipo.ac.id/v1/openapi.json > openapi.json
 node generator/generate.mjs
 ```
 
+Workflow **Perbarui spesifikasi API** (`.github/workflows/perbarui-spec.yml`) menjalankan langkah di atas setiap hari dan
+membuka PR `otomatis/perbarui-spec` bila ada perubahan (sumber: variabel repo `SIAKAD_OPENAPI_URL`, bawaan
+`https://api.unipo.ac.id/v1/openapi.json`). Aktifkan "Allow GitHub Actions to create and approve pull requests" di
+Settings > Actions. Rilis tetap manual lewat tag.
+
 CI gagal bila kode hasil generator tidak sesuai `openapi.json`. Nama metode diturunkan dari `operationId`; menghapus
 atau mengganti path endpoint berarti menghapus metode, jadi naikkan versi mayor.
 

@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Dasbor: Ringkasan, Dasbor: Peringatan dini
+ * Dasbor: Ringkasan, Dasbor: Perkuliahan, Dasbor: Kehadiran, Dasbor: Outcome, Dasbor: Peringatan dini
  */
 final class Dasbor extends Resource
 {
@@ -49,6 +49,101 @@ final class Dasbor extends Resource
     public function getTren(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/dasbor/tren', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Monitoring perkuliahan
+     *
+     * Realisasi pertemuan per semester dari jadwal (t_jadwal) dan presensi dosen (t_dosen_presensi): total kelas per status (belum_mulai, tertinggal, sesuai, tuntas), persen realisasi, rata kehadiran mahasiswa, per prodi, dan dosen dengan kelas tertinggal. Rencana pertemuan = m_mata_kuliah.pertemuan, atau parameter rencana (bawaan 16). Pertemuan seharusnya = rencana x progres semester (m_tahun kuliah_mulai..kuliah_selesai).
+     *
+     * `GET /v1/dasbor/perkuliahan`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, rencana?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPerkuliahan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/perkuliahan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Realisasi per kelas
+     *
+     * Per kelas: dosen, rencana/terlaksana/seharusnya, pertemuan terakhir, peserta KRS, nilai terisi, kehadiran mahasiswa, status.
+     *
+     * `GET /v1/dasbor/perkuliahan/kelas`
+     *
+     * scope: `dasbor:read` · berhalaman
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, status?: string, nidn?: string, q?: string, rencana?: int, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPerkuliahanKelas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/perkuliahan/kelas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Analitik kehadiran mahasiswa
+     *
+     * Dari t_mahasiswa_presensi: jumlah hadir/izin/sakit/alpa dan persen hadir, sebaran mahasiswa per rentang persen hadir, jumlah di bawah ambang, per prodi, per minggu, dan per hari.
+     *
+     * `GET /v1/dasbor/kehadiran`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, ambang?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKehadiran(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/kehadiran', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa kehadiran rendah
+     *
+     * Mahasiswa dengan persen hadir di bawah ambang, terendah dahulu, dengan rincian per mata kuliah.
+     *
+     * `GET /v1/dasbor/kehadiran/mahasiswa`
+     *
+     * scope: `dasbor:read` · berhalaman
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, ambang?: int, kode_mk?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKehadiranMahasiswa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/kehadiran/mahasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Monitoring outcome lulusan
+     *
+     * Per tahun lulus: jumlah lulusan, rata IPK, persen IPK >= 3,51, rata masa studi (semester), persen tepat waktu; hasil tracer alumni (responden selesai menurut tahun lulus) (persen bekerja/wiraswasta/studi lanjut/mencari kerja, waktu tunggu, keselarasan bidang); dan capaian IKU 1.
+     *
+     * `GET /v1/dasbor/outcome`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param array{kode_prodi?: string, tahun?: int, jumlah_tahun?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOutcome(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/outcome', [], $query, null, $options, false, false);
     }
 
     /**
