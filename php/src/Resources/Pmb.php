@@ -216,6 +216,25 @@ final class Pmb extends Resource
     }
 
     /**
+     * Cari perguruan tinggi asal
+     *
+     * Dari referensi perguruan tinggi SIAKAD (r_perguruan_tinggi, menu PMB > Setup > Sekolah & PT), maksimal 20 hasil. Untuk pendaftar pindahan/alih jenjang. Kolom: kode, nama, singkatan, kota, jenis.
+     *
+     * `GET /v1/pmb/info/perguruan-tinggi`
+     *
+     * publik (tanpa token)
+     *
+     * @param array{q: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getInfoPerguruanTinggi(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/info/perguruan-tinggi', [], $query, null, $options, false, true);
+    }
+
+    /**
      * Buat akun calon pendaftar
      *
      * Password minimal 8 karakter berisi huruf dan angka. Respons berisi `token_verifikasi` yang dikirim aplikasi PMB ke email pendaftar sebagai tautan; lalu panggil /v1/pmb/akun/verifikasi.
