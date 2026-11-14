@@ -90,9 +90,14 @@ php php/tests/integrasi.php
 
 Rilis berjalan otomatis lewat `.github/workflows/rilis.yml`. Versi PHP dan Node.js selalu sama.
 
-- **Otomatis saat merge.** Setiap push ke `main` dengan versi yang belum punya tag `vX.Y.Z` akan diuji (generator,
-  PHPUnit, paket npm), diberi tag, diterbitkan ke npm, dibuatkan GitHub Release dari isi CHANGELOG, lalu judul
-  CHANGELOG-nya diberi tanggal. Packagist membaca tag itu sendiri. Push yang tidak mengubah versi tidak merilis apa pun.
+- **Otomatis setiap merge PR ke `main`.** Versi dinaikkan sendiri lalu dirilis: diuji (generator, PHPUnit, paket npm),
+  diberi tag, diterbitkan ke npm, dan dibuatkan GitHub Release. Packagist membaca tag itu sendiri. Judul PR menjadi
+  catatan di CHANGELOG.
+  - Jenis kenaikan: label PR `rilis:major`, `rilis:minor`, atau `rilis:patch`. Tanpa label, ditebak dari
+    `openapi.json`: ada operasi hilang = major, ada operasi baru = minor, selain itu patch.
+  - Bila PR sudah menaikkan versi sendiri (mis. PR otomatis dari perbarui-spec), versi itu yang dirilis.
+  - Tidak dirilis bila PR berlabel `rilis:tidak`, atau isi paket (`php/`, `node/src`, `openapi.json`,
+    `composer.json`) tidak berubah sejak rilis terakhir, mis. hanya README atau workflow.
 - **Tombol.** Actions > Rilis > Run workflow, pilih `patch`, `minor`, atau `major`. Versi dinaikkan di semua berkas,
   di-commit ke `main`, lalu dirilis.
 - **Naikkan versi di PR.** Jalankan skrip ini agar semua berkas versi dan CHANGELOG berubah bersamaan:
@@ -104,8 +109,8 @@ node generator/versi.mjs                                       # tampilkan versi
 
 Cara lama tetap bisa: `git tag vX.Y.Z && git push origin vX.Y.Z` (versi berkas harus sama dengan tag).
 
-Bila `main` dilindungi aturan branch, izinkan GitHub Actions mem-push ke `main` agar tombol dan penanda tanggal
-CHANGELOG berjalan; rilisnya sendiri tetap berjalan tanpa itu.
+Bila `main` dilindungi aturan branch, izinkan GitHub Actions mem-push ke `main`: kenaikan versi otomatis di-commit
+ke `main` sebelum diberi tag.
 
 ### Persiapan sekali
 
