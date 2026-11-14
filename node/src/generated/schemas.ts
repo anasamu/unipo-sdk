@@ -1,4 +1,4 @@
-// Dibuat otomatis oleh generator/generate.mjs dari SIAKAD UNIPO API 1.0.0. Jangan diubah manual.
+// Dibuat otomatis oleh generator/generate.mjs dari SIAKAD UNIVERSITAS POHUWATO API 1.0.0. Jangan diubah manual.
 /* eslint-disable */
 import type { Uploadable } from '../types.js';
 

@@ -1,4 +1,4 @@
-// Dibuat otomatis oleh generator/generate.mjs dari SIAKAD UNIPO API 1.0.0. Jangan diubah manual.
+// Dibuat otomatis oleh generator/generate.mjs dari SIAKAD UNIVERSITAS POHUWATO API 1.0.0. Jangan diubah manual.
 import { SiakadCore } from '../core.js';
 import * as R from './resources.js';
 
