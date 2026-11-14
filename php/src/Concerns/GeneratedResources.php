@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2008 endpoint).
+ * Akses ke semua modul API (2009 endpoint).
  */
 trait GeneratedResources
 {
@@ -193,7 +193,7 @@ trait GeneratedResources
         return $this->resource(Resources\Notif::class);
     }
 
-    /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (119 endpoint) */
+    /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
     public function pmb(): Resources\Pmb
     {
         return $this->resource(Resources\Pmb::class);

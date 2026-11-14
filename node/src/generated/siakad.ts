@@ -172,7 +172,7 @@ export class Siakad extends SiakadCore {
     return this.resource('notif', () => new R.NotifResource(this));
   }
 
-  /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (119 endpoint) */
+  /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
   get pmb(): R.PmbResource {
     return this.resource('pmb', () => new R.PmbResource(this));
   }

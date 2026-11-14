@@ -19644,6 +19644,22 @@ export class PmbResource {
   }
 
   /**
+   * Cari perguruan tinggi asal
+   *
+   * Dari referensi perguruan tinggi SIAKAD (r_perguruan_tinggi, menu PMB > Setup > Sekolah & PT), maksimal 20 hasil. Untuk pendaftar pindahan/alih jenjang. Kolom: kode, nama, singkatan, kota, jenis.
+   *
+   * `GET /v1/pmb/info/perguruan-tinggi`
+   *
+   * publik (tanpa token)
+   */
+  getInfoPerguruanTinggi(query: {
+    /** Nama, singkatan, atau kode PT (min. 3 karakter) */
+    q: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pmb/info/perguruan-tinggi', query, public: true }, options);
+  }
+
+  /**
    * Buat akun calon pendaftar
    *
    * Password minimal 8 karakter berisi huruf dan angka. Respons berisi `token_verifikasi` yang dikirim aplikasi PMB ke email pendaftar sebagai tautan; lalu panggil /v1/pmb/akun/verifikasi.
