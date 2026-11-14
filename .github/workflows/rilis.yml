@@ -1,0 +1,42 @@
+# Rilis: git tag vX.Y.Z && git push origin vX.Y.Z
+# Packagist membaca tag sendiri; workflow ini menerbitkan npm (bila secret NPM_TOKEN ada) dan membuat GitHub Release.
+name: Rilis
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  rilis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Versi tag, package.json, version.ts, dan Siakad::VERSION sama
+        run: |
+          VERSI="${GITHUB_REF_NAME#v}"
+          NPM="$(node -p "require('./node/package.json').version")"
+          TS="$(grep -oP "VERSION = '\K[^']+" node/src/version.ts)"
+          PHP="$(grep -oP "VERSION = '\K[^']+" php/src/Siakad.php)"
+          echo "tag=$VERSI npm=$NPM ts=$TS php=$PHP"
+          [ "$VERSI" = "$NPM" ] && [ "$VERSI" = "$TS" ] && [ "$VERSI" = "$PHP" ] || { echo "::error::Versi tidak sama"; exit 1; }
+      - name: Uji dan bangun paket npm
+        working-directory: node
+        run: npm install --no-audit --no-fund && npm run typecheck && npm run build && npm test
+      - name: Terbitkan ke npm
+        working-directory: node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::warning::Secret NPM_TOKEN belum diisi; npm dilewati."; exit 0; fi
+          npm publish --access public
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Lihat CHANGELOG.md." --verify-tag

@@ -1,0 +1,17 @@
+# Arsip Composer (Packagist) hanya berisi paket PHP.
+/node            export-ignore
+/generator       export-ignore
+/openapi.json    export-ignore
+/MODUL.md        export-ignore
+/php/tests       export-ignore
+/.github         export-ignore
+/.gitattributes  export-ignore
+/.gitignore      export-ignore
+/phpunit.xml.dist export-ignore
+/phpstan.neon.dist export-ignore
+
+openapi.json     -diff linguist-generated
+/php/src/Resources/**  linguist-generated
+/php/src/Concerns/GeneratedResources.php linguist-generated
+/php/src/Laravel/Facades/Siakad.php linguist-generated
+/node/src/generated/** linguist-generated
