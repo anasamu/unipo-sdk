@@ -4534,6 +4534,290 @@ export class ArsipResource {
   }
 }
 
+/** Berkas, Berkas: Unggah bertahap */
+export class BerkasResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Batas dan penyimpanan aktif
+   *
+   * Ukuran maksimal, batas sekali unggah dari php.ini server, ukuran potongan unggah bertahap, ekstensi yang diizinkan, dan penyimpanan tujuan (lokal/S3/R2/MinIO/Google Drive). Dipakai aplikasi untuk memilih cara unggah.
+   *
+   * `GET /v1/berkas/info`
+   *
+   * scope: `berkas:read`
+   */
+  getInfo(query?: Query, options?: RequestOptions): Promise<ApiResult<S.BerkasInfo>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/info', query }, options);
+  }
+
+  /**
+   * Daftar berkas saya
+   *
+   * Token pengguna: berkas milik pengguna itu. Token aplikasi: berkas yang diunggah aplikasi itu. berkas:admin: semua (filter `pemilik`, `klien_id`).
+   *
+   * `GET /v1/berkas`
+   *
+   * scope: `berkas:read` · berhalaman
+   */
+  list(query?: {
+    /** Kategori */
+    kategori?: string;
+    /** Modul */
+    modul?: string;
+    /** mengunggah, menunggu_unggah, tersedia */
+    status?: string;
+    /** Folder */
+    folder?: string;
+    /** Cari nama/keterangan */
+    q?: string;
+    /** Admin: username */
+    pemilik?: string;
+    /** Admin: klien API */
+    klien_id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Berkas>>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas', query }, options);
+  }
+
+  /**
+   * Unggah berkas
+   *
+   * multipart/form-data field `berkas` (atau JSON `berkas_base64` + `nama_file` untuk file kecil). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Jenis file diperiksa dari isinya. File di atas `batas_sekali_unggah_byte` (lihat /info) pakai unggah bertahap.
+   *
+   * `POST /v1/berkas`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  create(body: S.BerkasUnggah, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas', body, multipart: true }, options);
+  }
+
+  /**
+   * Mulai unggah bertahap
+   *
+   * Untuk file besar atau hosting dengan upload_max_filesize kecil. Body JSON: `nama`, `ukuran` (byte), opsional `ukuran_potongan` (bawaan dari /info). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Lalu kirim setiap potongan ke POST /v1/berkas/{id}/potongan/{ke} (boleh paralel, boleh diulang), dan akhiri dengan POST /v1/berkas/{id}/selesai. Sesi yang tidak selesai dihapus setelah BERKAS_SESI_JAM.
+   *
+   * `POST /v1/berkas/bertahap`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postBertahap(body: S.BerkasMulaiBertahap, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/bertahap', body }, options);
+  }
+
+  /**
+   * Minta URL unggah langsung ke bucket
+   *
+   * Khusus penyimpanan S3/R2/MinIO: body `nama`, `ukuran` (byte), `mime`. Kirim isi file dengan PUT ke `unggah.url` beserta `unggah.header` langsung dari browser/aplikasi (tidak lewat server SIAKAD), lalu POST /v1/berkas/{id}/selesai; SIAKAD memeriksa isinya sebelum berkas tersedia.
+   *
+   * `POST /v1/berkas/unggah-langsung`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postUnggahLangsung(body: S.BerkasUnggahLangsung, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/unggah-langsung', body }, options);
+  }
+
+  /**
+   * Unduh dengan tautan sementara
+   *
+   * Tautan dari /v1/berkas/{id}/url (tanpa token akses; berlaku sampai waktu di dalamnya). PDF/gambar tampil di browser; `?unduh=1` memaksa unduh.
+   *
+   * `GET /v1/berkas/unduh/{token}`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   */
+  getUnduhByToken(token: string | number, query?: {
+    /** 1 = unduh sebagai lampiran */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/unduh/{token}', query: { ...query, token }, public: true }, options);
+  }
+
+  /**
+   * Detail berkas
+   *
+   * Termasuk `url` sementara, status sesi unggah bertahap (`sesi.diterima` untuk melanjutkan unggahan yang terputus), dan `dipakai` (data modul yang memakai berkas ini).
+   *
+   * `GET /v1/berkas/{id}`
+   *
+   * scope: `berkas:read`
+   *
+   * @param id UUID berkas
+   */
+  getById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus berkas
+   *
+   * Sama dengan POST /v1/berkas/{id}/hapus.
+   *
+   * `DELETE /v1/berkas/{id}`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   */
+  deleteById(id: string | number, query?: {
+    /** Admin: hapus walau masih dipakai */
+    paksa?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/berkas/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unduh isi berkas
+   *
+   * Respons file (bukan JSON). Disk lokal/Google Drive: dialirkan dari server. S3/R2/MinIO: 302 ke URL sementara bucket, kecuali `?lewat_server=1`. PDF/gambar/video tampil inline; `?unduh=1` memaksa unduh.
+   *
+   * `GET /v1/berkas/{id}/unduh`
+   *
+   * scope: `berkas:read`
+   *
+   * @param id UUID berkas
+   */
+  getByIdUnduh(id: string | number, query?: {
+    /** 1 = unduh sebagai lampiran */
+    unduh?: string;
+    /** 1 = jangan dialihkan ke bucket */
+    lewat_server?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/{id}/unduh', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tautan unduh sementara
+   *
+   * Untuk <img>, <a>, atau pratinjau PDF tanpa header Authorization. Presigned URL (S3/R2/MinIO) atau tautan bertanda tangan SIAKAD.
+   *
+   * `GET /v1/berkas/{id}/url`
+   *
+   * scope: `berkas:read`
+   *
+   * @param id UUID berkas
+   */
+  getByIdUrl(id: string | number, query?: {
+    /** Masa berlaku detik (60-604800, bawaan 900) */
+    ttl?: string;
+    /** 1 = unduh sebagai lampiran */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.BerkasUrl>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/{id}/url', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah nama/kategori/keterangan
+   *
+   * Body: `nama` (ekstensi tetap), `kategori`, `keterangan`. Isi file tidak bisa diganti; unggah berkas baru.
+   *
+   * `POST /v1/berkas/{id}/ubah`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param body
+   */
+  postByIdUbah(id: string | number, body: S.BerkasUbah, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/ubah', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus berkas (POST)
+   *
+   * Ditolak (409 berkas_dipakai) bila masih dipakai data modul; berkas:admin bisa `?paksa=1`.
+   *
+   * `POST /v1/berkas/{id}/hapus`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   */
+  postByIdHapus(id: string | number, query?: {
+    /** Admin: hapus walau masih dipakai */
+    paksa?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Kirim satu potongan
+   *
+   * multipart/form-data field `potongan` berisi bagian file dari byte ke×ukuran_potongan. Semua potongan berukuran `ukuran_potongan` kecuali yang terakhir. Mengirim ulang nomor yang sama menimpa potongan itu.
+   *
+   * `POST /v1/berkas/{id}/potongan/{ke}`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param ke Nomor potongan, mulai 0
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  postByIdPotonganByKe(id: string | number, ke: string | number, body: S.BerkasPotongan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.BerkasPotonganHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/potongan/{ke}', query: { id, ke }, body, multipart: true }, options);
+  }
+
+  /**
+   * Selesaikan unggahan
+   *
+   * Unggah bertahap: gabungkan potongan, periksa isi, simpan ke penyimpanan (409 potongan_kurang memuat nomor yang belum ada). Unggah langsung: periksa berkas di bucket.
+   *
+   * `POST /v1/berkas/{id}/selesai`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   */
+  postByIdSelesai(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/selesai', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Catat pemakaian berkas
+   *
+   * Untuk aplikasi yang menyimpan UUID berkas di datanya sendiri: body `modul`, `tabel`, `baris` (ID/UUID), opsional `peran`. Berkas yang dipakai tidak bisa dihapus sampai dilepas.
+   *
+   * `POST /v1/berkas/{id}/pakai`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param body
+   */
+  postByIdPakai(id: string | number, body: S.BerkasPakai, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/pakai', query: { id }, body }, options);
+  }
+
+  /**
+   * Lepas pemakaian berkas
+   *
+   * Body `tabel`, `baris`.
+   *
+   * `POST /v1/berkas/{id}/lepas`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param body
+   */
+  postByIdLepas(id: string | number, body: S.BerkasPakai, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/lepas', query: { id }, body }, options);
+  }
+}
+
 /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian */
 export class CbtResource {
   constructor(private readonly client: SiakadCore) {}

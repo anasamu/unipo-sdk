@@ -17,4 +17,5 @@ export type {
 } from './types.js';
 export * as Resources from './generated/resources.js';
 export type * as Schemas from './generated/schemas.js';
+export { unggahBerkas, urlBerkas, infoBerkas, type UnggahBerkasOpsi } from './berkas.js';
 export { VERSION } from './version.js';

@@ -121,6 +121,31 @@ await siakad.arsip.postSuratByRefFile('S-001', {
 Endpoint yang mengirim file (bukan JSON) mengembalikan `SiakadFile` di `data`:
 `filename`, `contentType`, `bytes`, `text()`, `blob()`.
 
+### Berkas terpusat (file besar, progres, `berkas_id`)
+
+`unggahBerkas()` mengunggah ke `/v1/berkas` dan memilih caranya sendiri: file kecil dikirim sekali, file di atas batas
+unggah server (`upload_max_filesize`) dikirim bertahap per potongan, paralel, dan diulang bila gagal. `id` hasilnya
+dipakai sebagai `berkas_id` di endpoint unggah modul mana pun (dokumen profil, lampiran pusat data, arsip, SPMI, LMS,
+SDM, LPPM, portal, tracer). Berkas disimpan di penyimpanan yang aktif di menu Integrasi (S3, R2, MinIO, Google Drive)
+atau disk server.
+
+```ts
+import { unggahBerkas, urlBerkas } from 'unipo-siakad-sdk';
+
+const berkas = await unggahBerkas(siakad, input.files[0], {
+  kategori: 'dokumen',
+  modul: 'profil',
+  onProgress: ({ persen }) => setPersen(persen),
+});
+await siakad.profil.postDokumenByIdBerkas(dokumen.id, { berkas_id: berkas.id });
+
+// Tautan sementara untuk <img>, <a>, atau pratinjau PDF (tanpa header Authorization):
+img.src = await urlBerkas(siakad, berkas.id!);
+```
+
+Unggahan yang terputus bisa dilanjutkan: `unggahBerkas(siakad, file, { lanjutkan: idBerkas })` hanya mengirim potongan
+yang belum diterima.
+
 ## Galat
 
 ```ts

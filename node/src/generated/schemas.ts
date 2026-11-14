@@ -1840,6 +1840,189 @@ export type ArsipPenyusutanInput = {
   [key: string]: any;
 };
 
+export type Berkas = {
+  /** UUID Contoh: `6f1c2d3e-1111-4a2b-9c3d-123456789abc` */
+  id?: string | null;
+  /** Contoh: `ijazah.pdf` */
+  nama?: string | null;
+  /** Contoh: `pdf` */
+  ekstensi?: string | null;
+  /** Contoh: `application/pdf` */
+  mime?: string | null;
+  /** Byte */
+  ukuran?: number | null;
+  sha256?: string | null;
+  kategori?: string | null;
+  modul?: string | null;
+  folder?: string | null;
+  keterangan?: string | null;
+  /** privat / publik */
+  visibilitas?: string | null;
+  /** mengunggah, menunggu_unggah, tersedia */
+  status?: string | null;
+  /** lokal, s3, r2, minio, google_drive */
+  penyimpanan?: string | null;
+  /** username pengunggah */
+  pemilik?: string | null;
+  klien_id?: string | null;
+  jumlah_unduh?: number | null;
+  dibuat_at?: string | null;
+  /** Path unduh bertoken Contoh: `/v1/berkas/6f1c2d3e-1111-4a2b-9c3d-123456789abc/unduh` */
+  unduh?: string | null;
+  /** Tautan unduh sementara (tanpa token) */
+  url?: string | null;
+  kedaluwarsa_at?: string | null;
+  /** Hanya saat status mengunggah */
+  sesi?: {
+    ukuran_potongan?: number | null;
+    jumlah_potongan?: number | null;
+    diterima?: Array<number>;
+    [key: string]: any;
+  };
+  /** Data modul yang memakai berkas ini */
+  dipakai?: Array<{
+    modul?: string | null;
+    tabel?: string | null;
+    baris?: string | null;
+    peran?: string | null;
+    sejak?: string | null;
+    [key: string]: any;
+  }>;
+  /** Hanya pada unggah langsung */
+  unggah?: {
+    url?: string | null;
+    /** Contoh: `PUT` */
+    metode?: string | null;
+    header?: Record<string, string>;
+    kedaluwarsa_at?: string | null;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+export type BerkasInfo = {
+  penyimpanan?: {
+    driver?: string | null;
+    kode?: string | null;
+    nama?: string | null;
+    [key: string]: any;
+  };
+  maks_byte?: number | null;
+  maks_mb?: number | null;
+  /** Batas POST /v1/berkas (php.ini upload_max_filesize/post_max_size) */
+  batas_sekali_unggah_byte?: number | null;
+  /** Saran ukuran potongan unggah bertahap */
+  ukuran_potongan?: number | null;
+  ekstensi?: Array<string | null>;
+  /** Penyimpanan mendukung unggah langsung ke bucket */
+  unggah_langsung?: boolean;
+  /** Lampiran modul ikut disimpan di penyimpanan ini */
+  lampiran_modul_terpusat?: boolean;
+  saran?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasUnggah = {
+  berkas?: Uploadable;
+  /** Alternatif JSON untuk file kecil */
+  berkas_base64?: string | null;
+  nama_file?: string | null;
+  /** dokumen, foto, lampiran, tugas, … Contoh: `dokumen` */
+  kategori?: string | null;
+  /** Modul/aplikasi pemakai Contoh: `profil` */
+  modul?: string | null;
+  /** Folder di penyimpanan */
+  folder?: string | null;
+  keterangan?: string | null;
+  /** privat (bawaan) atau publik Contoh: `privat` */
+  visibilitas?: string | null;
+  /** Kode penyedia storage; bawaan penyimpanan utama */
+  penyimpanan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasMulaiBertahap = {
+  /** Contoh: `video-kuliah.mp4` */
+  nama: string | null;
+  /** Byte Contoh: `73400320` */
+  ukuran: number | null;
+  /** Byte, opsional */
+  ukuran_potongan?: number | null;
+  /** dokumen, foto, lampiran, tugas, … Contoh: `dokumen` */
+  kategori?: string | null;
+  /** Modul/aplikasi pemakai Contoh: `profil` */
+  modul?: string | null;
+  /** Folder di penyimpanan */
+  folder?: string | null;
+  keterangan?: string | null;
+  /** privat (bawaan) atau publik Contoh: `privat` */
+  visibilitas?: string | null;
+  /** Kode penyedia storage; bawaan penyimpanan utama */
+  penyimpanan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasUnggahLangsung = {
+  /** Contoh: `rekaman.mp4` */
+  nama: string | null;
+  /** Byte */
+  ukuran: number | null;
+  /** Contoh: `video/mp4` */
+  mime: string | null;
+  /** dokumen, foto, lampiran, tugas, … Contoh: `dokumen` */
+  kategori?: string | null;
+  /** Modul/aplikasi pemakai Contoh: `profil` */
+  modul?: string | null;
+  /** Folder di penyimpanan */
+  folder?: string | null;
+  keterangan?: string | null;
+  /** privat (bawaan) atau publik Contoh: `privat` */
+  visibilitas?: string | null;
+  /** Kode penyedia storage; bawaan penyimpanan utama */
+  penyimpanan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasPotongan = {
+  /** Bagian file */
+  potongan: Uploadable;
+  [key: string]: any;
+};
+
+export type BerkasPotonganHasil = {
+  id?: string | null;
+  ke?: number | null;
+  diterima?: Array<number>;
+  jumlah_potongan?: number | null;
+  lengkap?: boolean;
+  [key: string]: any;
+};
+
+export type BerkasUrl = {
+  url?: string | null;
+  kedaluwarsa_at?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasUbah = {
+  nama?: string | null;
+  kategori?: string | null;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasPakai = {
+  /** Contoh: `lms` */
+  modul?: string | null;
+  /** Contoh: `lms_tugas_kumpul` */
+  tabel: string | null;
+  /** ID/UUID baris Contoh: `42` */
+  baris: string | null;
+  /** Contoh: `lampiran` */
+  peran?: string | null;
+  [key: string]: any;
+};
+
 /** Ujian (tabel cbt_ujian) */
 export type CbtUjian = {
   id?: number;
