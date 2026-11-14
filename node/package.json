@@ -1,0 +1,64 @@
+{
+  "name": "unipo-siakad-sdk",
+  "version": "1.0.0",
+  "description": "SDK resmi API SIAKAD UNIPO untuk Node.js, Bun, Deno, dan framework modern (Next.js, NestJS, Express, Nuxt, SvelteKit). TypeScript, ESM + CommonJS, token OAuth2 otomatis.",
+  "keywords": [
+    "siakad",
+    "unipo",
+    "api",
+    "sdk",
+    "oauth2",
+    "pddikti",
+    "akademik",
+    "typescript"
+  ],
+  "homepage": "https://github.com/anasamu/unipo-sdk/tree/main/node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anasamu/unipo-sdk.git",
+    "directory": "node"
+  },
+  "bugs": {
+    "url": "https://github.com/anasamu/unipo-sdk/issues"
+  },
+  "license": "MIT",
+  "author": "Pustikom Universitas Pohuwato",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "prepublishOnly": "npm run typecheck && npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.10",
+    "tsup": "8.3.5",
+    "typescript": "5.7.2"
+  }
+}
