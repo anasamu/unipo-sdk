@@ -1,6 +1,6 @@
 # Memperbarui SDK otomatis saat API SIAKAD bertambah:
 # mengambil OpenAPI terbaru, membangkitkan ulang kode, lalu membuka (atau memperbarui) PR bila ada perubahan.
-# Rilis tetap manual lewat tag vX.Y.Z setelah PR di-merge.
+# PR ini sekaligus menaikkan versi; setelah di-merge, rilis.yml menerbitkan versi itu secara otomatis.
 #
 # Sumber spesifikasi: variabel repo SIAKAD_OPENAPI_URL, bawaan https://api.unipo.ac.id/v1/openapi.json.
 # Syarat: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests" diaktifkan.
@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -51,8 +53,21 @@ jobs:
             if(hilang.length) t+=`\n\n**Ada operasi yang hilang: metode SDK ikut terhapus, jadi rilis berikutnya harus versi mayor.**\n\n`+hilang.slice(0,50).map(x=>"- `"+x+"`").join("\n");
             if(baru.length) t+="\n\nBaru:\n\n"+baru.slice(0,100).map(x=>"- `"+x+"`").join("\n")+(baru.length>100?"\n- …":"");
             fs.writeFileSync("/tmp/ringkas.md",t);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT,`baru=${baru.length}\nhilang=${hilang.length}\ntotal=${Object.keys(b).length}\n`);
           '
           node -e 'const fs=require("fs");fs.writeFileSync("openapi.json",JSON.stringify(JSON.parse(fs.readFileSync("/tmp/openapi.json","utf8")))+"\n")'
+          node generator/generate.mjs
+      - name: Naikkan versi
+        if: steps.ambil.outputs.ada == '1' && (steps.banding.outputs.baru != '0' || steps.banding.outputs.hilang != '0')
+        run: |
+          # Versi sekarang sudah dirilis: naikkan minor (major bila ada operasi hilang). Belum dirilis: tambah catatan saja.
+          SEKARANG="$(node generator/versi.mjs)"
+          if git rev-parse -q --verify "refs/tags/v$SEKARANG" >/dev/null; then
+            JENIS=minor; [ "${{ steps.banding.outputs.hilang }}" != "0" ] && JENIS=major
+          else
+            JENIS=tetap
+          fi
+          node generator/versi.mjs "$JENIS" --catatan "Spesifikasi diperbarui dari SIAKAD: ${{ steps.banding.outputs.baru }} operasi baru, ${{ steps.banding.outputs.hilang }} operasi hilang (total ${{ steps.banding.outputs.total }})."
           node generator/generate.mjs
       - name: Uji paket Node.js
         if: steps.ambil.outputs.ada == '1'

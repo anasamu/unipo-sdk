@@ -1,42 +1,171 @@
-# Rilis: git tag vX.Y.Z && git push origin vX.Y.Z
-# Packagist membaca tag sendiri; workflow ini menerbitkan npm (bila secret NPM_TOKEN ada) dan membuat GitHub Release.
+# Rilis SDK otomatis (PHP ke Packagist lewat tag, Node.js ke npm, GitHub Release).
+#
+# Berjalan dengan tiga cara:
+#  1. Otomatis: setiap merge PR ke main.
+#     - Versi di berkas belum punya tag (PR sudah menaikkan versi): versi itu yang dirilis.
+#     - Versi sudah dirilis: versi dinaikkan otomatis lalu di-commit ke main. Jenisnya dari label PR
+#       rilis:major / rilis:minor / rilis:patch, atau ditebak dari openapi.json (operasi hilang = major,
+#       operasi baru = minor, selain itu patch). Judul PR menjadi catatan CHANGELOG.
+#     - Tidak dirilis bila PR berlabel rilis:tidak atau isi paket (php/, node/src, openapi.json, composer.json)
+#       tidak berubah sejak rilis terakhir, mis. hanya README atau workflow.
+#     Lalu: uji, tag, npm, GitHub Release, dan tanggal rilis di CHANGELOG.
+#  2. Tombol: Actions > Rilis > Run workflow, pilih patch/minor/major. Versi dinaikkan di semua berkas,
+#     di-commit ke main, lalu dirilis.
+#  3. Manual lama: git tag vX.Y.Z && git push origin vX.Y.Z (versi berkas harus sama dengan tag).
+#
+# Butuh secret NPM_TOKEN (token "Automation" npmjs.com). Packagist membaca tag sendiri lewat webhook GitHub.
 name: Rilis
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      naikkan:
+        description: Naikkan versi sebelum rilis
+        type: choice
+        options: [patch, minor, major, tetap]
+        default: patch
 
 permissions:
   contents: write
+  pull-requests: read
+
+concurrency:
+  group: rilis
+  cancel-in-progress: false
 
 jobs:
   rilis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - name: Versi tag, package.json, version.ts, dan Siakad::VERSION sama
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Naikkan versi (tombol)
+        if: github.event_name == 'workflow_dispatch' && inputs.naikkan != 'tetap'
         run: |
-          VERSI="${GITHUB_REF_NAME#v}"
-          NPM="$(node -p "require('./node/package.json').version")"
-          TS="$(grep -oP "VERSION = '\K[^']+" node/src/version.ts)"
-          PHP="$(grep -oP "VERSION = '\K[^']+" php/src/Siakad.php)"
-          echo "tag=$VERSI npm=$NPM ts=$TS php=$PHP"
-          [ "$VERSI" = "$NPM" ] && [ "$VERSI" = "$TS" ] && [ "$VERSI" = "$PHP" ] || { echo "::error::Versi tidak sama"; exit 1; }
+          [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "::error::Jalankan dari branch main"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BARU="$(node generator/versi.mjs '${{ inputs.naikkan }}')"
+          git commit -am "Versi $BARU"
+          git push origin HEAD:main
+
+      - name: Naikkan versi otomatis (merge PR)
+        id: otomatis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SEKARANG="$(node generator/versi.mjs)"
+          if ! git rev-parse -q --verify "refs/tags/v$SEKARANG" >/dev/null; then
+            echo "Versi $SEKARANG di berkas belum dirilis; dirilis apa adanya."; exit 0
+          fi
+          # PR asal commit ini: judul dan label menentukan catatan dan jenis kenaikan.
+          gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" > /tmp/pr.json || echo '[]' > /tmp/pr.json
+          JUDUL="$(node -p "const p=require('/tmp/pr.json')[0]; p ? p.title + ' (#' + p.number + ')' : ''")"
+          LABEL="$(node -p "const p=require('/tmp/pr.json')[0]; (p?.labels??[]).map(l=>l.name).join(' ')")"
+          [ -n "$JUDUL" ] || JUDUL="$(git log -1 --format=%s)"
+          case " $LABEL " in *" rilis:tidak "*) echo "Label rilis:tidak; tidak dirilis."; exit 0;; esac
+          # Hanya rilis bila isi paket berubah sejak rilis terakhir (bukan sekadar README/workflow).
+          if git diff --quiet "v$SEKARANG" HEAD -- php node/src node/package.json composer.json openapi.json; then
+            echo "Isi paket tidak berubah sejak v$SEKARANG; tidak dirilis."; exit 0
+          fi
+          JENIS=""
+          case " $LABEL " in *" rilis:major "*) JENIS=major;; *" rilis:minor "*) JENIS=minor;; *" rilis:patch "*) JENIS=patch;; esac
+          if [ -z "$JENIS" ]; then
+            # Otomatis dari OpenAPI: operasi hilang = major, operasi baru = minor, selain itu patch.
+            git show "v$SEKARANG:openapi.json" > /tmp/lama.json 2>/dev/null || echo '{"paths":{}}' > /tmp/lama.json
+            JENIS="$(node -e '
+              const fs=require("fs");
+              const ops=(f)=>{const d=JSON.parse(fs.readFileSync(f,"utf8"));const r=new Set();for(const [p,o] of Object.entries(d.paths||{}))for(const [m,x] of Object.entries(o))if(x&&typeof x==="object")r.add(x.operationId??m+" "+p);return r;};
+              const a=ops("/tmp/lama.json"), b=ops("openapi.json");
+              const hilang=[...a].some(k=>!b.has(k)), baru=[...b].some(k=>!a.has(k));
+              console.log(hilang?"major":baru?"minor":"patch");
+            ')"
+          fi
+          BARU="$(node generator/versi.mjs "$JENIS" --catatan "$JUDUL")"
+          node generator/versi.mjs --tanggal "$(TZ=Asia/Makassar date +%F)" > /dev/null
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Versi $BARU [skip ci]"
+          git push origin HEAD:main
+          echo "Versi dinaikkan $SEKARANG -> $BARU ($JENIS)."
+
+      - name: Tentukan versi
+        id: versi
+        run: |
+          VERSI="$(node generator/versi.mjs)"
+          echo "versi=$VERSI" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            [ "${GITHUB_REF_NAME#v}" = "$VERSI" ] || { echo "::error::Tag $GITHUB_REF_NAME tidak sama dengan versi berkas $VERSI"; exit 1; }
+            echo "rilis=1" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify "refs/tags/v$VERSI" >/dev/null; then
+            echo "Versi $VERSI sudah dirilis; tidak ada yang dilakukan."
+            echo "rilis=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "rilis=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Kode hasil generator sesuai openapi.json
+        if: steps.versi.outputs.rilis == '1'
+        run: node generator/generate.mjs && git diff --exit-code -- php node/src
+
+      - name: Uji PHP
+        if: steps.versi.outputs.rilis == '1'
+        run: composer update --no-interaction --no-progress --prefer-dist && vendor/bin/phpunit
+
       - name: Uji dan bangun paket npm
+        if: steps.versi.outputs.rilis == '1'
         working-directory: node
         run: npm install --no-audit --no-fund && npm run typecheck && npm run build && npm test
+
+      - name: Buat tag
+        if: steps.versi.outputs.rilis == '1' && github.ref_type != 'tag'
+        run: |
+          git tag "v${{ steps.versi.outputs.versi }}"
+          git push origin "v${{ steps.versi.outputs.versi }}"
+
       - name: Terbitkan ke npm
+        if: steps.versi.outputs.rilis == '1'
         working-directory: node
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::warning::Secret NPM_TOKEN belum diisi; npm dilewati."; exit 0; fi
+          NAMA="$(node -p "require('./package.json').name")"
+          if npm view "$NAMA@${{ steps.versi.outputs.versi }}" version >/dev/null 2>&1; then
+            echo "$NAMA@${{ steps.versi.outputs.versi }} sudah ada di npm; dilewati."; exit 0
+          fi
           npm publish --access public
+
       - name: GitHub Release
+        if: steps.versi.outputs.rilis == '1'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Lihat CHANGELOG.md." --verify-tag
+        run: |
+          TAG="v${{ steps.versi.outputs.versi }}"
+          node generator/versi.mjs --catatan-rilis > /tmp/catatan.md
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --notes-file /tmp/catatan.md --verify-tag
+
+      - name: Tandai tanggal rilis di CHANGELOG
+        if: steps.versi.outputs.rilis == '1' && github.ref_type != 'tag'
+        continue-on-error: true
+        run: |
+          node generator/versi.mjs --tanggal "$(TZ=Asia/Makassar date +%F)"
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "CHANGELOG: tanggal rilis v${{ steps.versi.outputs.versi }} [skip ci]"
+          git push origin HEAD:main

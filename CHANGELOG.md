@@ -8,7 +8,11 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
   `akademik`, `keuangan`, `kelulusan`, `edom`, `admisi`, `crm`, `rpl`, `pddikti`, `perpustakaan`, `iku`, `master`, `kelengkapan`, serta
   metode baru di `integrasi` (e-Sign BSrE, AI), `sdm` (PAK, honor), `lppm` (kolaborasi, publikasi), `karier` (mitra), dan `cbt`
   (kirim nilai ke SIAKAD). Tidak ada metode yang dihapus.
-- Workflow `perbarui-spec.yml`: setiap hari mengambil OpenAPI SIAKAD dan membuka PR bila ada endpoint baru.
+- Workflow `perbarui-spec.yml`: setiap hari mengambil OpenAPI SIAKAD dan membuka PR bila ada endpoint baru, sekaligus
+  menaikkan versi dan menulis CHANGELOG.
+- Rilis otomatis setiap merge PR ke `main`: versi naik sendiri (label `rilis:*` atau ditebak dari OpenAPI), lalu tag,
+  npm, dan GitHub Release; Packagist dari tag.
+  Tombol Actions > Rilis untuk menaikkan versi lalu merilis. Skrip `generator/versi.mjs` untuk menaikkan versi.
 - `pmb.getInfoPerguruanTinggi({ q })` / `$siakad->pmb()->getInfoPerguruanTinggi(['q' => ...])`: cari perguruan tinggi asal
   dari referensi SIAKAD (`GET /v1/pmb/info/perguruan-tinggi`, publik). Butuh SIAKAD yang sudah memuat endpoint ini.
 

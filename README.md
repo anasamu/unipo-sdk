@@ -69,7 +69,8 @@ node generator/generate.mjs
 Workflow **Perbarui spesifikasi API** (`.github/workflows/perbarui-spec.yml`) menjalankan langkah di atas setiap hari dan
 membuka PR `otomatis/perbarui-spec` bila ada perubahan (sumber: variabel repo `SIAKAD_OPENAPI_URL`, bawaan
 `https://api.unipo.ac.id/v1/openapi.json`). Aktifkan "Allow GitHub Actions to create and approve pull requests" di
-Settings > Actions. Rilis tetap manual lewat tag.
+Settings > Actions. PR itu sekaligus menaikkan versi (minor, atau mayor bila ada operasi yang hilang) dan menulis
+CHANGELOG, jadi setelah di-merge versi barunya langsung dirilis otomatis (lihat Rilis).
 
 CI gagal bila kode hasil generator tidak sesuai `openapi.json`. Nama metode diturunkan dari `operationId`; menghapus
 atau mengganti path endpoint berarti menghapus metode, jadi naikkan versi mayor.
@@ -87,15 +88,29 @@ php php/tests/integrasi.php
 
 ## Rilis
 
-Versi PHP dan Node.js selalu sama. Naikkan versi di `node/package.json`, `node/src/version.ts`, dan
-`Siakad::VERSION` (`php/src/Siakad.php`), tulis `CHANGELOG.md`, lalu:
+Rilis berjalan otomatis lewat `.github/workflows/rilis.yml`. Versi PHP dan Node.js selalu sama.
+
+- **Otomatis setiap merge PR ke `main`.** Versi dinaikkan sendiri lalu dirilis: diuji (generator, PHPUnit, paket npm),
+  diberi tag, diterbitkan ke npm, dan dibuatkan GitHub Release. Packagist membaca tag itu sendiri. Judul PR menjadi
+  catatan di CHANGELOG.
+  - Jenis kenaikan: label PR `rilis:major`, `rilis:minor`, atau `rilis:patch`. Tanpa label, ditebak dari
+    `openapi.json`: ada operasi hilang = major, ada operasi baru = minor, selain itu patch.
+  - Bila PR sudah menaikkan versi sendiri (mis. PR otomatis dari perbarui-spec), versi itu yang dirilis.
+  - Tidak dirilis bila PR berlabel `rilis:tidak`, atau isi paket (`php/`, `node/src`, `openapi.json`,
+    `composer.json`) tidak berubah sejak rilis terakhir, mis. hanya README atau workflow.
+- **Tombol.** Actions > Rilis > Run workflow, pilih `patch`, `minor`, atau `major`. Versi dinaikkan di semua berkas,
+  di-commit ke `main`, lalu dirilis.
+- **Naikkan versi di PR.** Jalankan skrip ini agar semua berkas versi dan CHANGELOG berubah bersamaan:
 
 ```bash
-git tag v1.0.1 && git push origin v1.0.1
+node generator/versi.mjs minor --catatan "Metode baru ..."   # patch | minor | major | X.Y.Z | tetap
+node generator/versi.mjs                                       # tampilkan versi sekarang
 ```
 
-Workflow `rilis.yml` memeriksa versi, menerbitkan ke npm (bila secret `NPM_TOKEN` ada), dan membuat GitHub Release.
-Packagist membaca tag itu sendiri.
+Cara lama tetap bisa: `git tag vX.Y.Z && git push origin vX.Y.Z` (versi berkas harus sama dengan tag).
+
+Bila `main` dilindungi aturan branch, izinkan GitHub Actions mem-push ke `main`: kenaikan versi otomatis di-commit
+ke `main` sebelum diberi tag.
 
 ### Persiapan sekali
 
