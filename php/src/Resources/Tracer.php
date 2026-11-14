@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir
+ * Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi
  */
 final class Tracer extends Resource
 {
@@ -1458,5 +1458,101 @@ final class Tracer extends Resource
     public function getReferensiWilayah(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/tracer/referensi/wilayah', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar publikasi hasil
+     *
+     * Tanpa token: hanya yang terbit. Token dengan tracer:manage melihat draf juga.
+     *
+     * `GET /v1/tracer/publikasi`
+     *
+     * publik (tanpa token)
+     *
+     * @param array{tahun?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPublikasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/publikasi', [], $query, null, $options, false, true);
+    }
+
+    /**
+     * Buat publikasi
+     *
+     * Body {"periode_id", "judul", "ringkasan"?, "tampil_per_prodi"?, "tampil_pertanyaan"?, "min_responden"? (bawaan 5), "terbit"?}. Satu publikasi per periode; periode draf ditolak.
+     *
+     * `POST /v1/tracer/publikasi`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPublikasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/publikasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hasil tracer yang dipublikasikan
+     *
+     * Rekap agregat periode (tingkat respons, indikator lulusan: status, waktu tunggu, pendapatan, keselarasan, kompetensi, IKU 1, dan sebaran jawaban) tanpa data pribadi. Bagian dengan responden selesai < min_responden disembunyikan. prodi=<kode> untuk hasil satu prodi bila tampil_per_prodi.
+     *
+     * `GET /v1/tracer/publikasi/{id}`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID publikasi
+     * @param array{prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPublikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/publikasi/{id}', ['id' => $id], $query, null, $options, false, true);
+    }
+
+    /**
+     * Ubah / terbitkan publikasi
+     *
+     * Kirim field yang diubah saja; terbit=true menerbitkan, false menarik kembali.
+     *
+     * `PUT /v1/tracer/publikasi/{id}`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID publikasi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putPublikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/tracer/publikasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus publikasi
+     *
+     * `DELETE /v1/tracer/publikasi/{id}`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID publikasi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deletePublikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/tracer/publikasi/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 }

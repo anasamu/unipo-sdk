@@ -636,6 +636,385 @@ export type Keuangan = {
   [key: string]: any;
 };
 
+export type PusatBerkas = {
+  uuid?: string;
+  jenis?: string;
+  nama?: string;
+  mime?: string;
+  ukuran?: number;
+  sha256?: string;
+  keterangan?: string | null;
+  diunggah_oleh?: string;
+  created_at?: string;
+  [key: string]: any;
+};
+
+export type PusatBerkasInput = {
+  berkas?: Uploadable;
+  /** Mis. lampiran, bukti, laporan */
+  jenis?: string;
+  keterangan?: string;
+  /** Alternatif JSON */
+  berkas_base64?: string;
+  nama_file?: string;
+  [key: string]: any;
+};
+
+/** Persyaratan penerimaan prodi (tabel adm_prodi_syarat) */
+export type AdmisiProdiSyarat = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  jalur_masuk?: string;
+  judul?: string;
+  uraian?: string;
+  /** Nilai JSON apa pun */
+  jurusan_sma?: any;
+  nilai_rapor_min?: number;
+  tes_kesehatan?: boolean;
+  tes_buta_warna?: boolean;
+  urutan?: number;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiProdiSyaratInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi: string;
+  jalur_masuk?: string;
+  judul: string;
+  uraian?: string;
+  /** Nilai JSON apa pun */
+  jurusan_sma?: any;
+  nilai_rapor_min?: number;
+  tes_kesehatan?: boolean;
+  tes_buta_warna?: boolean;
+  urutan?: number;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Petugas sesi tes (tabel adm_petugas_sesi) */
+export type AdmisiPetugasSesi = {
+  id?: number;
+  sesi_id?: number;
+  /** user.username */
+  username?: string;
+  nama?: string;
+  peran?: "pengawas" | "penguji" | "pewawancara" | "operator";
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiPetugasSesiInput = {
+  sesi_id: number;
+  /** user.username */
+  username: string;
+  nama?: string;
+  peran?: "pengawas" | "penguji" | "pewawancara" | "operator";
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Letter of Acceptance (tabel adm_loa) */
+export type AdmisiLoa = {
+  id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pmb_pendaftaran_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  no_pmb?: string;
+  /** (hanya baca) Hanya dibaca. */
+  id_pilihan?: number;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nomor?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tanggal?: string;
+  batas_daftar_ulang?: string;
+  /** (hanya baca) Hanya dibaca. */
+  isi?: JsonObject;
+  /** (hanya baca) Hanya dibaca. */
+  kode_verifikasi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "terbit" | "batal";
+  /** (hanya baca) Hanya dibaca. */
+  alasan_batal?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiLoaInput = {
+  batas_daftar_ulang?: string;
+  [key: string]: any;
+};
+
+export type AdmisiLoaBatalInput = {
+  alasan: string;
+  [key: string]: any;
+};
+
+/** KIP Kuliah (tabel adm_kip) */
+export type AdmisiKip = {
+  id?: number;
+  pmb_pendaftaran_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  no_pmb?: string;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  nama?: string;
+  nik?: string;
+  nisn?: string;
+  /** (unik) */
+  no_pendaftaran_kip?: string;
+  nomor_kip?: string;
+  punya_kks_pkh?: boolean;
+  penghasilan_ortu?: number;
+  jumlah_tanggungan?: number;
+  skema?: "kip_kuliah" | "kip_kuliah_merdeka" | "afirmasi" | "lainnya";
+  /** m_tahun.tahun_id */
+  angkatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "diverifikasi" | "diusulkan" | "ditetapkan" | "ditolak" | "dicabut";
+  /** (hanya baca) Hanya dibaca. */
+  nomor_sk?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiKipInput = {
+  pmb_pendaftaran_id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  nama: string;
+  nik?: string;
+  nisn?: string;
+  /** (unik) */
+  no_pendaftaran_kip?: string;
+  nomor_kip?: string;
+  punya_kks_pkh?: boolean;
+  penghasilan_ortu?: number;
+  jumlah_tanggungan?: number;
+  skema?: "kip_kuliah" | "kip_kuliah_merdeka" | "afirmasi" | "lainnya";
+  /** m_tahun.tahun_id */
+  angkatan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiKipVerifikasiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiKipUsulkanInput = {
+  no_pendaftaran_kip?: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiKipTetapkanInput = {
+  nomor_sk: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiKipTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type AdmisiKipCabutInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** UKT pendaftar (tabel adm_ukt) */
+export type AdmisiUkt = {
+  id?: number;
+  /** (unik) */
+  pmb_pendaftaran_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  no_pmb?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  /** m_mahasiswa.NIM (hanya baca) Hanya dibaca. */
+  nim?: string;
+  penghasilan_ayah?: number;
+  penghasilan_ibu?: number;
+  penghasilan_wali?: number;
+  jumlah_tanggungan?: number;
+  pekerjaan_ayah?: string;
+  pekerjaan_ibu?: string;
+  daya_listrik?: number;
+  kepemilikan_rumah?: "milik_sendiri" | "sewa" | "menumpang" | "dinas" | "lainnya";
+  /** (hanya baca) Hanya dibaca. */
+  penghasilan_per_kapita?: number;
+  /** (hanya baca) Hanya dibaca. */
+  kelompok_usulan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kelompok?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "ditetapkan" | "banding" | "diterapkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiUktInput = {
+  /** (unik) */
+  pmb_pendaftaran_id: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  penghasilan_ayah?: number;
+  penghasilan_ibu?: number;
+  penghasilan_wali?: number;
+  jumlah_tanggungan?: number;
+  pekerjaan_ayah?: string;
+  pekerjaan_ibu?: string;
+  daya_listrik?: number;
+  kepemilikan_rumah?: "milik_sendiri" | "sewa" | "menumpang" | "dinas" | "lainnya";
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiUktTetapkanInput = {
+  kelompok?: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AdmisiUktBandingInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Aturan usulan kelompok UKT (tabel adm_ukt_aturan) */
+export type AdmisiUktAturan = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  per_kapita_min?: number;
+  per_kapita_maks?: number;
+  kelompok?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiUktAturanInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  per_kapita_min?: number;
+  per_kapita_maks?: number;
+  kelompok: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Format NIM (tabel adm_format_nim) */
+export type AdmisiFormatNim = {
+  id?: number;
+  /** m_program_studi.kode_prodi (unik) */
+  kode_prodi?: string;
+  pola?: string;
+  mulai?: number;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiFormatNimInput = {
+  /** m_program_studi.kode_prodi (unik) */
+  kode_prodi: string;
+  pola: string;
+  mulai?: number;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Pengajuan status akademik (tabel akd_pengajuan) */
+export type AkademikPengajuan = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  jenis?: "cuti" | "aktif_kembali" | "non_aktif" | "mengundurkan_diri" | "pindah_kelas" | "pindah_kampus" | "pindah_prodi";
+  tanggal_mulai?: string;
+  tanggal_akhir?: string;
+  tujuan?: string;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dibatalkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tercatat_siakad?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  hasil_siakad?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AkademikPengajuanInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  jenis: "cuti" | "aktif_kembali" | "non_aktif" | "mengundurkan_diri" | "pindah_kelas" | "pindah_kampus" | "pindah_prodi";
+  tanggal_mulai?: string;
+  tanggal_akhir?: string;
+  tujuan?: string;
+  alasan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AkademikPengajuanSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AkademikPengajuanTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
 export type ApiPortalPengajuan = {
   id?: number;
   uuid?: string;
@@ -1461,30 +1840,6 @@ export type ArsipPenyusutanInput = {
   [key: string]: any;
 };
 
-export type PusatBerkas = {
-  uuid?: string;
-  jenis?: string;
-  nama?: string;
-  mime?: string;
-  ukuran?: number;
-  sha256?: string;
-  keterangan?: string | null;
-  diunggah_oleh?: string;
-  created_at?: string;
-  [key: string]: any;
-};
-
-export type PusatBerkasInput = {
-  berkas?: Uploadable;
-  /** Mis. lampiran, bukti, laporan */
-  jenis?: string;
-  keterangan?: string;
-  /** Alternatif JSON */
-  berkas_base64?: string;
-  nama_file?: string;
-  [key: string]: any;
-};
-
 /** Ujian (tabel cbt_ujian) */
 export type CbtUjian = {
   id?: number;
@@ -1505,6 +1860,7 @@ export type CbtUjian = {
   nilai_lulus?: number;
   tampil_hasil?: boolean;
   kunci_perangkat?: boolean;
+  latihan?: boolean;
   petunjuk?: string;
   /** (hanya baca) Hanya dibaca. */
   status?: "draf" | "siap" | "selesai" | "diarsip";
@@ -1531,6 +1887,7 @@ export type CbtUjianInput = {
   nilai_lulus?: number;
   tampil_hasil?: boolean;
   kunci_perangkat?: boolean;
+  latihan?: boolean;
   petunjuk?: string;
   [key: string]: any;
 };
@@ -1679,6 +2036,185 @@ export type CbtPesertaDiskualifikasiInput = {
 export type CbtPesertaBukaKembaliInput = {
   /** ID di cbt_sesi */
   sesi_id?: number;
+  [key: string]: any;
+};
+
+/** Prospek calon mahasiswa (tabel crm_prospek) */
+export type CrmProspek = {
+  id?: number;
+  nama?: string;
+  email?: string;
+  hp?: string;
+  asal_sekolah?: string;
+  npsn?: string;
+  kota?: string;
+  provinsi?: string;
+  tahun_lulus?: number;
+  /** m_program_studi.kode_prodi */
+  minat_prodi?: string;
+  /** m_program_studi.kode_prodi */
+  minat_prodi_2?: string;
+  minat_jalur?: string;
+  sumber?: "website" | "media_sosial" | "brosur" | "pameran" | "sekolah" | "teman_keluarga" | "alumni" | "iklan" | "maukuliah" | "referal" | "lainnya";
+  kampanye?: string;
+  /** ID di pmb_referal */
+  referal_id?: number;
+  tahap?: "baru" | "dihubungi" | "tertarik" | "mendaftar" | "diajukan" | "diterima" | "daftar_ulang" | "tidak_tertarik";
+  /** (hanya baca) Hanya dibaca. */
+  skor?: number;
+  /** user.username */
+  petugas?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tindak_lanjut_berikut?: string;
+  /** (hanya baca) Hanya dibaca. */
+  pmb_akun_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pmb_pendaftaran_id?: number;
+  /** Nilai JSON apa pun */
+  label?: any;
+  setuju_dihubungi?: boolean;
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type CrmProspekInput = {
+  nama: string;
+  email?: string;
+  hp?: string;
+  asal_sekolah?: string;
+  npsn?: string;
+  kota?: string;
+  provinsi?: string;
+  tahun_lulus?: number;
+  /** m_program_studi.kode_prodi */
+  minat_prodi?: string;
+  /** m_program_studi.kode_prodi */
+  minat_prodi_2?: string;
+  minat_jalur?: string;
+  sumber?: "website" | "media_sosial" | "brosur" | "pameran" | "sekolah" | "teman_keluarga" | "alumni" | "iklan" | "maukuliah" | "referal" | "lainnya";
+  kampanye?: string;
+  /** ID di pmb_referal */
+  referal_id?: number;
+  tahap?: "baru" | "dihubungi" | "tertarik" | "mendaftar" | "diajukan" | "diterima" | "daftar_ulang" | "tidak_tertarik";
+  /** user.username */
+  petugas?: string;
+  /** Nilai JSON apa pun */
+  label?: any;
+  setuju_dihubungi?: boolean;
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Riwayat interaksi prospek (tabel crm_interaksi) */
+export type CrmInteraksi = {
+  id?: number;
+  /** ID di crm_prospek */
+  prospek_id?: number;
+  kanal?: "telepon" | "whatsapp" | "email" | "sms" | "tatap_muka" | "pameran" | "media_sosial" | "chat" | "lainnya";
+  arah?: "masuk" | "keluar";
+  waktu?: string;
+  ringkasan?: string;
+  hasil?: "tidak_terhubung" | "tertarik" | "pikir_pikir" | "tidak_tertarik" | "minta_info" | "akan_daftar" | "sudah_daftar" | "lainnya";
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type CrmInteraksiInput = {
+  /** ID di crm_prospek */
+  prospek_id: number;
+  kanal: "telepon" | "whatsapp" | "email" | "sms" | "tatap_muka" | "pameran" | "media_sosial" | "chat" | "lainnya";
+  arah?: "masuk" | "keluar";
+  waktu?: string;
+  ringkasan: string;
+  hasil?: "tidak_terhubung" | "tertarik" | "pikir_pikir" | "tidak_tertarik" | "minta_info" | "akan_daftar" | "sudah_daftar" | "lainnya";
+  [key: string]: any;
+};
+
+/** Tindak lanjut prospek (tabel crm_tindak_lanjut) */
+export type CrmTindakLanjut = {
+  id?: number;
+  /** ID di crm_prospek */
+  prospek_id?: number;
+  jadwal?: string;
+  kanal?: "telepon" | "whatsapp" | "email" | "sms" | "tatap_muka" | "lainnya";
+  tujuan?: string;
+  /** user.username */
+  petugas?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "terjadwal" | "selesai" | "batal";
+  /** (hanya baca) Hanya dibaca. */
+  hasil?: string;
+  /** (hanya baca) Hanya dibaca. */
+  selesai_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type CrmTindakLanjutInput = {
+  /** ID di crm_prospek */
+  prospek_id: number;
+  jadwal: string;
+  kanal?: "telepon" | "whatsapp" | "email" | "sms" | "tatap_muka" | "lainnya";
+  tujuan: string;
+  /** user.username */
+  petugas?: string;
+  [key: string]: any;
+};
+
+export type CrmTindakLanjutSelesaiInput = {
+  hasil: string;
+  hasil_interaksi?: "tidak_terhubung" | "tertarik" | "pikir_pikir" | "tidak_tertarik" | "minta_info" | "akan_daftar" | "sudah_daftar" | "lainnya";
+  [key: string]: any;
+};
+
+export type CrmTindakLanjutBatalInput = {
+  hasil?: string;
+  [key: string]: any;
+};
+
+/** Aturan lead scoring (tabel crm_skor_aturan) */
+export type CrmSkorAturan = {
+  id?: number;
+  kriteria?: "sumber" | "tahap" | "minat_prodi" | "minat_jalur" | "kota" | "tahun_lulus" | "ada_email" | "ada_hp" | "jumlah_interaksi" | "hasil_interaksi" | "punya_akun_pmb" | "label";
+  nilai?: string;
+  poin?: number;
+  keterangan?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type CrmSkorAturanInput = {
+  kriteria: "sumber" | "tahap" | "minat_prodi" | "minat_jalur" | "kota" | "tahun_lulus" | "ada_email" | "ada_hp" | "jumlah_interaksi" | "hasil_interaksi" | "punya_akun_pmb" | "label";
+  nilai?: string;
+  poin: number;
+  keterangan?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Segmen prospek (tabel crm_segmen) */
+export type CrmSegmen = {
+  id?: number;
+  nama?: string;
+  keterangan?: string;
+  kriteria?: JsonObject;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type CrmSegmenInput = {
+  nama: string;
+  keterangan?: string;
+  kriteria: JsonObject;
+  aktif?: boolean;
   [key: string]: any;
 };
 
@@ -1865,6 +2401,102 @@ export type HelpdeskTiketTolakInput = {
 export type HelpdeskTiketTutupInput = {
   rating?: number;
   ulasan?: string;
+  [key: string]: any;
+};
+
+/** Indikator IKU (tabel iku_indikator) */
+export type IkuIndikator = {
+  id?: number;
+  /** (unik) */
+  kode?: string;
+  nama?: string;
+  deskripsi?: string;
+  satuan?: "persen" | "rasio" | "angka";
+  metode?: "iku1_tracer" | "iku2_luar_kampus" | "iku3_dosen_luar" | "iku4_kualifikasi" | "iku5_luaran" | "iku6_kerjasama" | "iku7_kelas" | "iku8_internasional" | "manual";
+  parameter?: JsonObject;
+  dasar_hukum?: string;
+  per_prodi?: boolean;
+  aktif?: boolean;
+  urut?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type IkuIndikatorInput = {
+  /** (unik) */
+  kode: string;
+  nama: string;
+  deskripsi?: string;
+  satuan?: "persen" | "rasio" | "angka";
+  metode?: "iku1_tracer" | "iku2_luar_kampus" | "iku3_dosen_luar" | "iku4_kualifikasi" | "iku5_luaran" | "iku6_kerjasama" | "iku7_kelas" | "iku8_internasional" | "manual";
+  parameter?: JsonObject;
+  dasar_hukum?: string;
+  per_prodi?: boolean;
+  aktif?: boolean;
+  urut?: number;
+  [key: string]: any;
+};
+
+/** Target IKU (tabel iku_target) */
+export type IkuTarget = {
+  id?: number;
+  /** ID di iku_indikator */
+  indikator_id?: number;
+  tahun?: number;
+  kode_prodi?: string;
+  target?: number;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type IkuTargetInput = {
+  /** ID di iku_indikator */
+  indikator_id: number;
+  tahun: number;
+  kode_prodi?: string;
+  target: number;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Bukti capaian IKU (tabel iku_bukti) */
+export type IkuBukti = {
+  id?: number;
+  /** ID di iku_indikator */
+  indikator_id?: number;
+  tahun?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  jenis_subjek?: "dosen" | "mahasiswa" | "prodi" | "mata_kuliah" | "luaran";
+  subjek?: string;
+  nama?: string;
+  kategori?: string;
+  keterangan?: string;
+  tautan?: string;
+  status?: "diajukan" | "disetujui" | "ditolak";
+  catatan_verifikasi?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type IkuBuktiInput = {
+  /** ID di iku_indikator */
+  indikator_id: number;
+  tahun: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  jenis_subjek: "dosen" | "mahasiswa" | "prodi" | "mata_kuliah" | "luaran";
+  subjek: string;
+  nama?: string;
+  kategori?: string;
+  keterangan?: string;
+  tautan?: string;
+  status?: "diajukan" | "disetujui" | "ditolak";
+  catatan_verifikasi?: string;
   [key: string]: any;
 };
 
@@ -2283,6 +2915,20 @@ export type IntegrasiStatus = {
     driver?: string | null;
     [key: string]: any;
   };
+  esign?: {
+    aktif?: boolean;
+    penyedia?: string | null;
+    /** Contoh: `bsre` */
+    driver?: string | null;
+    [key: string]: any;
+  };
+  ai?: {
+    aktif?: boolean;
+    penyedia?: string | null;
+    /** Contoh: `anthropic` */
+    driver?: string | null;
+    [key: string]: any;
+  };
   [key: string]: any;
 };
 
@@ -2581,6 +3227,176 @@ export type IntegrasiRapat = {
   [key: string]: any;
 };
 
+export type IntegrasiEsignInput = {
+  /** NIK 16 digit pemilik sertifikat BSrE (tidak disimpan) */
+  nik: string | null;
+  /** Passphrase sertifikat (tidak disimpan) */
+  passphrase: string | null;
+  /** UUID berkas /v1/integrasi/berkas */
+  berkas_id?: string | null;
+  /** Alternatif: isi PDF base64 */
+  file_base64?: string | null;
+  /** Contoh: `Surat Keputusan Rektor No. 12/2026` */
+  judul?: string | null;
+  tampilan?: {
+    /** invisible (bawaan) atau visible Contoh: `visible` */
+    jenis?: string | null;
+    /** Nomor halaman (v1 juga FIRST/LAST) Contoh: `1` */
+    halaman?: number | null;
+    /** Posisi X (point) */
+    x?: number | null;
+    /** Posisi Y (point) */
+    y?: number | null;
+    lebar?: number | null;
+    tinggi?: number | null;
+    /** Teks penanda posisi, mis. #ttd# */
+    tag?: string | null;
+    /** PNG base64 spesimen tanda tangan */
+    gambar?: string | null;
+    alasan?: string | null;
+    lokasi?: string | null;
+    /** v1: URL di QR */
+    tautan_qr?: string | null;
+    [key: string]: any;
+  };
+  /** Kode penyedia esign (kosong = utama) */
+  penyedia?: string | null;
+  /** Kode penyimpanan hasil (kosong = utama) */
+  penyimpanan?: string | null;
+  /** false = tidak disimpan sebagai berkas (hasil hanya pdf_base64) */
+  simpan?: boolean;
+  /** true = sertakan pdf_base64 */
+  kembalikan_pdf?: boolean;
+  /** Contoh: `arsip` */
+  modul?: string | null;
+  referensi?: string | null;
+  [key: string]: any;
+};
+
+export type IntegrasiEsign = {
+  /** UUID */
+  id?: string | null;
+  /** tanda_tangan / verifikasi */
+  jenis?: string | null;
+  /** Contoh: `bsre` */
+  driver?: string | null;
+  judul?: string | null;
+  /** berhasil / gagal */
+  status?: string | null;
+  galat?: string | null;
+  /** Disamarkan, mis. ************1234 */
+  nik?: string | null;
+  /** Username yang menandatangani */
+  penanda?: string | null;
+  /** UUID berkas sumber */
+  berkas_asal?: string | null;
+  /** UUID berkas PDF bertanda tangan */
+  berkas_hasil?: string | null;
+  sha256_asal?: string | null;
+  sha256_hasil?: string | null;
+  /** ID dokumen di BSrE */
+  id_dokumen?: string | null;
+  modul?: string | null;
+  referensi?: string | null;
+  waktu?: string | null;
+  berkas?: JsonObject;
+  /** Bila kembalikan_pdf atau simpan=false */
+  pdf_base64?: string | null;
+  [key: string]: any;
+};
+
+export type IntegrasiEsignVerifikasiInput = {
+  /** UUID berkas */
+  berkas_id?: string | null;
+  /** Alternatif: isi PDF base64 */
+  file_base64?: string | null;
+  judul?: string | null;
+  penyedia?: string | null;
+  modul?: string | null;
+  referensi?: string | null;
+  [key: string]: any;
+};
+
+export type IntegrasiEsignVerifikasi = {
+  valid?: boolean;
+  /** VALID / WARNING / INVALID / NO_SIGNATURE */
+  kesimpulan?: string | null;
+  penanda?: Array<{
+    nama?: string | null;
+    penerbit?: string | null;
+    waktu?: string | null;
+    alasan?: string | null;
+    lokasi?: string | null;
+    sertifikat_valid?: boolean;
+    dokumen_utuh?: boolean;
+    [key: string]: any;
+  }>;
+  sha256?: string | null;
+  ditandatangani_lewat_siakad?: {
+    id?: string | null;
+    judul?: string | null;
+    penanda?: string | null;
+    waktu?: string | null;
+    [key: string]: any;
+  };
+  data?: JsonObject;
+  [key: string]: any;
+};
+
+export type IntegrasiEsignStatusInput = {
+  /** NIK 16 digit */
+  nik: string | null;
+  penyedia?: string | null;
+  [key: string]: any;
+};
+
+export type IntegrasiAiInput = {
+  /** Teks tunggal Contoh: `Ringkas pengumuman berikut dalam 3 poin: ...` */
+  prompt?: string | null;
+  /** Alternatif prompt: percakapan, diakhiri user */
+  pesan?: Array<{
+    /** user / assistant */
+    role?: string | null;
+    content?: string | null;
+    [key: string]: any;
+  }>;
+  /** Instruksi sistem tambahan, maks. 20.000 karakter Contoh: `Anda asisten akademik UNIPO. Jawab dalam bahasa Indonesia.` */
+  sistem?: string | null;
+  /** Dibatasi pengaturan penyedia Contoh: `2000` */
+  maks_token?: number | null;
+  /** Claude: low, medium, high, xhigh, max */
+  effort?: string | null;
+  /** Minta jawaban JSON (OpenAI/Gemini) */
+  json?: boolean;
+  /** Kode penyedia AI (kosong = utama) */
+  penyedia?: string | null;
+  /** Nama modul/aplikasi Anda Contoh: `lms` */
+  modul?: string | null;
+  [key: string]: any;
+};
+
+export type IntegrasiAiHasil = {
+  /** Jawaban model */
+  teks?: string | null;
+  /** true = ditolak pengaman model */
+  ditolak?: boolean;
+  keterangan?: string | null;
+  /** end_turn, max_tokens, refusal, stop, ... */
+  alasan_berhenti?: string | null;
+  /** Contoh: `claude-opus-5-5` */
+  model?: string | null;
+  penyedia?: string | null;
+  driver?: string | null;
+  token?: {
+    masuk?: number | null;
+    keluar?: number | null;
+    [key: string]: any;
+  };
+  /** Durasi */
+  ms?: number | null;
+  [key: string]: any;
+};
+
 /** Kegiatan kalender (tabel kalender_kegiatan) */
 export type KalenderKegiatan = {
   id?: number;
@@ -2820,6 +3636,437 @@ export type KarierPesertaInput = {
 
 export type KarierPesertaHadirInput = {
   sertifikat_nomor?: string;
+  [key: string]: any;
+};
+
+/** Perusahaan mitra (tabel karier_mitra) */
+export type KarierMitra = {
+  id?: number;
+  /** ID di tracer_instansi (unik) */
+  instansi_id?: number;
+  /** ID di kerjasama_mitra */
+  kerjasama_mitra_id?: number;
+  status?: "calon" | "diundang" | "aktif" | "nonaktif";
+  kategori?: "biasa" | "prioritas" | "strategis";
+  bidang_rekrutmen?: string;
+  prodi_sasaran?: string;
+  pic_nama?: string;
+  pic_jabatan?: string;
+  pic_email?: string;
+  pic_hp?: string;
+  terakhir_kontak?: string;
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KarierMitraInput = {
+  /** ID di tracer_instansi (unik) */
+  instansi_id: number;
+  /** ID di kerjasama_mitra */
+  kerjasama_mitra_id?: number;
+  status?: "calon" | "diundang" | "aktif" | "nonaktif";
+  kategori?: "biasa" | "prioritas" | "strategis";
+  bidang_rekrutmen?: string;
+  prodi_sasaran?: string;
+  pic_nama?: string;
+  pic_jabatan?: string;
+  pic_email?: string;
+  pic_hp?: string;
+  terakhir_kontak?: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Interaksi dengan mitra (tabel karier_interaksi) */
+export type KarierInteraksi = {
+  id?: number;
+  /** ID di karier_mitra */
+  mitra_id?: number;
+  jenis?: "kunjungan" | "rapat" | "email" | "telepon" | "pameran" | "mou" | "rekrutmen" | "magang" | "lainnya";
+  tanggal?: string;
+  ringkasan?: string;
+  tindak_lanjut?: string;
+  tenggat?: string;
+  status?: "terbuka" | "selesai";
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KarierInteraksiInput = {
+  /** ID di karier_mitra */
+  mitra_id: number;
+  jenis?: "kunjungan" | "rapat" | "email" | "telepon" | "pameran" | "mou" | "rekrutmen" | "magang" | "lainnya";
+  tanggal: string;
+  ringkasan: string;
+  tindak_lanjut?: string;
+  tenggat?: string;
+  status?: "terbuka" | "selesai";
+  [key: string]: any;
+};
+
+/** Tips dan artikel karier (tabel karier_artikel) */
+export type KarierArtikel = {
+  id?: number;
+  judul?: string;
+  /** (unik) */
+  slug?: string;
+  kategori?: "cv_lamaran" | "wawancara" | "pengembangan_diri" | "dunia_kerja" | "wirausaha" | "studi_lanjut" | "lainnya";
+  ringkasan?: string;
+  isi?: string;
+  penulis?: string;
+  tag?: string;
+  status?: "draf" | "terbit";
+  /** (hanya baca) Hanya dibaca. */
+  terbit_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dibaca?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KarierArtikelInput = {
+  judul: string;
+  /** (unik) */
+  slug?: string;
+  kategori?: "cv_lamaran" | "wawancara" | "pengembangan_diri" | "dunia_kerja" | "wirausaha" | "studi_lanjut" | "lainnya";
+  ringkasan?: string;
+  isi: string;
+  penulis?: string;
+  tag?: string;
+  status?: "draf" | "terbit";
+  [key: string]: any;
+};
+
+/** Rekomendasi lulusan (tabel karier_rekomendasi) */
+export type KarierRekomendasi = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** ID di tracer_lowongan */
+  lowongan_id?: number;
+  /** ID di karier_mitra */
+  mitra_id?: number;
+  skor?: number;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diusulkan" | "dikirim" | "diminati" | "ditolak" | "direkrut";
+  /** (hanya baca) Hanya dibaca. */
+  tanggapan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KarierRekomendasiInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** ID di tracer_lowongan */
+  lowongan_id?: number;
+  /** ID di karier_mitra */
+  mitra_id?: number;
+  skor?: number;
+  alasan?: string;
+  [key: string]: any;
+};
+
+export type KarierRekomendasiKirimInput = {
+  tanggapan?: string;
+  [key: string]: any;
+};
+
+export type KarierRekomendasiDiminatiInput = {
+  tanggapan?: string;
+  [key: string]: any;
+};
+
+export type KarierRekomendasiTolakInput = {
+  tanggapan?: string;
+  [key: string]: any;
+};
+
+export type KarierRekomendasiDirekrutInput = {
+  tanggapan?: string;
+  [key: string]: any;
+};
+
+/** Syarat kelulusan tambahan (tabel kls_syarat) */
+export type KelulusanSyarat = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  untuk?: "yudisium" | "wisuda" | "keduanya";
+  kode?: string;
+  nama?: string;
+  keterangan?: string;
+  jenis?: "manual" | "unggah" | "poin_minimal" | "bebas_tunggakan" | "bebas_pustaka";
+  nilai_minimal?: number;
+  wajib?: boolean;
+  urutan?: number;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanSyaratInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  untuk?: "yudisium" | "wisuda" | "keduanya";
+  kode: string;
+  nama: string;
+  keterangan?: string;
+  jenis?: "manual" | "unggah" | "poin_minimal" | "bebas_tunggakan" | "bebas_pustaka";
+  nilai_minimal?: number;
+  wajib?: boolean;
+  urutan?: number;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Pemenuhan syarat mahasiswa (tabel kls_syarat_mhs) */
+export type KelulusanSyaratMahasiswa = {
+  id?: number;
+  /** ID di kls_syarat */
+  syarat_id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  keterangan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "terpenuhi" | "ditolak";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanSyaratMahasiswaInput = {
+  /** ID di kls_syarat */
+  syarat_id: number;
+  /** m_mahasiswa.NIM */
+  nim: string;
+  keterangan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSyaratMahasiswaTerpenuhiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSyaratMahasiswaTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Aturan poin kemahasiswaan (tabel kls_poin_aturan) */
+export type KelulusanPoinAturan = {
+  id?: number;
+  kategori?: "prestasi" | "organisasi" | "kepanitiaan" | "seminar" | "pengabdian" | "kewirausahaan" | "sertifikasi" | "lainnya";
+  tingkat?: "internal" | "lokal" | "wilayah" | "nasional" | "internasional";
+  peran?: string;
+  poin?: number;
+  keterangan?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanPoinAturanInput = {
+  kategori: "prestasi" | "organisasi" | "kepanitiaan" | "seminar" | "pengabdian" | "kewirausahaan" | "sertifikasi" | "lainnya";
+  tingkat?: "internal" | "lokal" | "wilayah" | "nasional" | "internasional";
+  peran?: string;
+  poin: number;
+  keterangan?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Kegiatan dan poin mahasiswa (tabel kls_poin) */
+export type KelulusanPoin = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kategori?: "prestasi" | "organisasi" | "kepanitiaan" | "seminar" | "pengabdian" | "kewirausahaan" | "sertifikasi" | "lainnya";
+  tingkat?: "internal" | "lokal" | "wilayah" | "nasional" | "internasional";
+  peran?: string;
+  nama_kegiatan?: string;
+  nama_kegiatan_en?: string;
+  penyelenggara?: string;
+  tanggal?: string;
+  /** (hanya pengelola) */
+  poin?: number;
+  tampil_skpi?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "diverifikasi" | "ditolak";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanPoinInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kategori: "prestasi" | "organisasi" | "kepanitiaan" | "seminar" | "pengabdian" | "kewirausahaan" | "sertifikasi" | "lainnya";
+  tingkat?: "internal" | "lokal" | "wilayah" | "nasional" | "internasional";
+  peran?: string;
+  nama_kegiatan: string;
+  nama_kegiatan_en?: string;
+  penyelenggara?: string;
+  tanggal?: string;
+  /** (hanya pengelola) */
+  poin?: number;
+  tampil_skpi?: boolean;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanPoinVerifikasiInput = {
+  poin?: number;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanPoinTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** SKPI (tabel kls_skpi) */
+export type KelulusanSkpi = {
+  id?: number;
+  /** m_mahasiswa.NIM (unik) */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nomor?: string;
+  capaian?: JsonObject;
+  informasi_tambahan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "draf" | "diajukan" | "disetujui" | "terbit" | "ditolak";
+  /** (hanya baca) Hanya dibaca. */
+  tanggal_terbit?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kode_verifikasi?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanSkpiInput = {
+  /** m_mahasiswa.NIM (unik) */
+  nim: string;
+  capaian?: JsonObject;
+  informasi_tambahan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSkpiSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSkpiTerbitkanInput = {
+  nomor?: string;
+  tanggal_terbit?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSkpiTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Sertifikat profesi dan kompetensi (tabel kls_sertifikat) */
+export type KelulusanSertifikat = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  jenis?: "profesi" | "kompetensi" | "keahlian" | "lainnya";
+  nama?: string;
+  nomor?: string;
+  /** (unik) */
+  nomor_pisn?: string;
+  penerbit?: string;
+  skema?: string;
+  tanggal_terbit?: string;
+  berlaku_sampai?: string;
+  tampil_skpi?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "diverifikasi" | "ditolak";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KelulusanSertifikatInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  jenis?: "profesi" | "kompetensi" | "keahlian" | "lainnya";
+  nama: string;
+  nomor?: string;
+  /** (unik) */
+  nomor_pisn?: string;
+  penerbit?: string;
+  skema?: string;
+  tanggal_terbit?: string;
+  berlaku_sampai?: string;
+  tampil_skpi?: boolean;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSertifikatVerifikasiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KelulusanSertifikatTolakInput = {
+  catatan: string;
   [key: string]: any;
 };
 
@@ -3778,6 +5025,482 @@ export type KeuVaInput = {
   berlaku_sampai?: string;
   [key: string]: any;
 };
+
+/** Periode pembayaran (tabel keu_mhs_periode) */
+export type KeuanganPeriode = {
+  id?: number;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_biaya?: string;
+  nama?: string;
+  mulai?: string;
+  jatuh_tempo?: string;
+  denda_jenis?: "tidak_ada" | "tetap" | "per_hari" | "persen";
+  denda_nilai?: number;
+  denda_maks?: number;
+  kode_biaya_denda?: string;
+  keterangan?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganPeriodeInput = {
+  /** m_tahun.tahun_id */
+  tahun_id: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_biaya?: string;
+  nama: string;
+  mulai: string;
+  jatuh_tempo: string;
+  denda_jenis?: "tidak_ada" | "tetap" | "per_hari" | "persen";
+  denda_nilai?: number;
+  denda_maks?: number;
+  kode_biaya_denda?: string;
+  keterangan?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Kelompok UKT (tabel keu_mhs_ukt_kelompok) */
+export type KeuanganUktKelompok = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  semester_masuk?: string;
+  kelompok?: string;
+  nama?: string;
+  kode_biaya?: string;
+  rupiah?: number;
+  keterangan?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganUktKelompokInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi: string;
+  semester_masuk?: string;
+  kelompok: string;
+  nama?: string;
+  kode_biaya: string;
+  rupiah: number;
+  keterangan?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Penetapan UKT mahasiswa (tabel keu_mhs_ukt_mahasiswa) */
+export type KeuanganUktMahasiswa = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** ID di keu_mhs_ukt_kelompok */
+  kelompok_id?: number;
+  /** m_tahun.tahun_id */
+  berlaku_mulai?: string;
+  dasar?: string;
+  status?: "usulan" | "ditetapkan" | "dibatalkan";
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganUktMahasiswaInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** ID di keu_mhs_ukt_kelompok */
+  kelompok_id: number;
+  /** m_tahun.tahun_id */
+  berlaku_mulai?: string;
+  dasar?: string;
+  status?: "usulan" | "ditetapkan" | "dibatalkan";
+  [key: string]: any;
+};
+
+/** Tarif per mata kuliah (tabel keu_mhs_tarif_mk) */
+export type KeuanganTarifMk = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kode_mk?: string;
+  kode_biaya?: string;
+  dasar?: "per_sks" | "per_mk";
+  rupiah?: number;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganTarifMkInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi: string;
+  /** m_tahun.tahun_id */
+  tahun_id: string;
+  kode_mk?: string;
+  kode_biaya: string;
+  dasar?: "per_sks" | "per_mk";
+  rupiah: number;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Voucher (tabel keu_mhs_voucher) */
+export type KeuanganVoucher = {
+  id?: number;
+  /** (unik) */
+  kode?: string;
+  nama?: string;
+  jenis?: "nominal" | "persen";
+  nilai?: number;
+  maks_potongan?: number;
+  kode_biaya?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kuota?: number;
+  /** (hanya baca) Hanya dibaca. */
+  terpakai?: number;
+  berlaku_mulai?: string;
+  berlaku_sampai?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganVoucherInput = {
+  /** (unik) */
+  kode: string;
+  nama: string;
+  jenis?: "nominal" | "persen";
+  nilai: number;
+  maks_potongan?: number;
+  kode_biaya?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kuota?: number;
+  berlaku_mulai?: string;
+  berlaku_sampai?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Potongan tagihan (tabel keu_mhs_potongan) */
+export type KeuanganPotongan = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kode_biaya?: string;
+  jenis?: "potongan" | "beasiswa" | "voucher" | "lainnya";
+  nominal?: number;
+  persen?: number;
+  /** ID di keu_mhs_voucher (hanya baca) Hanya dibaca. */
+  voucher_id?: number;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "diterapkan" | "ditolak" | "dibatalkan";
+  /** (hanya baca) Hanya dibaca. */
+  idmb_tagihan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  rupiah_sebelum?: number;
+  /** (hanya baca) Hanya dibaca. */
+  rupiah_sesudah?: number;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganPotonganInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kode_biaya: string;
+  jenis?: "potongan" | "beasiswa" | "voucher" | "lainnya";
+  nominal?: number;
+  persen?: number;
+  alasan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganPotonganTerapkanInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganPotonganTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type KeuanganPotonganBatalkanInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Dispensasi pembayaran (tabel keu_mhs_dispensasi) */
+export type KeuanganDispensasi = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  untuk?: "krs" | "ujian" | "semua";
+  janji_bayar?: string;
+  jumlah_janji?: number;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dibatalkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganDispensasiInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  untuk?: "krs" | "ujian" | "semua";
+  janji_bayar?: string;
+  jumlah_janji?: number;
+  alasan: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganDispensasiSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganDispensasiTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Cicilan pembayaran (tabel keu_mhs_cicilan) */
+export type KeuanganCicilan = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kode_biaya?: string;
+  /** (hanya baca) Hanya dibaca. */
+  total?: number;
+  jumlah_angsuran?: number;
+  mulai?: string;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "lunas" | "dibatalkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganCicilanInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  kode_biaya: string;
+  jumlah_angsuran: number;
+  mulai?: string;
+  alasan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganCicilanSetujuiInput = {
+  catatan?: string;
+  mulai?: string;
+  jumlah_angsuran?: number;
+  [key: string]: any;
+};
+
+export type KeuanganCicilanTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Refund (tabel keu_mhs_refund) */
+export type KeuanganRefund = {
+  id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** ID di keu_mhs_transaksi */
+  transaksi_id?: number;
+  jumlah?: number;
+  alasan?: string;
+  tujuan?: "deposit" | "rekening";
+  bank?: string;
+  no_rekening?: string;
+  atas_nama?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dibayar" | "dibatalkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  bukti_bayar?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganRefundInput = {
+  /** m_mahasiswa.NIM */
+  nim: string;
+  /** ID di keu_mhs_transaksi */
+  transaksi_id?: number;
+  jumlah: number;
+  alasan: string;
+  tujuan?: "deposit" | "rekening";
+  bank?: string;
+  no_rekening?: string;
+  atas_nama?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganRefundSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganRefundBayarInput = {
+  bukti_bayar?: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganRefundTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Denda keterlambatan (tabel keu_mhs_denda) */
+export type KeuanganDenda = {
+  id?: number;
+  /** m_mahasiswa.NIM (hanya baca) Hanya dibaca. */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id (hanya baca) Hanya dibaca. */
+  tahun_id?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kode_biaya?: string;
+  /** ID di keu_mhs_periode (hanya baca) Hanya dibaca. */
+  periode_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  sisa?: number;
+  /** (hanya baca) Hanya dibaca. */
+  hari_telat?: number;
+  /** (hanya baca) Hanya dibaca. */
+  jumlah?: number;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "aktif" | "dihapuskan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dihitung_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganDendaInput = {
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganDendaHapuskanInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Sesi kasir (tabel keu_mhs_kasir) */
+export type KeuanganKasir = {
+  id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  kasir?: string;
+  /** (hanya baca) Hanya dibaca. */
+  loket?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dibuka_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  ditutup_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  saldo_awal?: number;
+  /** (hanya baca) Hanya dibaca. */
+  total_tunai?: number;
+  /** (hanya baca) Hanya dibaca. */
+  total_nontunai?: number;
+  /** (hanya baca) Hanya dibaca. */
+  jumlah_transaksi?: number;
+  /** (hanya baca) Hanya dibaca. */
+  setoran?: number;
+  /** (hanya baca) Hanya dibaca. */
+  selisih?: number;
+  /** (hanya baca) Hanya dibaca. */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "buka" | "tutup";
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganKasirInput = JsonObject;
 
 export type Kurikulum = {
   id?: number | null;
@@ -6074,6 +7797,68 @@ export type LppmMasterJurnal = {
   [key: string]: any;
 };
 
+export type LppmKolaboratorInput = {
+  nama: string | null;
+  /** Unik */
+  email?: string | null;
+  hp?: string | null;
+  instansi?: string | null;
+  jabatan?: string | null;
+  negara?: string | null;
+  /** 0000-0000-0000-0000 */
+  orcid?: string | null;
+  sinta_id?: string | null;
+  scopus_id?: string | null;
+  scholar_id?: string | null;
+  bidang_keahlian?: string | null;
+  catatan?: string | null;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+export type LppmUndangKolaborator = {
+  /** Kolaborator yang sudah ada */
+  kolaborator_id?: number | null;
+  /** Bila kolaborator_id kosong: dicari/dibuat dari email ini */
+  email?: string | null;
+  [key: string]: any;
+};
+
+export type LppmJawabUndangan = {
+  setuju: boolean;
+  /** Opsional: lengkapi profil kolaborator */
+  profil?: {
+    hp?: string | null;
+    instansi?: string | null;
+    jabatan?: string | null;
+    negara?: string | null;
+    orcid?: string | null;
+    sinta_id?: string | null;
+    scopus_id?: string | null;
+    scholar_id?: string | null;
+    bidang_keahlian?: string | null;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+export type LppmImporOrcid = {
+  /** Ambil metadata dan penulis dari Crossref untuk karya ber-DOI (bawaan true) */
+  lengkapi_crossref?: boolean;
+  /** Luaran baru per panggilan, 1-100 (bawaan 50) */
+  batas?: number | null;
+  [key: string]: any;
+};
+
+export type LppmPerbaruiSitasi = {
+  luaran_id?: Array<number> | null;
+  /** Hanya luaran dosen ini (wajib untuk dosen) */
+  nidn?: string | null;
+  /** 1-200 (bawaan 50) */
+  batas?: number | null;
+  [key: string]: any;
+};
+
 /** Program MBKM (tabel mbkm_program) */
 export type MbkmProgram = {
   id?: number;
@@ -6480,6 +8265,116 @@ export type NotifPengumumanInput = {
   kode_prodi?: string;
   angkatan?: string;
   daftar_username?: string;
+  [key: string]: any;
+};
+
+/** Jadwal sinkronisasi otomatis (tabel pddikti_jadwal) */
+export type PddiktiJadwal = {
+  id?: number;
+  nama?: string;
+  entitas?: "mahasiswa" | "akm" | "krs" | "nilai" | "nilai-transfer" | "kelas" | "ajar-dosen" | "lulus-do" | "mata-kuliah" | "kurikulum" | "skala-nilai" | "periode";
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  tahun_id?: string;
+  cakupan?: "gagal" | "semua";
+  frekuensi?: "jam" | "harian" | "mingguan";
+  jam?: number;
+  hari?: number;
+  batas?: number;
+  aktif?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  terakhir_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  berikut_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  terakhir_jumlah?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PddiktiJadwalInput = {
+  nama: string;
+  entitas: "mahasiswa" | "akm" | "krs" | "nilai" | "nilai-transfer" | "kelas" | "ajar-dosen" | "lulus-do" | "mata-kuliah" | "kurikulum" | "skala-nilai" | "periode";
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  tahun_id?: string;
+  cakupan?: "gagal" | "semua";
+  frekuensi?: "jam" | "harian" | "mingguan";
+  jam?: number;
+  hari?: number;
+  batas?: number;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Buku tamu kunjungan (tabel perpus_kunjungan) */
+export type PerpustakaanKunjungan = {
+  id?: number;
+  username?: string;
+  nama?: string;
+  /** (hanya baca) Hanya dibaca. */
+  jenis?: "MAHASISWA" | "DOSEN" | "KARYAWAN" | "TAMU";
+  /** (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  instansi?: string;
+  keperluan?: "baca" | "pinjam" | "kembali" | "referensi" | "diskusi" | "lain";
+  waktu?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PerpustakaanKunjunganInput = {
+  username?: string;
+  nama?: string;
+  instansi?: string;
+  keperluan?: "baca" | "pinjam" | "kembali" | "referensi" | "diskusi" | "lain";
+  waktu?: string;
+  [key: string]: any;
+};
+
+/** Usulan pengadaan koleksi (tabel perpus_usulan) */
+export type PerpustakaanUsulan = {
+  id?: number;
+  judul?: string;
+  penulis?: string;
+  penerbit?: string;
+  tahun?: number;
+  isbn?: string;
+  jumlah?: number;
+  alasan?: string;
+  /** user.username */
+  pengusul?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** (hanya pengelola) */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dipesan" | "tersedia";
+  /** (hanya pengelola) */
+  tanggapan?: string;
+  /** (hanya pengelola) */
+  idpus?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PerpustakaanUsulanInput = {
+  judul: string;
+  penulis?: string;
+  penerbit?: string;
+  tahun?: number;
+  isbn?: string;
+  jumlah?: number;
+  alasan?: string;
+  /** user.username */
+  pengusul?: string;
+  /** (hanya pengelola) */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dipesan" | "tersedia";
+  /** (hanya pengelola) */
+  tanggapan?: string;
+  /** (hanya pengelola) */
+  idpus?: string;
   [key: string]: any;
 };
 
@@ -7587,6 +9482,244 @@ export type PortalKategoriRequest = {
   [key: string]: any;
 };
 
+/** Riwayat pekerjaan (tabel profil_riwayat_pekerjaan) */
+export type ProfilPekerjaan = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  instansi?: string;
+  jabatan?: string;
+  unit_kerja?: string;
+  jenis?: "tetap" | "kontrak" | "paruh_waktu" | "honorer" | "magang" | "wirausaha" | "lepas" | "lainnya";
+  sektor?: "pemerintah" | "swasta" | "bumn" | "pendidikan" | "nirlaba" | "wirausaha" | "internasional" | "lainnya";
+  lokasi?: string;
+  mulai?: string;
+  selesai?: string;
+  masih_bekerja?: boolean;
+  deskripsi?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilPekerjaanInput = {
+  /** user.username */
+  username: string;
+  instansi: string;
+  jabatan: string;
+  unit_kerja?: string;
+  jenis?: "tetap" | "kontrak" | "paruh_waktu" | "honorer" | "magang" | "wirausaha" | "lepas" | "lainnya";
+  sektor?: "pemerintah" | "swasta" | "bumn" | "pendidikan" | "nirlaba" | "wirausaha" | "internasional" | "lainnya";
+  lokasi?: string;
+  mulai: string;
+  selesai?: string;
+  masih_bekerja?: boolean;
+  deskripsi?: string;
+  [key: string]: any;
+};
+
+/** Riwayat pendidikan (tabel profil_riwayat_pendidikan) */
+export type ProfilPendidikan = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  jenjang?: "SD" | "SMP" | "SMA" | "D1" | "D2" | "D3" | "D4" | "S1" | "S2" | "S3" | "PROFESI" | "SPESIALIS" | "NONFORMAL";
+  institusi?: string;
+  program_studi?: string;
+  gelar?: string;
+  negara?: string;
+  tahun_masuk?: number;
+  tahun_lulus?: number;
+  masih_studi?: boolean;
+  ipk?: number;
+  nomor_ijazah?: string;
+  judul_tugas_akhir?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilPendidikanInput = {
+  /** user.username */
+  username: string;
+  jenjang: "SD" | "SMP" | "SMA" | "D1" | "D2" | "D3" | "D4" | "S1" | "S2" | "S3" | "PROFESI" | "SPESIALIS" | "NONFORMAL";
+  institusi: string;
+  program_studi?: string;
+  gelar?: string;
+  negara?: string;
+  tahun_masuk?: number;
+  tahun_lulus?: number;
+  masih_studi?: boolean;
+  ipk?: number;
+  nomor_ijazah?: string;
+  judul_tugas_akhir?: string;
+  [key: string]: any;
+};
+
+/** Prestasi dan sertifikasi (tabel profil_riwayat_prestasi) */
+export type ProfilPrestasi = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  jenis?: "penghargaan" | "sertifikasi" | "pelatihan" | "kompetisi" | "publikasi" | "lainnya";
+  judul?: string;
+  penyelenggara?: string;
+  tingkat?: "internal" | "lokal" | "provinsi" | "nasional" | "internasional";
+  peringkat?: string;
+  tanggal?: string;
+  berlaku_sampai?: string;
+  nomor_sertifikat?: string;
+  tautan?: string;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilPrestasiInput = {
+  /** user.username */
+  username: string;
+  jenis: "penghargaan" | "sertifikasi" | "pelatihan" | "kompetisi" | "publikasi" | "lainnya";
+  judul: string;
+  penyelenggara?: string;
+  tingkat?: "internal" | "lokal" | "provinsi" | "nasional" | "internasional";
+  peringkat?: string;
+  tanggal?: string;
+  berlaku_sampai?: string;
+  nomor_sertifikat?: string;
+  tautan?: string;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Organisasi (tabel profil_riwayat_organisasi) */
+export type ProfilOrganisasi = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  nama_organisasi?: string;
+  jabatan?: string;
+  jenis?: "kemahasiswaan" | "profesi" | "kemasyarakatan" | "kepanitiaan" | "relawan" | "lainnya";
+  mulai?: string;
+  selesai?: string;
+  masih_aktif?: boolean;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilOrganisasiInput = {
+  /** user.username */
+  username: string;
+  nama_organisasi: string;
+  jabatan?: string;
+  jenis?: "kemahasiswaan" | "profesi" | "kemasyarakatan" | "kepanitiaan" | "relawan" | "lainnya";
+  mulai?: string;
+  selesai?: string;
+  masih_aktif?: boolean;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Dokumen pribadi (tabel profil_dokumen) */
+export type ProfilDokumen = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  /** (hanya baca) Hanya dibaca. */
+  peran?: "mahasiswa" | "alumni" | "dosen" | "tendik" | "pengguna";
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  jenis?: string;
+  judul?: string;
+  nomor?: string;
+  penerbit?: string;
+  tanggal_terbit?: string;
+  berlaku_sampai?: string;
+  keterangan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "tidak_perlu" | "diajukan" | "terverifikasi" | "ditolak";
+  /** (hanya baca) Hanya dibaca. */
+  catatan_verifikasi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diverifikasi_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diverifikasi_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilDokumenInput = {
+  /** user.username */
+  username: string;
+  jenis: string;
+  judul?: string;
+  nomor?: string;
+  penerbit?: string;
+  tanggal_terbit?: string;
+  berlaku_sampai?: string;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+export type ProfilDokumenVerifikasiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type ProfilDokumenTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Permohonan perubahan data induk (tabel profil_permohonan) */
+export type ProfilPermohonan = {
+  id?: number;
+  /** user.username */
+  username?: string;
+  /** (hanya baca) Hanya dibaca. */
+  peran?: "mahasiswa" | "alumni" | "dosen" | "tendik" | "pengguna";
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  kolom?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_lama?: string;
+  nilai_baru?: string;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dibatalkan";
+  /** (hanya baca) Hanya dibaca. */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type ProfilPermohonanInput = {
+  /** user.username */
+  username: string;
+  kolom: string;
+  nilai_baru: string;
+  alasan: string;
+  [key: string]: any;
+};
+
+export type ProfilPermohonanSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type ProfilPermohonanTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
 /** Aplikasi (tabel rbac_aplikasi) */
 export type RbacAplikasi = {
   id?: number;
@@ -8097,6 +10230,334 @@ export type RepositoriKaryaTolakInput = {
 
 export type RepositoriKaryaTarikInput = {
   alasan: string;
+  [key: string]: any;
+};
+
+/** Skema RPL (tabel rpl_skema) */
+export type RplSkema = {
+  id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  tipe?: "transfer_kredit" | "perolehan_kredit";
+  nama?: string;
+  keterangan?: string;
+  sks_maks?: number;
+  nilai_lulus?: number;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplSkemaInput = {
+  /** m_program_studi.kode_prodi */
+  kode_prodi: string;
+  tipe?: "transfer_kredit" | "perolehan_kredit";
+  nama: string;
+  keterangan?: string;
+  sks_maks?: number;
+  nilai_lulus?: number;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Komposisi penilaian RPL (tabel rpl_komponen) */
+export type RplKomponen = {
+  id?: number;
+  /** ID di rpl_skema */
+  skema_id?: number;
+  nama?: string;
+  bobot?: number;
+  urutan?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplKomponenInput = {
+  /** ID di rpl_skema */
+  skema_id: number;
+  nama: string;
+  bobot: number;
+  urutan?: number;
+  [key: string]: any;
+};
+
+/** Asesor RPL (tabel rpl_asesor) */
+export type RplAsesor = {
+  id?: number;
+  /** m_dosen.NIDN */
+  nidn?: string;
+  /** user.username */
+  username?: string;
+  nama?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  bidang?: string;
+  nomor_sertifikat?: string;
+  instansi?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplAsesorInput = {
+  /** m_dosen.NIDN */
+  nidn?: string;
+  /** user.username */
+  username?: string;
+  nama?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  bidang?: string;
+  nomor_sertifikat?: string;
+  instansi?: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Pengajuan RPL (tabel rpl_pengajuan) */
+export type RplPengajuan = {
+  id?: number;
+  /** ID di rpl_skema */
+  skema_id?: number;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  pmb_pendaftaran_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  no_pmb?: string;
+  /** m_mahasiswa.NIM (hanya baca) Hanya dibaca. */
+  nim?: string;
+  nama?: string;
+  email?: string;
+  hp?: string;
+  asal_pt?: string;
+  asal_prodi?: string;
+  ringkasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "draf" | "diajukan" | "asesmen" | "ditetapkan" | "ditolak" | "batal";
+  /** (hanya baca) Hanya dibaca. */
+  sks_diakui?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nomor_sk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tanggal_sk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diintegrasi_at?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplPengajuanInput = {
+  /** ID di rpl_skema */
+  skema_id: number;
+  pmb_pendaftaran_id?: number;
+  nama: string;
+  email?: string;
+  hp?: string;
+  asal_pt?: string;
+  asal_prodi?: string;
+  ringkasan?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type RplPengajuanMulaiAsesmenInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type RplPengajuanKembalikanInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type RplPengajuanTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type RplPengajuanBatalInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Pengalaman pemohon RPL (tabel rpl_pengalaman) */
+export type RplPengalaman = {
+  id?: number;
+  /** ID di rpl_pengajuan */
+  pengajuan_id?: number;
+  jenis?: "kerja" | "pelatihan" | "sertifikasi" | "pendidikan_formal" | "pendidikan_nonformal" | "organisasi" | "karya" | "lainnya";
+  judul?: string;
+  instansi?: string;
+  mulai?: string;
+  selesai?: string;
+  durasi_jam?: number;
+  uraian?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplPengalamanInput = {
+  /** ID di rpl_pengajuan */
+  pengajuan_id: number;
+  jenis: "kerja" | "pelatihan" | "sertifikasi" | "pendidikan_formal" | "pendidikan_nonformal" | "organisasi" | "karya" | "lainnya";
+  judul: string;
+  instansi?: string;
+  mulai?: string;
+  selesai?: string;
+  durasi_jam?: number;
+  uraian?: string;
+  [key: string]: any;
+};
+
+/** Dokumen bukti RPL (tabel rpl_dokumen) */
+export type RplDokumen = {
+  id?: number;
+  /** ID di rpl_pengajuan */
+  pengajuan_id?: number;
+  /** ID di rpl_pengalaman */
+  pengalaman_id?: number;
+  jenis?: "cv" | "ijazah" | "transkrip" | "sertifikat" | "surat_keterangan_kerja" | "portofolio" | "silabus" | "lainnya";
+  judul?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "valid" | "tidak_valid";
+  /** (hanya pengelola) */
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplDokumenInput = {
+  /** ID di rpl_pengajuan */
+  pengajuan_id: number;
+  /** ID di rpl_pengalaman */
+  pengalaman_id?: number;
+  jenis: "cv" | "ijazah" | "transkrip" | "sertifikat" | "surat_keterangan_kerja" | "portofolio" | "silabus" | "lainnya";
+  judul: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type RplDokumenValidInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type RplDokumenTidakValidInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+/** Mata kuliah yang diklaim (tabel rpl_klaim) */
+export type RplKlaim = {
+  id?: number;
+  /** ID di rpl_pengajuan */
+  pengajuan_id?: number;
+  id_mk?: number;
+  /** (hanya baca) Hanya dibaca. */
+  kode_mk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nama_mk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  sks?: number;
+  kode_mk_asal?: string;
+  nama_mk_asal?: string;
+  sks_asal?: number;
+  nilai_asal?: string;
+  asesmen_mandiri?: "sangat_baik" | "baik" | "cukup" | "tidak_pernah";
+  bukti?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_akhir?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_huruf?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diklaim" | "diakui" | "tidak_diakui";
+  /** (hanya pengelola) */
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplKlaimInput = {
+  /** ID di rpl_pengajuan */
+  pengajuan_id: number;
+  id_mk: number;
+  kode_mk_asal?: string;
+  nama_mk_asal?: string;
+  sks_asal?: number;
+  nilai_asal?: string;
+  asesmen_mandiri?: "sangat_baik" | "baik" | "cukup" | "tidak_pernah";
+  bukti?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Penugasan asesor (tabel rpl_penugasan) */
+export type RplPenugasan = {
+  id?: number;
+  /** ID di rpl_pengajuan */
+  pengajuan_id?: number;
+  /** ID di rpl_asesor */
+  asesor_id?: number;
+  peran?: "ketua" | "anggota";
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplPenugasanInput = {
+  /** ID di rpl_pengajuan */
+  pengajuan_id: number;
+  /** ID di rpl_asesor */
+  asesor_id: number;
+  peran?: "ketua" | "anggota";
+  [key: string]: any;
+};
+
+/** Nilai asesor (tabel rpl_nilai) */
+export type RplNilai = {
+  id?: number;
+  /** ID di rpl_klaim */
+  klaim_id?: number;
+  /** ID di rpl_asesor */
+  asesor_id?: number;
+  /** ID di rpl_komponen */
+  komponen_id?: number;
+  nilai?: number;
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type RplNilaiInput = {
+  /** ID di rpl_klaim */
+  klaim_id: number;
+  /** ID di rpl_asesor */
+  asesor_id?: number;
+  /** ID di rpl_komponen */
+  komponen_id: number;
+  nilai: number;
+  catatan?: string;
   [key: string]: any;
 };
 
@@ -8631,6 +11092,24 @@ export type SdmPengaturanInput = {
   pengingat_hari?: string;
   /** Ukuran maksimal file unggahan (MB) (bawaan 10) */
   file_maks_mb?: string;
+  /** PPh 21 honor/vakasi/remunerasi untuk pegawai ber-NPWP (%) (bawaan 5) */
+  honor_pph_persen?: string;
+  /** PPh 21 untuk pegawai tanpa NPWP (%) (bawaan 6) */
+  honor_pph_tanpa_npwp_persen?: string;
+  /** PAK: angka kredit per SKS pendidikan BKD untuk Tenaga Pengajar/Asisten Ahli (isi sesuai juknis) (bawaan 0.5) */
+  pak_ak_per_sks_aa?: string;
+  /** PAK: angka kredit per SKS pendidikan BKD untuk Lektor ke atas (isi sesuai juknis) (bawaan 1) */
+  pak_ak_per_sks?: string;
+  /** PAK: angka kredit per kegiatan pengabdian selesai, per dosen (isi sesuai juknis) (bawaan 3) */
+  pak_ak_pkm?: string;
+  /** PAK: angka kredit per SKS penunjang BKD (isi sesuai juknis) (bawaan 1) */
+  pak_ak_penunjang_per_sks?: string;
+  /** PAK: batas pengabdian dari angka kredit yang dibutuhkan (%) (bawaan 15) */
+  pak_maks_pengabdian_persen?: string;
+  /** PAK: batas penunjang dari angka kredit yang dibutuhkan (%) (bawaan 15) */
+  pak_maks_penunjang_persen?: string;
+  /** PAK: bagian penulis utama bila penulis lebih dari satu (%); sisanya dibagi rata penulis lain (bawaan 60) */
+  pak_porsi_penulis_utama?: string;
   [key: string]: any;
 };
 
@@ -9125,6 +11604,151 @@ export type SdmMasterHariLiburInput = {
   tanggal: string | null;
   nama: string | null;
   jenis?: "nasional" | "cuti_bersama" | "kampus";
+  [key: string]: any;
+};
+
+export type SdmSisterPengaturan = {
+  /** Sandbox untuk uji coba (ws-sandbox.php/1.0), produksi untuk data sungguhan (ws.php/1.0) */
+  mode?: "sandbox" | "produksi";
+  /** Username dari menu Kredensial API SISTER */
+  username?: string | null;
+  /** Disimpan terenkripsi. "" = tidak diubah, null = hapus */
+  password?: string | null;
+  /** id_pengguna dari menu Kredensial API SISTER */
+  id_pengguna?: string | null;
+  /** id_sp perguruan tinggi (opsional, menyaring /referensi/sdm) */
+  id_perguruan_tinggi?: string | null;
+  /** Kosong = https://sister-api.kemdikbud.go.id/ws-sandbox.php/1.0 */
+  url_sandbox?: string | null;
+  /** Kosong = https://sister-api.kemdikbud.go.id/ws.php/1.0 */
+  url_produksi?: string | null;
+  /** Izinkan tarik otomatis oleh cron */
+  aktif?: boolean;
+  /** Kirim riwayat SDM ke SISTER. mati = tidak dicatat (bawaan); manual = masuk antrean, dikirim admin lewat POST /v1/sdm/sister/kirim/proses; otomatis = masuk antrean dan dikirim cron */
+  kirim_mode?: "mati" | "manual" | "otomatis";
+  [key: string]: any;
+};
+
+export type SdmSisterUji = {
+  /** Opsional: NIDN untuk dicoba di /referensi/sdm */
+  nidn?: string | null;
+  [key: string]: any;
+};
+
+export type SdmSisterCocokkan = {
+  /** ID pegawai; kosong = semua */
+  pegawai_id?: Array<number> | null;
+  /** Pegawai per panggilan, 1-500 (bawaan 50) */
+  batas?: number | null;
+  [key: string]: any;
+};
+
+export type SdmSisterTarikBanyak = {
+  /** ID pegawai; kosong = semua */
+  pegawai_id?: Array<number> | null;
+  /** Kunci jenis (GET /v1/sdm/sister/jenis), nama kelompok (kepegawaian, tridharma, penunjang, dokumen), atau data_pribadi. Kosong = semua. */
+  jenis?: Array<string> | null;
+  /** Pegawai per panggilan, 1-200 (bawaan 10) */
+  batas?: number | null;
+  /** Hanya pegawai yang terakhir ditarik lebih dari N jam lalu */
+  umur_jam?: number | null;
+  /** Cocokkan pegawai yang belum terhubung lebih dulu */
+  cocokkan_dulu?: boolean;
+  [key: string]: any;
+};
+
+export type SdmSisterTarik = {
+  /** Kunci jenis (GET /v1/sdm/sister/jenis), nama kelompok (kepegawaian, tridharma, penunjang, dokumen), atau data_pribadi. Kosong = semua. */
+  jenis?: Array<string> | null;
+  [key: string]: any;
+};
+
+export type SdmSisterHubungkan = {
+  /** id_sdm SISTER (dari GET /v1/sdm/sister/sdm) */
+  id_sdm: string | null;
+  [key: string]: any;
+};
+
+export type SdmSisterKirimProses = {
+  /** Baris antrean per panggilan, 1-500 (bawaan 20) */
+  batas?: number | null;
+  /** Hanya ID antrean ini (status menunggu/gagal); kosong = antrean yang jatuh tempo */
+  id?: Array<number> | null;
+  [key: string]: any;
+};
+
+export type SdmSisterKirimAntrekan = {
+  /** ID pegawai; kosong = semua */
+  pegawai_id?: Array<number> | null;
+  /** Jenis riwayat SDM (jabatan-akademik, pangkat, pendidikan, diklat, sertifikasi, penghargaan, pekerjaan, organisasi); kosong = semua yang dipetakan */
+  jenis?: Array<string> | null;
+  [key: string]: any;
+};
+
+export type SdmSisterTerapkanProfil = {
+  /** Kolom profil, mis. ["nip", "nuptk", "tanggal_lahir"] */
+  kolom: Array<string>;
+  [key: string]: any;
+};
+
+/** Tarif paling spesifik (jabatan + kategori) yang berlaku pada akhir semester yang dipakai. */
+export type SdmHonorTarifInput = {
+  /** mengajar, vakasi_soal, vakasi_koreksi, pengawas_ujian, bimbingan_ta, penguji_ta, remunerasi_jabatan, remunerasi_sks (GET /v1/sdm/honor/komponen), atau kode bebas */
+  komponen: string | null;
+  /** Nama tarif */
+  nama: string | null;
+  /** sks_pertemuan, kelas, lembar, sesi, mahasiswa, semester, sks */
+  satuan: string | null;
+  /** Rupiah per satuan */
+  tarif: number | null;
+  /** Kosong = semua jabatan */
+  jabatan_akademik_id?: number | null;
+  /** Kosong = semua kategori */
+  kategori?: "tetap" | "tidak_tetap";
+  berlaku_mulai?: string | null;
+  berlaku_sampai?: string | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmHonorHitung = {
+  /** tahun_id SIAKAD, mis. 20251 */
+  periode: string | null;
+  /** Kosong = semua komponen */
+  komponen?: Array<string> | null;
+  /** Hanya satu dosen */
+  pegawai_id?: number | null;
+  /** Hanya dosen di unit ini dan turunannya */
+  unit_id?: number | null;
+  [key: string]: any;
+};
+
+export type SdmHonorInput = {
+  /** tahun_id atau YYYY-MM */
+  periode: string | null;
+  pegawai_id: number | null;
+  kelompok: "remunerasi" | "honor" | "vakasi" | "lainnya";
+  /** Kode bebas, mis. panitia_wisuda */
+  komponen: string | null;
+  uraian: string | null;
+  volume: number | null;
+  satuan?: string | null;
+  tarif: number | null;
+  /** Bawaan dari pengaturan honor_pph_* */
+  pajak_persen?: number | null;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmHonorProses = {
+  /** setujui: draft; bayar: disetujui; kembalikan: disetujui -> draft; batal: draft/disetujui */
+  aksi: "setujui" | "bayar" | "kembalikan" | "batal";
+  /** 1-1000 ID honor */
+  id: Array<number>;
+  /** Untuk bayar */
+  nomor_bukti?: string | null;
+  catatan?: string | null;
   [key: string]: any;
 };
 

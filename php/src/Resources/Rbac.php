@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
+ * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
  */
 final class Rbac extends Resource
 {
@@ -313,6 +313,49 @@ final class Rbac extends Resource
     public function postKlienApiByIdSecret(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/rbac/klien-api/{id}/secret', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Log permintaan API
+     *
+     * Permintaan API terbaru lebih dulu: waktu, metode, path, query (tanpa nilai rahasia), status, durasi (ms), client_id,
+     * username, level, lingkungan database, dan IP. Bawaan hari ini; `dari`/`sampai` (Y-m-d) paling lebar 31 hari.
+     * Saring dengan `client_id` (log satu aplikasi), `username`, `status` (`sukses`, `galat`, `4xx`, `5xx`, atau kode),
+     * `method`, dan `path` (potongan). Isi body, token, dan secret tidak pernah dicatat.
+     *
+     * `GET /v1/rbac/log-api`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array{client_id?: string, username?: string, status?: string, method?: string, path?: string, dari?: string, sampai?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLogApi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/log-api', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ringkasan log API
+     *
+     * Angka untuk grafik: jumlah permintaan, galat 4xx/5xx, tingkat galat, waktu tanggap rata-rata/p50/p95, pengguna unik,
+     * deret per jam (satu hari) atau per hari, sebaran status, 10 endpoint dan 10 klien teratas. Saringan sama dengan
+     * `/log-api`; bawaan 7 hari terakhir.
+     *
+     * `GET /v1/rbac/log-api/ringkasan`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array{client_id?: string, username?: string, status?: string, method?: string, path?: string, dari?: string, sampai?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLogApiRingkasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/log-api/ringkasan', [], $query, null, $options, false, false);
     }
 
     /**

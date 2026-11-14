@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * LMS: Beranda, LMS: Kelas, LMS: Konten, LMS: Kelas daring, LMS: File, LMS: Tugas, LMS: Kuis, LMS: Forum, LMS: Presensi, LMS: Nilai, LMS: Impor ke SIAKAD
+ * LMS: Beranda, LMS: Kelas, LMS: Konten, LMS: Kelas terbuka, LMS: Analitik, LMS: Kelas daring, LMS: File, LMS: Tugas, LMS: Kuis, LMS: Forum, LMS: Presensi, LMS: Nilai, LMS: Impor ke SIAKAD
  */
 final class Lms extends Resource
 {
@@ -400,6 +400,164 @@ final class Lms extends Resource
     public function getKelasByIdAktivitas(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/lms/kelas/{id}/aktivitas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Katalog kelas terbuka (MOOC)
+     *
+     * Tanpa token. Kelas non-jadwal aktif dengan pengaturan {"terbuka": true} (atur lewat ubah kelas). Isi kelas hanya untuk anggota.
+     *
+     * `GET /v1/lms/terbuka`
+     *
+     * publik (tanpa token) · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTerbuka(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/terbuka', [], $query, null, $options, false, true);
+    }
+
+    /**
+     * Ikuti kelas terbuka
+     *
+     * Akun mahasiswa bergabung tanpa kode gabung.
+     *
+     * `POST /v1/lms/terbuka/{id}/gabung`
+     *
+     * scope: `lms:write` · hanya token pengguna
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTerbukaByIdGabung(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lms/terbuka/{id}/gabung', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pantau aktivitas lintas kelas
+     *
+     * Pengelola LMS (ADMIN, BAK, PROGDI prodinya): per kelas peserta, isi (materi/tugas/kuis), pengguna aktif 7 dan 30 hari, aktivitas terakhir peserta dan pengajar, kelas tanpa konten.
+     *
+     * `GET /v1/lms/analitik/kelas`
+     *
+     * scope: `lms:read` · berhalaman
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAnalitikKelas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/analitik/kelas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aktivitas mahasiswa di semua kelas
+     *
+     * Mahasiswa itu sendiri atau pengelola LMS: per kelas progres, kehadiran, tugas, forum, nilai sementara, dan skor keterlibatan.
+     *
+     * `GET /v1/lms/analitik/mahasiswa/{nim}`
+     *
+     * scope: `lms:read`
+     *
+     * @param int|string $nim NIM
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAnalitikMahasiswaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/analitik/mahasiswa/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Skor keterlibatan (engagement)
+     *
+     * Skor 0-100 per mahasiswa dari keaktifan 30 hari (25), progres (30), ketepatan tugas (20), kehadiran (15), forum (10); komponen tanpa aktivitas di kelas tidak dihitung. Kategori tinggi >= 70, sedang >= 40. Pengajar: semua; mahasiswa: dirinya.
+     *
+     * `GET /v1/lms/kelas/{id}/keterlibatan`
+     *
+     * scope: `lms:read`
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelasByIdKeterlibatan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/kelas/{id}/keterlibatan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Prediksi kelulusan mata kuliah
+     *
+     * Peluang lulus per mahasiswa dari model logistik transparan (nilai sementara, kehadiran, progres, keterlibatan, IPK SIAKAD), risiko tinggi/sedang/rendah, dan penyebabnya. Pengajar: semua; mahasiswa: dirinya.
+     *
+     * `GET /v1/lms/kelas/{id}/prediksi`
+     *
+     * scope: `lms:read`
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelasByIdPrediksi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/kelas/{id}/prediksi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Analisis pembelajaran kelas
+     *
+     * Pengajar/pengelola: tiap materi (dilihat/selesai), tugas (dikumpulkan, terlambat, rata nilai), kuis (peserta, rata/min/maks), sesi presensi, aktivitas per minggu, dan aksi terbanyak.
+     *
+     * `GET /v1/lms/kelas/{id}/analisis`
+     *
+     * scope: `lms:kelola`
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelasByIdAnalisis(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/kelas/{id}/analisis', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Duplikasi bahan ajar dari kelas lain
+     *
+     * Body {"dari_kelas_id", "bagian"?: ["topik","materi","tugas","kuis","forum"]}. Harus pengajar/pengelola di kedua kelas. Lampiran ikut (berkas tidak digandakan di disk), soal kuis memakai bank soal yang sama, item buku nilai dibuat. Salinan disembunyikan dan jadwalnya dikosongkan.
+     *
+     * `POST /v1/lms/kelas/{id}/salin`
+     *
+     * scope: `lms:kelola`
+     *
+     * @param int|string $id ID kelas tujuan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelasByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lms/kelas/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

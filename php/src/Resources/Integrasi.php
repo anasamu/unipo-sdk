@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Integrasi: Status, Integrasi: Pengaturan, Integrasi: Captcha, Integrasi: Pembayaran, Integrasi: Berkas, Integrasi: Cache, Integrasi: Email & WhatsApp, Integrasi: Webhook keluar, Integrasi: Rapat daring
+ * Integrasi: Status, Integrasi: Pengaturan, Integrasi: Captcha, Integrasi: Pembayaran, Integrasi: Berkas, Integrasi: Cache, Integrasi: Email & WhatsApp, Integrasi: Webhook keluar, Integrasi: Rapat daring, Integrasi: Tanda tangan elektronik, Integrasi: AI
  */
 final class Integrasi extends Resource
 {
@@ -38,7 +38,7 @@ final class Integrasi extends Resource
     /**
      * Daftar driver yang didukung
      *
-     * Isian `konfigurasi` (tidak rahasia) dan `rahasia` (disimpan terenkripsi) untuk setiap driver: recaptcha_v2, recaptcha_v3, turnstile, hcaptcha, xendit, midtrans, s3, r2, minio, google_drive, lokal, redis, smtp, mailgun, sendgrid, brevo, fonnte, wablas, zoom, google_meet.
+     * Isian `konfigurasi` (tidak rahasia) dan `rahasia` (disimpan terenkripsi) untuk setiap driver: recaptcha_v2, recaptcha_v3, turnstile, hcaptcha, xendit, midtrans, s3, r2, minio, google_drive, lokal, redis, smtp, mailgun, sendgrid, brevo, fonnte, wablas, zoom, google_meet, bsre, anthropic, openai_kompatibel, gemini.
      *
      * `GET /v1/integrasi/katalog`
      *
@@ -1134,5 +1134,165 @@ final class Integrasi extends Resource
     public function deleteRapatById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/integrasi/rapat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tandatangani PDF
+     *
+     * Menandatangani PDF dengan sertifikat elektronik BSrE milik penanda tangan (`nik` + `passphrase`, dikirim setiap kali
+     * dan tidak disimpan). Sumber PDF: `berkas_id` (berkas di /v1/integrasi/berkas milik klien), field `berkas` (multipart),
+     * atau `file_base64`. `tampilan.jenis` invisible (bawaan) atau visible dengan `halaman`, `x`, `y`, `lebar`, `tinggi`
+     * (point PDF) atau `tag` (teks penanda posisi di dokumen), dan `gambar` (PNG base64). Hasil disimpan sebagai berkas baru
+     * di folder `esign` (jawaban `berkas` memuat URL unduh); `kembalikan_pdf: true` juga mengembalikan `pdf_base64`.
+     * Riwayat hanya menyimpan 4 digit akhir NIK dan hash SHA-256 dokumen.
+     *
+     * `POST /v1/integrasi/esign/tanda-tangan`
+     *
+     * scope: `integrasi:esign`
+     *
+     * @param array{nik: string|null, passphrase: string|null, berkas_id?: string|null, file_base64?: string|null, judul?: string|null, tampilan?: array<string, mixed>, penyedia?: string|null, penyimpanan?: string|null, simpan?: bool, kembalikan_pdf?: bool, modul?: string|null, referensi?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postEsignTandaTangan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/integrasi/esign/tanda-tangan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Verifikasi PDF bertanda tangan
+     *
+     * Sumber PDF sama seperti tanda tangan. Jawaban: `valid`, `kesimpulan`, daftar `penanda` (nama, penerbit sertifikat, waktu, keutuhan dokumen), dan `ditandatangani_lewat_siakad` bila hash dokumen cocok dengan hasil tanda tangan lewat SIAKAD.
+     *
+     * `POST /v1/integrasi/esign/verifikasi`
+     *
+     * scope: `integrasi:esign`
+     *
+     * @param array{berkas_id?: string|null, file_base64?: string|null, judul?: string|null, penyedia?: string|null, modul?: string|null, referensi?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postEsignVerifikasi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/integrasi/esign/verifikasi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cek sertifikat penanda tangan
+     *
+     * Memeriksa apakah NIK sudah punya sertifikat elektronik aktif di BSrE (`aktif`, `status`, mis. ISSUE/EXPIRED/NOT_REGISTERED). NIK tidak disimpan.
+     *
+     * `POST /v1/integrasi/esign/status-pengguna`
+     *
+     * scope: `integrasi:esign`
+     *
+     * @param array{nik: string|null, penyedia?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postEsignStatusPengguna(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/integrasi/esign/status-pengguna', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Riwayat tanda tangan dan verifikasi
+     *
+     * Klien hanya melihat riwayat miliknya; admin melihat semua (filter `klien_id`).
+     *
+     * `GET /v1/integrasi/esign`
+     *
+     * scope: `integrasi:esign` · berhalaman
+     *
+     * @param array{jenis?: string, status?: string, modul?: string, referensi?: string, klien_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEsign(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/integrasi/esign', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail riwayat
+     *
+     * `GET /v1/integrasi/esign/{id}`
+     *
+     * scope: `integrasi:esign`
+     *
+     * @param int|string $id ID (UUID)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEsignById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/integrasi/esign/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penyedia AI yang aktif
+     *
+     * Kode, driver, dan model penyedia AI yang bisa dipilih lewat field `penyedia`.
+     *
+     * `GET /v1/integrasi/ai/penyedia`
+     *
+     * scope: `integrasi:ai`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAiPenyedia(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/integrasi/ai/penyedia', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Minta jawaban model bahasa
+     *
+     * Mengirim `prompt` (teks tunggal) atau `pesan` (percakapan bergantian user/assistant, diakhiri user) ke penyedia
+     * utama kategori `ai` atau `penyedia` tertentu. `sistem` ditambahkan setelah instruksi sistem bawaan penyedia. Claude
+     * (bawaan claude-opus-5-5) memakai adaptive thinking dan fallback server-side; `effort` (low-max) mengatur kedalaman.
+     * `maks_token` dibatasi pengaturan penyedia. Bila pengaman model menolak, jawaban `ditolak: true` dengan `teks` kosong.
+     * Isi percakapan tidak disimpan; token dicatat per klien dan dibatasi `kuota_harian_token` (429 bila habis).
+     *
+     * `POST /v1/integrasi/ai/teks`
+     *
+     * scope: `integrasi:ai`
+     *
+     * @param array{prompt?: string|null, pesan?: list<mixed>, sistem?: string|null, maks_token?: int|null, effort?: string|null, json?: bool, penyedia?: string|null, modul?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAiTeks(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/integrasi/ai/teks', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rekap pemakaian AI
+     *
+     * Jumlah permintaan dan token per hari, klien, dan model. Klien melihat miliknya; admin semua (filter `klien_id`).
+     *
+     * `GET /v1/integrasi/ai/pemakaian`
+     *
+     * scope: `integrasi:ai`
+     *
+     * @param array{dari?: string, sampai?: string, klien_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAiPemakaian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/integrasi/ai/pemakaian', [], $query, null, $options, false, false);
     }
 }

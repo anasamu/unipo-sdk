@@ -1,0 +1,69 @@
+# Memperbarui SDK otomatis saat API SIAKAD bertambah:
+# mengambil OpenAPI terbaru, membangkitkan ulang kode, lalu membuka (atau memperbarui) PR bila ada perubahan.
+# Rilis tetap manual lewat tag vX.Y.Z setelah PR di-merge.
+#
+# Sumber spesifikasi: variabel repo SIAKAD_OPENAPI_URL, bawaan https://api.unipo.ac.id/v1/openapi.json.
+# Syarat: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests" diaktifkan.
+name: Perbarui spesifikasi API
+
+on:
+  schedule:
+    - cron: '0 20 * * *' # setiap hari 04.00 WITA
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: perbarui-spec
+  cancel-in-progress: true
+
+jobs:
+  perbarui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ambil OpenAPI terbaru
+        id: ambil
+        env:
+          URL: ${{ vars.SIAKAD_OPENAPI_URL || 'https://api.unipo.ac.id/v1/openapi.json' }}
+        run: |
+          if ! curl -fsSL --max-time 60 "$URL" -o /tmp/openapi.json; then
+            echo "::warning::OpenAPI tidak bisa diambil dari $URL; dilewati."
+            echo "ada=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          node -e "const s=require('/tmp/openapi.json'); if(!s.openapi||!s.paths) process.exit(1)" || { echo "::error::Bukan dokumen OpenAPI"; exit 1; }
+          echo "ada=1" >> "$GITHUB_OUTPUT"
+      - name: Bandingkan dan bangkitkan ulang
+        id: banding
+        if: steps.ambil.outputs.ada == '1'
+        run: |
+          node -e '
+            const fs=require("fs");
+            const ops=(f)=>{const d=JSON.parse(fs.readFileSync(f,"utf8"));const r={};for(const [p,o] of Object.entries(d.paths))for(const [m,x] of Object.entries(o))if(x&&typeof x==="object")r[x.operationId??m+" "+p]=1;return r;};
+            const a=ops("openapi.json"), b=ops("/tmp/openapi.json");
+            const baru=Object.keys(b).filter(k=>!a[k]), hilang=Object.keys(a).filter(k=>!b[k]);
+            let t=`Operasi baru: ${baru.length}. Operasi hilang: ${hilang.length}.`;
+            if(hilang.length) t+=`\n\n**Ada operasi yang hilang: metode SDK ikut terhapus, jadi rilis berikutnya harus versi mayor.**\n\n`+hilang.slice(0,50).map(x=>"- `"+x+"`").join("\n");
+            if(baru.length) t+="\n\nBaru:\n\n"+baru.slice(0,100).map(x=>"- `"+x+"`").join("\n")+(baru.length>100?"\n- …":"");
+            fs.writeFileSync("/tmp/ringkas.md",t);
+          '
+          node -e 'const fs=require("fs");fs.writeFileSync("openapi.json",JSON.stringify(JSON.parse(fs.readFileSync("/tmp/openapi.json","utf8")))+"\n")'
+          node generator/generate.mjs
+      - name: Uji paket Node.js
+        if: steps.ambil.outputs.ada == '1'
+        working-directory: node
+        run: npm install --no-audit --no-fund && npm run typecheck && npm run build && npm test
+      - name: Buka PR
+        if: steps.ambil.outputs.ada == '1'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: otomatis/perbarui-spec
+          commit-message: 'Perbarui SDK dari OpenAPI SIAKAD terbaru'
+          title: 'Perbarui SDK dari OpenAPI SIAKAD terbaru'
+          body-path: /tmp/ringkas.md
+          delete-branch: true

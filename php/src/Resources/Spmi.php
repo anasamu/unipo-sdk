@@ -1353,6 +1353,85 @@ final class Spmi extends Resource
     }
 
     /**
+     * Daftar tabel LKPS
+     *
+     * Tabel LKPS (IAPS 4.0) yang disusun otomatis dari data SIAKAD.
+     *
+     * `GET /v1/spmi/lkps`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLkps(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/lkps', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * LKPS program studi
+     *
+     * Disusun otomatis dari data SIAKAD (hanya dibaca): kerja sama, seleksi mahasiswa baru, dosen tetap, penelitian/PkM, kurikulum, IPK, prestasi, masa studi, waktu tunggu, kesesuaian bidang; ditambah indikator kuantitatif dan perkiraan skor rumus IAPS. format=csv&tabel=<kode> untuk satu tabel. Pengguna yang boleh melihat unit SPMI prodi itu.
+     *
+     * `GET /v1/spmi/lkps/{kode_prodi}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $kode_prodi Kode prodi
+     * @param array{ts?: int, tabel?: string, format?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLkpsByKodeProdi(int|string $kode_prodi, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/lkps/{kode_prodi}', ['kode_prodi' => $kode_prodi], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan Evaluasi Diri (LED)
+     *
+     * Narasi butir persiapan disusun per kriteria instrumen, dengan kelengkapan (narasi kosong). format=html untuk berkas siap cetak/simpan PDF.
+     *
+     * `GET /v1/spmi/akreditasi-persiapan/{id}/led`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID persiapan
+     * @param array{format?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiPersiapanByIdLed(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-persiapan/{id}/led', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simulasi akreditasi
+     *
+     * Skor butir per kriteria (tertimbang bobot), indikator kuantitatif LKPS bila unit prodi (dosen, rasio, S3, jabatan, serdos, kerja sama, IPK, tepat waktu, waktu tunggu, kesesuaian), perkiraan nilai 0-400 dan peringkat (Unggul/Baik Sekali/Baik), serta butir terlemah. Perkiraan internal, bukan penilaian resmi.
+     *
+     * `GET /v1/spmi/akreditasi-persiapan/{id}/simulasi`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID persiapan
+     * @param array{ts?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiPersiapanByIdSimulasi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-persiapan/{id}/simulasi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Isian pelaporan SPMI periode
      *
      * Butir pelaporan untuk spmi.kemdiktisaintek.go.id dengan cek kelengkapan (tautan kosong, dokumen tidak publik, tanggal penetapan).

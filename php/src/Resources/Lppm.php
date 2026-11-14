@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * LPPM: Umum, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: KKN, LPPM: File
+ * LPPM: Umum, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File
  */
 final class Lppm extends Resource
 {
@@ -2313,6 +2313,221 @@ final class Lppm extends Resource
     public function getRekapLkpsByTabel(int|string $tabel, array $query, array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/lppm/rekap/lkps/{tabel}', ['tabel' => $tabel], $query, null, $options, false, false);
+    }
+
+    /**
+     * Direktori kolaborator
+     *
+     * Peneliti/mitra luar kampus yang pernah atau akan terlibat (nama, instansi, ORCID/SINTA/Scopus), dengan jumlah kegiatan. Untuk dosen dan pengelola.
+     *
+     * `GET /v1/lppm/kolaborator`
+     *
+     * scope: `lppm:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKolaborator(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kolaborator', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah kolaborator
+     *
+     * `POST /v1/lppm/kolaborator`
+     *
+     * scope: `lppm:write`
+     *
+     * @param array{nama: string|null, email?: string|null, hp?: string|null, instansi?: string|null, jabatan?: string|null, negara?: string|null, orcid?: string|null, sinta_id?: string|null, scopus_id?: string|null, scholar_id?: string|null, bidang_keahlian?: string|null, catatan?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKolaborator(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kolaborator', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Detail kolaborator
+     *
+     * Termasuk kegiatan yang diikuti lewat undangan.
+     *
+     * `GET /v1/lppm/kolaborator/{id}`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKolaboratorById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kolaborator/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah kolaborator
+     *
+     * Pencatat atau pengelola.
+     *
+     * `PUT /v1/lppm/kolaborator/{id}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID
+     * @param array{nama: string|null, email?: string|null, hp?: string|null, instansi?: string|null, jabatan?: string|null, negara?: string|null, orcid?: string|null, sinta_id?: string|null, scopus_id?: string|null, scholar_id?: string|null, bidang_keahlian?: string|null, catatan?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putKolaboratorById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/lppm/kolaborator/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus kolaborator
+     *
+     * Pengelola.
+     *
+     * `DELETE /v1/lppm/kolaborator/{id}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKolaboratorById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/lppm/kolaborator/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Undang anggota eksternal
+     *
+     * Ketua/pengelola membuat tautan bertoken (berlaku 30 hari; undangan lama dicabut) untuk anggota eksternal. Kolaborator diambil dari kolaborator_id, dicari/dibuat dari email, atau dibuat dari data anggota. Token hanya tampil sekali; kirim lewat email/WA. Konfirmasi anggota menjadi menunggu.
+     *
+     * `POST /v1/lppm/kegiatan/{id}/anggota/{anggota}/undang`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID kegiatan
+     * @param int|string $anggota ID anggota
+     * @param array{kolaborator_id?: int|null, email?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKegiatanByIdAnggotaByAnggotaUndang(int|string $id, int|string $anggota, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kegiatan/{id}/anggota/{anggota}/undang', ['id' => $id, 'anggota' => $anggota], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lihat undangan (tanpa token akses)
+     *
+     * Untuk kolaborator lewat tautan: ringkasan kegiatan, ketua, tim, peran dan tugasnya, serta profil kolaborator.
+     *
+     * `GET /v1/lppm/kolaborasi/{token}`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $token Token undangan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKolaborasiByToken(int|string $token, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kolaborasi/{token}', ['token' => $token], $query, null, $options, false, true);
+    }
+
+    /**
+     * Jawab undangan (tanpa token akses)
+     *
+     * {"setuju": true|false, "profil": {...}}. Menulis konfirmasi anggota, melengkapi profil kolaborator, dan memberi tahu ketua. Bisa diubah selama tautan berlaku.
+     *
+     * `POST /v1/lppm/kolaborasi/{token}`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $token Token undangan
+     * @param array{setuju: bool, profil?: array<string, mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKolaborasiByToken(int|string $token, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kolaborasi/{token}', ['token' => $token], $options['query'] ?? [], $body, $options, false, true);
+    }
+
+    /**
+     * Metadata dari DOI (Crossref)
+     *
+     * Isian luaran siap pakai (judul, wadah, penerbit, ISSN/ISBN, volume, halaman, tahun, sitasi, saran jenis luaran) dan daftar penulis beserta ORCID. `sudah_tercatat` = ID luaran bila DOI sudah ada.
+     *
+     * `GET /v1/lppm/publikasi/doi`
+     *
+     * scope: `lppm:read`
+     *
+     * @param array{doi: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPublikasiDoi(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/publikasi/doi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Impor karya dari ORCID
+     *
+     * Karya di ORCID dosen (profil peneliti) yang belum tercatat dibuat sebagai luaran: status published, sumber impor, verifikasi belum. Jenis luaran ditebak dari tipe karya (jurnal nasional, prosiding nasional, buku, book chapter); pengelola menyesuaikan saat verifikasi. Dosen itu sendiri atau pengelola.
+     *
+     * `POST /v1/lppm/peneliti/{nidn}/impor-orcid`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $nidn NIDN
+     * @param array{lengkapi_crossref?: bool, batas?: int|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPenelitiByNidnImporOrcid(int|string $nidn, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/peneliti/{nidn}/impor-orcid', ['nidn' => $nidn], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Perbarui jumlah sitasi (OpenAlex)
+     *
+     * Luaran ber-DOI yang paling lama tidak diperbarui lebih dulu. Pengelola: semua atau luaran_id tertentu; dosen: luarannya sendiri (isi nidn).
+     *
+     * `POST /v1/lppm/publikasi/sitasi`
+     *
+     * scope: `lppm:write`
+     *
+     * @param array{luaran_id?: list<mixed>|null, nidn?: string|null, batas?: int|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPublikasiSitasi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/publikasi/sitasi', [], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

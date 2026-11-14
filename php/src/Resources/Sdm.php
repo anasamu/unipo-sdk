@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan
+ * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SISTER
  */
 final class Sdm extends Resource
 {
@@ -98,7 +98,7 @@ final class Sdm extends Resource
      *
      * scope: `sdm:admin`
      *
-     * @param array{bup_dosen?: string, bup_profesor?: string, bup_tendik?: string, kgb_tahun?: string, kenaikan_pangkat_tahun?: string, serdos_min_tahun?: string, bkd_min_sks?: string, bkd_max_sks?: string, jam_masuk?: string, jam_pulang?: string, jam_pulang_jumat?: string, toleransi_terlambat_menit?: string, hari_kerja?: string, presensi_lokasi?: string, pengingat_hari?: string, file_maks_mb?: string, ...} $body
+     * @param array{bup_dosen?: string, bup_profesor?: string, bup_tendik?: string, kgb_tahun?: string, kenaikan_pangkat_tahun?: string, serdos_min_tahun?: string, bkd_min_sks?: string, bkd_max_sks?: string, jam_masuk?: string, jam_pulang?: string, jam_pulang_jumat?: string, toleransi_terlambat_menit?: string, hari_kerja?: string, presensi_lokasi?: string, pengingat_hari?: string, file_maks_mb?: string, honor_pph_persen?: string, honor_pph_tanpa_npwp_persen?: string, pak_ak_per_sks_aa?: string, pak_ak_per_sks?: string, pak_ak_pkm?: string, pak_ak_penunjang_per_sks?: string, pak_maks_pengabdian_persen?: string, pak_maks_penunjang_persen?: string, pak_porsi_penulis_utama?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3542,6 +3542,254 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hitung angka kredit (simulasi PAK)
+     *
+     * Angka kredit baru sejak TMT jabatan akademik dari BKD yang disahkan (pendidikan, penunjang), luaran LPPM terverifikasi (penelitian, buku ajar; bagian penulis utama/anggota), dan pengabdian LPPM yang selesai. Dibandingkan dengan angka kredit minimal, proporsi penelitian, dan publikasi khusus jenjang tujuan. Koefisien di pengaturan pak_*.
+     *
+     * `GET /v1/sdm/pegawai/{id}/pak`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{ke_id?: string, sejak?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdPak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/pak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Isi angka kredit usulan dari hitung PAK
+     *
+     * Mengisi ak_pendidikan, ak_penelitian, ak_pengabdian, ak_penunjang (yang diakui setelah batas), dan publikasi_khusus usulan jabatan akademik. Hak sama dengan ubah usulan.
+     *
+     * `POST /v1/sdm/usulan/{id}/hitung-ak`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUsulanByIdHitungAk(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/usulan/{id}/hitung-ak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Portofolio dosen
+     *
+     * Profil, pendidikan, jabatan akademik dan struktural, sertifikasi, penghargaan, pengajaran per semester (t_jadwal), bimbingan dan pengujian TA, penelitian, pengabdian, publikasi terverifikasi (LPPM), dan BKD.
+     *
+     * `GET /v1/sdm/pegawai/{id}/portofolio`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{semester?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdPortofolio(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/portofolio', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Komponen honor yang dihitung otomatis
+     *
+     * Kode komponen, kelompok (remunerasi/honor/vakasi), dan satuannya.
+     *
+     * `GET /v1/sdm/honor/komponen`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorKomponen(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/komponen', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tarif honor
+     *
+     * Tarif per komponen, bisa dibedakan menurut jabatan akademik dan kategori dosen.
+     *
+     * `GET /v1/sdm/honor/tarif`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{komponen?: string, aktif?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorTarif(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/tarif', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah tarif
+     *
+     * `POST /v1/sdm/honor/tarif`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{komponen: string|null, nama: string|null, satuan: string|null, tarif: float|int|null, jabatan_akademik_id?: int|null, kategori?: string, berlaku_mulai?: string|null, berlaku_sampai?: string|null, aktif?: bool, keterangan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postHonorTarif(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/honor/tarif', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah tarif
+     *
+     * Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/sdm/honor/tarif/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID tarif
+     * @param array{komponen: string|null, nama: string|null, satuan: string|null, tarif: float|int|null, jabatan_akademik_id?: int|null, kategori?: string, berlaku_mulai?: string|null, berlaku_sampai?: string|null, aktif?: bool, keterangan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putHonorTarifById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/honor/tarif/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus tarif
+     *
+     * `DELETE /v1/sdm/honor/tarif/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID tarif
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteHonorTarifById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/honor/tarif/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hitung honor, vakasi, dan remunerasi satu semester
+     *
+     * Dari t_dosen_presensi (mengajar), t_jadwal_ujian + t_mahasiswa_krs (vakasi soal/koreksi, pengawas), t_mahasiswa_ta (bimbingan, penguji), jabatan akademik (remunerasi P1), dan BKD disahkan (remunerasi P2: kelebihan SKS). Hanya baris draft yang diperbarui; aman diulang. Tabel SIAKAD hanya dibaca.
+     *
+     * `POST /v1/sdm/honor/hitung`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{periode: string|null, komponen?: list<mixed>|null, pegawai_id?: int|null, unit_id?: int|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postHonorHitung(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/honor/hitung', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rekap honor per pegawai
+     *
+     * Total remunerasi, honor, vakasi, lainnya, bruto, pajak, netto per pegawai (tanpa yang batal). Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+     *
+     * `GET /v1/sdm/honor/rekap`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{periode?: string, kelompok?: string, status?: string, unit_id?: string, pegawai_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorRekap(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/rekap', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Setujui, bayar, kembalikan, atau batalkan honor
+     *
+     * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati.
+     *
+     * `POST /v1/sdm/honor/proses`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{aksi: string, id: list<mixed>, nomor_bukti?: string|null, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postHonorProses(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/honor/proses', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Daftar honor
+     *
+     * Beserta rincian dasar perhitungan. Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+     *
+     * `GET /v1/sdm/honor`
+     *
+     * scope: `sdm:read` · berhalaman
+     *
+     * @param array{periode?: string, komponen?: string, kelompok?: string, status?: string, pegawai_id?: string, unit_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonor(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah honor manual
+     *
+     * Kegiatan di luar perhitungan otomatis (panitia, narasumber, dll.).
+     *
+     * `POST /v1/sdm/honor`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{periode: string|null, pegawai_id: int|null, kelompok: string, komponen: string|null, uraian: string|null, volume: float|int|null, satuan?: string|null, tarif: float|int|null, pajak_persen?: float|int|null, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postHonor(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/honor', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Ringkasan
      *
      * Jumlah pegawai per jenis, status, jabatan akademik, golongan, pendidikan, serdos; cuti dan verifikasi yang menunggu.
@@ -3615,5 +3863,512 @@ final class Sdm extends Resource
     public function getLaporanDosenProdi(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/laporan/dosen-prodi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status integrasi SISTER
+     *
+     * Pengaturan koneksi (tanpa kata sandi), jumlah pegawai terhubung, proses tarik terakhir, dan daftar jenis data.
+     *
+     * `GET /v1/sdm/sister/status`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterStatus(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/status', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jenis data SISTER
+     *
+     * Jenis data yang ditarik (path endpoint SISTER), kelompoknya, dan jenis riwayat SDM yang diisi darinya.
+     *
+     * `GET /v1/sdm/sister/jenis`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterJenis(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/jenis', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan koneksi SISTER
+     *
+     * Mode (sandbox/produksi), alamat, username, id_pengguna, status token, hasil uji terakhir. Kata sandi tidak pernah ditampilkan.
+     *
+     * `GET /v1/sdm/sister/pengaturan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan pengaturan koneksi SISTER
+     *
+     * Kredensial dari menu "Kredensial API" di SISTER (peran SISTER WS-Basic). Kirim hanya kunci yang berubah; password disimpan terenkripsi, "" = tidak diubah, null = hapus. Nilai SISTER_* di .env menimpa pengaturan ini.
+     *
+     * `POST /v1/sdm/sister/pengaturan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{mode?: string, username?: string|null, password?: string|null, id_pengguna?: string|null, id_perguruan_tinggi?: string|null, url_sandbox?: string|null, url_produksi?: string|null, aktif?: bool, kirim_mode?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterPengaturan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/pengaturan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Uji koneksi SISTER
+     *
+     * Meminta token baru ke /authorize; bila `nidn` dikirim, sekalian mencari di /referensi/sdm. Hasil (berhasil/gagal) selalu 200.
+     *
+     * `POST /v1/sdm/sister/uji`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{nidn?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterUji(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/uji', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cari SDM di SISTER
+     *
+     * Langsung ke GET /referensi/sdm SISTER. Isi salah satu: nidn, nip, atau nama. Setiap hasil diberi `terhubung_ke` bila id_sdm sudah dipetakan.
+     *
+     * `GET /v1/sdm/sister/sdm`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{nidn?: string, nip?: string, nama?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterSdm(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/sdm', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cocokkan pegawai dengan SISTER
+     *
+     * Pegawai yang belum terhubung dicari di /referensi/sdm lewat NIDN lalu NIP; dipasangkan hanya bila hasilnya tepat satu. Diproses per batch (`batas`); ulangi sampai `sisa` 0.
+     *
+     * `POST /v1/sdm/sister/cocokkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{pegawai_id?: list<mixed>|null, batas?: int|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterCocokkan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/cocokkan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pegawai dan status SISTER
+     *
+     * Daftar pegawai beserta id_sdm, status di SISTER, dan hasil tarik terakhir.
+     *
+     * `GET /v1/sdm/sister/pegawai`
+     *
+     * scope: `sdm:admin` · berhalaman
+     *
+     * @param array{status?: string, jenis?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterPegawai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/pegawai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tarik data SISTER banyak pegawai
+     *
+     * Pegawai yang paling lama tidak ditarik diproses lebih dulu, sebanyak `batas` (bawaan 10). Ulangi sampai `sisa` 0, atau biarkan cron `php artisan sdm:sister tarik --cron` yang mengerjakan.
+     *
+     * `POST /v1/sdm/sister/tarik`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{pegawai_id?: list<mixed>|null, jenis?: list<mixed>|null, batas?: int|null, umur_jam?: int|null, cocokkan_dulu?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterTarik(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/tarik', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Log tarik data SISTER
+     *
+     * Setiap proses tarik: pemicu, pelaku, jumlah pegawai, ringkasan per jenis, galat.
+     *
+     * `GET /v1/sdm/sister/log`
+     *
+     * scope: `sdm:admin` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterLog(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/log', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Teruskan GET ke SISTER
+     *
+     * Untuk aplikasi lain yang butuh data SISTER mentah tanpa menyimpan kredensial SISTER sendiri. `path` hanya: referensi/<nama>, data_pribadi/<bagian>/<id_sdm>, atau jenis data (mis. penelitian, penelitian/<id>). Parameter lain diteruskan sebagai query (mis. id_sdm).
+     *
+     * `GET /v1/sdm/sister/teruskan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{path: string, id_sdm?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterTeruskan(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/teruskan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean kirim ke SISTER
+     *
+     * Perubahan riwayat SDM yang dikirim ke SISTER: aksi (tambah/ubah/hapus), status (menunggu, terkirim, tersinkron, gagal, ditolak, dibatalkan), isian terakhir, jawaban SISTER, galat.
+     *
+     * `GET /v1/sdm/sister/kirim`
+     *
+     * scope: `sdm:admin` · berhalaman
+     *
+     * @param array{status?: string, pegawai_id?: string, riwayat_jenis?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterKirim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/kirim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kirim antrean ke SISTER sekarang
+     *
+     * Mengirim antrean yang menunggu (dan yang gagal bila sudah waktunya diulang). Isi `id` untuk mengirim baris tertentu. Butuh kirim_mode manual atau otomatis. Isian yang ditolak SISTER (4xx) berstatus ditolak dan tidak diulang otomatis.
+     *
+     * `POST /v1/sdm/sister/kirim/proses`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{batas?: int|null, id?: list<mixed>|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterKirimProses(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/kirim/proses', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Antrekan riwayat lama
+     *
+     * Masukkan riwayat yang sudah disetujui, bukan berasal dari SISTER, dan belum pernah diantrekan ke antrean kirim. Dipakai sekali saat kirim pertama dinyalakan.
+     *
+     * `POST /v1/sdm/sister/kirim/antrekan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{pegawai_id?: list<mixed>|null, jenis?: list<mixed>|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterKirimAntrekan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/kirim/antrekan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pratinjau kiriman
+     *
+     * Metode, path, dan isian JSON yang akan dikirim ke SISTER untuk satu riwayat, tanpa mengirim. Pakai untuk memeriksa pemetaan config/sister.php di sandbox.
+     *
+     * `GET /v1/sdm/sister/kirim/pratinjau`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{riwayat_jenis: string, riwayat_id: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSisterKirimPratinjau(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sister/kirim/pratinjau', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ulangi kiriman
+     *
+     * Kembalikan baris gagal/ditolak/dibatalkan ke status menunggu (setelah data atau pemetaan diperbaiki).
+     *
+     * `POST /v1/sdm/sister/kirim/{id}/ulang`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID antrean
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterKirimByIdUlang(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/kirim/{id}/ulang', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan kiriman
+     *
+     * Baris yang belum terkirim tidak akan dikirim.
+     *
+     * `POST /v1/sdm/sister/kirim/{id}/batal`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID antrean
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSisterKirimByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sister/kirim/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: ringkasan pegawai
+     *
+     * id_sdm, status di SISTER, hasil tarik terakhir, dan jumlah item tersimpan per jenis.
+     *
+     * `GET /v1/sdm/pegawai/{id}/sister`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdSister(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/sister', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: tarik data pegawai
+     *
+     * Petugas SDM unitnya, admin, atau pegawai itu sendiri (dengan jeda minimal, bawaan 10 menit). `jenis` opsional: kunci jenis, nama kelompok (kepegawaian, tridharma, penunjang, dokumen), atau data_pribadi; kosong = semua.
+     *
+     * `POST /v1/sdm/pegawai/{id}/sister/tarik`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{jenis?: list<mixed>|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPegawaiByIdSisterTarik(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/pegawai/{id}/sister/tarik', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SISTER: bandingkan profil
+     *
+     * Data pribadi SISTER (hasil tarik terakhir) dibanding profil pegawai, dengan daftar kolom yang berbeda.
+     *
+     * `GET /v1/sdm/pegawai/{id}/sister/profil`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdSisterProfil(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/sister/profil', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: terapkan profil
+     *
+     * Salin kolom pilihan dari data pribadi SISTER ke profil pegawai (petugas SDM). Validasi dan log sama dengan ubah pegawai.
+     *
+     * `POST /v1/sdm/pegawai/{id}/sister/terapkan-profil`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{kolom: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPegawaiByIdSisterTerapkanProfil(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/pegawai/{id}/sister/terapkan-profil', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SISTER: hubungkan manual
+     *
+     * Pasangkan pegawai dengan id_sdm tertentu (mis. NIDN di SIAKAD berbeda dengan SISTER). id_sdm diperiksa ke SISTER.
+     *
+     * `POST /v1/sdm/pegawai/{id}/sister/hubungkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{id_sdm: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPegawaiByIdSisterHubungkan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/pegawai/{id}/sister/hubungkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SISTER: lepas pemetaan
+     *
+     * Hapus pemetaan dan salinan data SISTER pegawai ini. Riwayat SDM yang sudah dibuat dari SISTER tetap ada.
+     *
+     * `POST /v1/sdm/pegawai/{id}/sister/lepas`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPegawaiByIdSisterLepas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/pegawai/{id}/sister/lepas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: status kirim pegawai
+     *
+     * Riwayat pegawai ini yang dikirim ke SISTER beserta statusnya. Pegawai itu sendiri dan petugas SDM.
+     *
+     * `GET /v1/sdm/pegawai/{id}/sister/kirim`
+     *
+     * scope: `sdm:read` · berhalaman
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{status?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdSisterKirim(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/sister/kirim', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: data pribadi pegawai
+     *
+     * Salinan data pribadi SISTER per bagian (profil, kepegawaian, alamat, kependudukan, keluarga, bidang_ilmu, lain). Hanya pegawai itu dan petugas SDM.
+     *
+     * `GET /v1/sdm/pegawai/{id}/sister/data_pribadi/{bagian}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param int|string $bagian profil | kepegawaian | alamat | kependudukan | keluarga | bidang_ilmu | lain
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdSisterDataPribadiByBagian(int|string $id, int|string $bagian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/sister/data_pribadi/{bagian}', ['id' => $id, 'bagian' => $bagian], $query, null, $options, false, false);
+    }
+
+    /**
+     * SISTER: data pegawai per jenis
+     *
+     * Item SISTER tersimpan (JSON asli di `data`). Jenis = kunci di GET /v1/sdm/sister/jenis (data pribadi: pakai rute data_pribadi/{bagian}).
+     *
+     * `GET /v1/sdm/pegawai/{id}/sister/{jenis}`
+     *
+     * scope: `sdm:read` · berhalaman
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param int|string $jenis Jenis data, mis. penelitian, publikasi, jabatan_fungsional
+     * @param array{tahun?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdSisterByJenis(int|string $id, int|string $jenis, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/sister/{jenis}', ['id' => $id, 'jenis' => $jenis], $query, null, $options, false, false);
     }
 }
