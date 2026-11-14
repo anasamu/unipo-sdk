@@ -1,5 +1,9 @@
 # unipo-sdk
 
+[![Packagist](https://img.shields.io/packagist/v/unipo/siakad-sdk?label=composer)](https://packagist.org/packages/unipo/siakad-sdk)
+[![npm](https://img.shields.io/npm/v/unipo-siakad-sdk)](https://www.npmjs.com/package/unipo-siakad-sdk)
+[![CI](https://github.com/anasamu/unipo-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/anasamu/unipo-sdk/actions/workflows/ci.yml)
+
 SDK resmi **API SIAKAD UNIPO** untuk PHP dan Node.js. Kedua paket punya perilaku yang sama.
 
 | Bahasa | Paket | Pasang | Panduan |
