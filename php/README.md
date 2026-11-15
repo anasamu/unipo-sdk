@@ -158,6 +158,22 @@ $file = $siakad->request('GET', '/v1/arsip/file/{id}/unduh', ['id' => 7])->data(
 $file->saveTo(storage_path('app/arsip'));  // memakai nama file dari server
 ```
 
+### Berkas terpusat (file besar dan `berkas_id`)
+
+`unggahBerkas()` mengunggah ke `/v1/berkas`: file kecil dikirim sekali, file di atas batas unggah server dikirim
+bertahap per potongan dan diulang bila gagal. `id` hasilnya dipakai sebagai `berkas_id` di endpoint unggah modul mana
+pun (dokumen profil, lampiran pusat data, arsip, SPMI, LMS, SDM, LPPM, portal, tracer).
+
+```php
+$berkas = $siakad->unggahBerkas($request->file('ijazah'), [
+    'kategori' => 'dokumen',
+    'progres' => fn (int $terkirim, int $total) => logger("$terkirim/$total"),
+]);
+$siakad->profil()->postDokumenByIdBerkas($dokumenId, ['berkas_id' => $berkas['id']]);
+
+$url = $siakad->berkas()->getByIdUrl($berkas['id'])['url'];   // tautan sementara tanpa token
+```
+
 ## Galat
 
 ```php

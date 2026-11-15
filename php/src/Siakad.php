@@ -40,7 +40,7 @@ class Siakad
 {
     use GeneratedResources;
 
-    public const VERSION = '1.1.0';
+    public const VERSION = '1.2.0';
 
     /** Token dianggap habis bila sisa umurnya kurang dari ini (detik). */
     private const EXPIRY_MARGIN = 60;
@@ -119,6 +119,19 @@ class Siakad
     public function baseUrl(): string
     {
         return $this->baseUrl;
+    }
+
+    /**
+     * Unggah berkas ke /v1/berkas; file besar otomatis dikirim bertahap. Lihat {@see Berkas\Pengunggah::unggah()}.
+     *
+     *     $b = $siakad->unggahBerkas('/tmp/ijazah.pdf', ['kategori' => 'dokumen']);
+     *
+     * @param array<string, mixed> $opsi
+     * @return array<string, mixed>
+     */
+    public function unggahBerkas(string|\SplFileInfo $file, array $opsi = []): array
+    {
+        return (new Berkas\Pengunggah($this))->unggah($file, $opsi);
     }
 
     /**
