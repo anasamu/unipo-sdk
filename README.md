@@ -66,11 +66,22 @@ curl -s https://api.unipo.ac.id/v1/openapi.json > openapi.json
 node generator/generate.mjs
 ```
 
-Workflow **Perbarui spesifikasi API** (`.github/workflows/perbarui-spec.yml`) menjalankan langkah di atas setiap hari dan
-membuka PR `otomatis/perbarui-spec` bila ada perubahan (sumber: variabel repo `SIAKAD_OPENAPI_URL`, bawaan
-`https://api.unipo.ac.id/v1/openapi.json`). Aktifkan "Allow GitHub Actions to create and approve pull requests" di
-Settings > Actions. PR itu sekaligus menaikkan versi (minor, atau mayor bila ada operasi yang hilang) dan menulis
-CHANGELOG, jadi setelah di-merge versi barunya langsung dirilis otomatis (lihat Rilis).
+Workflow **Perbarui spesifikasi API** (`.github/workflows/perbarui-spec.yml`) menjalankan langkah di atas tiap jam
+(juga lewat tombol dan `repository_dispatch` bertipe `siakad-api-berubah`), jadi endpoint baru SIAKAD masuk SDK tanpa
+langkah manual:
+
+- Sumber spesifikasi: kode SIAKAD di branch `main` (lewat `spec-dari-siakad.php`) bila secret `SIAKAD_REPO_TOKEN` diisi
+  (fine-grained token, izin *Contents: Read* pada `anasamu/siakad_unipo`). Tanpa secret, `GET /v1/openapi.json` di server
+  (variabel repo `SIAKAD_OPENAPI_URL`, bawaan `https://api.unipo.ac.id/v1/openapi.json`), yang baru berubah setelah
+  server diperbarui.
+- Hanya ada operasi baru atau perubahan skema: versi dinaikkan (minor/patch), CHANGELOG ditulis, diuji (Node.js + PHP),
+  di-commit ke `main`, lalu workflow Rilis dijalankan. npm, Packagist, dan GitHub Release terbit sendiri.
+- Ada operasi yang hilang (metode SDK terhapus): tidak dirilis otomatis. Perubahan ditaruh di branch
+  `otomatis/perbarui-spec` dan dibuka PR versi mayor; bila Actions tidak boleh membuat PR, dibuat issue berisi tautannya.
+- Variabel repo `SPEC_OTOMATIS=pr` membuat semua perubahan lewat PR.
+
+Endpoint yang baru muncul dan belum masuk SDK tetap bisa dipanggil dengan `siakad.request({ method, path })` (Node.js)
+atau `$siakad->request($metode, $path)` (PHP).
 
 CI gagal bila kode hasil generator tidak sesuai `openapi.json`. Nama metode diturunkan dari `operationId`; menghapus
 atau mengganti path endpoint berarti menghapus metode, jadi naikkan versi mayor.
