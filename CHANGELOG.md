@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.2.0 (belum dirilis)
+## 1.2.0 (2026-11-15)
 
 - Modul baru `berkas` (/v1/berkas, 14 operasi): unggah dan unduh berkas terpusat untuk semua aplikasi, disimpan di penyimpanan yang aktif di menu Integrasi (S3, R2, MinIO, Google Drive) atau disk server. Butuh SIAKAD yang sudah memuat modul Berkas.
 - Pembantu unggah otomatis: `unggahBerkas(siakad, file, { kategori, onProgress })` (Node.js) dan `$siakad->unggahBerkas($path, [...])` (PHP). File kecil dikirim sekali; file di atas batas unggah server dikirim bertahap per potongan (paralel di Node.js, diulang bila gagal, bisa dilanjutkan dengan `lanjutkan`). Hasilnya `id` yang dipakai sebagai `berkas_id` di endpoint unggah modul. Juga `urlBerkas()` dan `infoBerkas()` (Node.js).
