@@ -8756,6 +8756,28 @@ export class FakultasResource {
   }
 
   /**
+   * Calon penerima peran
+   *
+   * Akun SIAKAD aktif milik dosen/karyawan fakultas ini, untuk isian pilih pengguna (pemberian peran, pengelola portal). Izin fakultas.pengaturan atau fakultas.portal.
+   *
+   * `GET /v1/fakultas/{kode}/akses/calon`
+   *
+   * scope: `fakultas:read` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeAksesCalon(kode: string | number, query?: {
+    /** Cari nama/username */
+    q?: string;
+    /** Username persis (menampilkan nilai awal) */
+    username?: string;
+    /** 1-50, bawaan 20 */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/akses/calon', query: { ...query, kode } }, options);
+  }
+
+  /**
    * Cabut peran tendik/operator
    *
    * Izin fakultas.pengaturan.
@@ -35925,6 +35947,549 @@ export class PortalResource {
    */
   getKelolaKategoriByIdRevisi(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/portal/kelola/kategori/{id}/revisi', query: { ...query, id } }, options);
+  }
+}
+
+/** Presensi QR: Peserta, Presensi QR: Sesi, Presensi QR: Izin, Presensi QR: Titik kerja */
+export class PresensiResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Pindai QR presensi
+   *
+   * Dipanggil aplikasi peserta setelah kamera membaca QR. Body: `{"token": "<isi QR>", "lokasi": "-0.54,123.06", "perangkat": "<id perangkat>"}`
+   * atau `{"kode": "K7MPQ2"}` (kode cadangan yang dibacakan dosen).
+   *
+   * - **QR sesi** (layar dosen/penyelenggara): mencatat kehadiran di sesi itu. Mahasiswa harus peserta KRS kelasnya; kegiatan
+   *   mengikuti aturan peserta (undangan, terbuka, mahasiswa, pegawai).
+   * - **QR titik kerja** (kiosk gerbang/kantor): dosen/tendik tercatat **masuk** (pindaian pertama hari itu) atau **pulang** di
+   *   `sdm_presensi` lewat layanan SDM. Kirim `"aksi": "pulang"` untuk memaksa pulang.
+   *
+   * QR berganti setiap `interval_detik`; QR dari jendela sebelumnya masih diterima (jeda jaringan), lebih lama dari itu 409
+   * `qr_kedaluwarsa`. Lokasi diperiksa bila sesi/titik mewajibkannya (`lokasi_wajib`, `di_luar_lokasi`). Satu perangkat untuk
+   * dua peserta di sesi yang sama ditandai curiga (atau ditolak 409 `perangkat_ganda` bila sesi menyetel `tolak_perangkat_ganda`).
+   * Memindai ulang setelah hadir mengembalikan `"sudah": true`, bukan galat.
+   *
+   * `POST /v1/presensi/pindai`
+   *
+   * scope: `presensi:write` · hanya token pengguna
+   *
+   * @param body
+   */
+  postPindai(body: S.PresensiPindaiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiPindaiHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/pindai', body }, options);
+  }
+
+  /**
+   * Kartu QR pribadi saya
+   *
+   * Token kartu peserta yang berganti setiap 30 detik, untuk dipindai petugas sesi (mis. seminar, ujian, upacara). `?svg=1` menyertakan gambar SVG dari generator QR (gaya "presensi").
+   *
+   * `GET /v1/presensi/kartu`
+   *
+   * scope: `presensi:read` · hanya token pengguna
+   */
+  getKartu(query?: {
+    /** 1 = sertakan SVG */
+    svg?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.PresensiQr>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/kartu', query }, options);
+  }
+
+  /**
+   * Presensi saya
+   *
+   * Sesi yang sedang dibuka untuk saya (kuliah dari KRS/ampuan, kegiatan undangan/terbuka) beserta status saya, dan riwayat kehadiran QR. Rekap kuliah per mata kuliah tetap di /v1/mahasiswa/{nim}/presensi; rekap kerja di /v1/sdm/presensi.
+   *
+   * `GET /v1/presensi/saya`
+   *
+   * scope: `presensi:read` · hanya token pengguna · berhalaman
+   */
+  getSaya(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/saya', query }, options);
+  }
+
+  /**
+   * Daftar sesi yang saya kelola
+   *
+   * Sesi buatan saya, sesi kelas yang saya ampu (dosen), sesi kuliah prodi yang saya kelola (BAK/PROGDI), sesi tempat saya petugas. presensi:admin melihat semua.
+   *
+   * `GET /v1/presensi/sesi`
+   *
+   * scope: `presensi:read` · berhalaman
+   */
+  getSesi(query?: {
+    /** kuliah | kegiatan */
+    jenis?: string;
+    /** draf | buka | tutup | disahkan | batal */
+    status?: string;
+    /** ID jadwal */
+    idj?: string;
+    /** ID kelas LMS (sesi jadwal kelas itu) */
+    lms_kelas_id?: string;
+    /** YYYY-MM-DD */
+    tanggal?: string;
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Cari judul */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PresensiSesi>>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/sesi', query }, options);
+  }
+
+  /**
+   * Buat sesi presensi
+   *
+   * **Kuliah** (dosen pengampu/tim, atau pengelola prodi): `{"jenis": "kuliah", "idj": 1234, "tanggal": "2026-11-16", "jam": 3, "jam_selesai": 4, "bahasan": "Pertemuan 5: ...", "buka": true}`.
+   * Dari kelas LMS cukup `{"jenis": "kuliah", "lms_kelas_id": 55, "buka": true}` (idj dibaca dari kelas LMS). Saat disahkan, hasilnya juga disalin ke
+   * presensi kelas LMS (lms_presensi_sesi/lms_presensi) supaya tab presensi dan analitik LMS memakai data yang sama.
+   * Bawaan: tanggal hari ini, jam = jam jadwal, judul = nama mata kuliah + kelas, peserta = KRS disetujui.
+   *
+   * **Kegiatan** (semua pegawai dan mahasiswa, mis. rapat, seminar, ormawa): `{"jenis": "kegiatan", "judul": "Rapat senat", "mulai_at": "2026-11-16 09:00",
+   * "selesai_at": "2026-11-16 12:00", "peserta": "undangan", "undangan": [{"jenis": "dosen", "subjek": "0912..."}, {"jenis": "tendik", "subjek": "K99..."}], "unit": "fik"}`.
+   * `peserta`: undangan, terbuka, mahasiswa, pegawai.
+   *
+   * Keamanan opsional: `interval_detik` (10-300, bawaan 20), `pakai_kode` (kode cadangan 6 huruf), `izinkan_kartu`, `lokasi` "lat,lng" + `radius_m` + `wajib_lokasi`,
+   * `titik` (pakai lokasi titik kerja), `tolak_perangkat_ganda`, `terlambat_menit` (setelah dibuka), `petugas` (username pembantu), `status_kosong` (A/I/S untuk yang tidak hadir).
+   * `unit` = bagian penyelenggara (dipakai gaya QR per bagian). `buka: true` langsung membuka sesi.
+   *
+   * `POST /v1/presensi/sesi`
+   *
+   * scope: `presensi:write`
+   *
+   * @param body
+   */
+  postSesi(body: S.PresensiSesiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi', body }, options);
+  }
+
+  /**
+   * Detail sesi
+   *
+   * Pengelola/petugas juga menerima ringkasan (hadir, izin, sakit, alpa, belum, terlambat, curiga), kode cadangan, dan petugas. Peserta menerima data sesi saja.
+   *
+   * `GET /v1/presensi/sesi/{id}`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID atau ID sesi
+   */
+  getSesiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/sesi/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah sesi
+   *
+   * Isian seperti buat (kecuali jenis, idj, tanggal, jam). `undangan` menambah peserta; `ganti_undangan: true` mengganti seluruh daftar. Sesi disahkan/batal tidak bisa diubah.
+   *
+   * `POST /v1/presensi/sesi/{id}`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   * @param body
+   */
+  postSesiById(id: string | number, body: S.PresensiSesiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Buka sesi
+   *
+   * QR mulai berlaku. Dosen pengampu yang membuka sesi kuliah tercatat hadir mengajar (waktu, lokasi `lokasi`, perangkat). Event presensi.sesi_dibuka.
+   *
+   * `POST /v1/presensi/sesi/{id}/buka`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   */
+  postSesiByIdBuka(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/buka', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tutup sesi
+   *
+   * Pindaian berhenti diterima. Sesi kuliah langsung disahkan ke SIAKAD kecuali `{"sahkan": false}`; kegiatan tidak, kecuali `{"sahkan": true}`.
+   *
+   * `POST /v1/presensi/sesi/{id}/tutup`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   */
+  postSesiByIdTutup(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/tutup', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Sahkan sesi
+   *
+   * **Kuliah**: pertemuan + status semua peserta KRS ditulis ke `t_dosen_presensi` / `t_mahasiswa_presensi` lewat service input presensi dosen
+   * yang sama dengan halaman web (hadir dari pindaian/isi manual, izin/sakit dari izin yang disetujui, sisanya `status_kosong`). Dosen hanya bisa
+   * mengesahkan pada hari pertemuan (aturan SIAKAD); hari lain oleh pengelola prodi. Bila pertemuan itu sudah tercatat, kirim `{"gabung": true}`
+   * untuk memperbarui status peserta yang sudah ada. **Kegiatan**: undangan yang tidak hadir dicatat `status_kosong`. Event presensi.sesi_disahkan.
+   *
+   * `POST /v1/presensi/sesi/{id}/sahkan`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   */
+  postSesiByIdSahkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/sahkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan sesi
+   *
+   * Body opsional {"alasan"}. Sesi yang sudah disahkan tidak bisa dibatalkan.
+   *
+   * `POST /v1/presensi/sesi/{id}/batal`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   */
+  postSesiByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ganti kode cadangan
+   *
+   * Kode 6 huruf baru (bila kode lama tersebar).
+   *
+   * `POST /v1/presensi/sesi/{id}/kode-baru`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   */
+  postSesiByIdKodeBaru(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiSesi>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/kode-baru', query: { ...query, id } }, options);
+  }
+
+  /**
+   * QR sesi saat ini
+   *
+   * Untuk layar dosen/penyelenggara (proyektor). Panggil ulang setiap `sisa_detik`. `isi` = teks yang dijadikan QR; render dengan komponen
+   * `KodeQrSiakad` (unipo-ui, gaya `gaya.kode` untuk `gaya.bagian`) atau minta `?svg=1` (SVG dari generator QR terpusat bila terpasang).
+   * Juga mengembalikan ringkasan kehadiran dan 8 pemindai terbaru untuk ditampilkan di samping QR.
+   *
+   * `GET /v1/presensi/sesi/{id}/qr`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID atau ID sesi
+   */
+  getSesiByIdQr(id: string | number, query?: {
+    /** 1 = sertakan SVG */
+    svg?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.PresensiQr>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/sesi/{id}/qr', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Daftar peserta dan status
+   *
+   * Pengelola/petugas. Kuliah: semua peserta KRS; kegiatan undangan: semua undangan; ditambah yang hadir di luar daftar. Per peserta: status, waktu, cara (qr, kode, kartu, manual, izin), terlambat, jarak, tanda curiga, izin yang diajukan. Dosen pengampu yang hadir ada di `pengajar`.
+   *
+   * `GET /v1/presensi/sesi/{id}/peserta`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID atau ID sesi
+   */
+  getSesiByIdPeserta(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/sesi/{id}/peserta', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Isi/koreksi status peserta
+   *
+   * `{"peserta": [{"jenis": "mahasiswa", "subjek": "NIM", "status": "I", "catatan": "..."}], "lainnya": "A"}`. `lainnya` mengisi peserta daftar yang belum punya status. Pengelola atau petugas, sebelum disahkan.
+   *
+   * `POST /v1/presensi/sesi/{id}/peserta`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   * @param body
+   */
+  postSesiByIdPeserta(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/peserta', query: { id }, body }, options);
+  }
+
+  /**
+   * Pindai kartu QR peserta (petugas)
+   *
+   * `{"token": "<isi kartu QR>"}`. Untuk peserta tanpa kamera/ponsel atau acara dengan meja registrasi. Lokasi tidak diperiksa (petugas di lokasi).
+   *
+   * `POST /v1/presensi/sesi/{id}/pindai-kartu`
+   *
+   * scope: `presensi:write` · hanya token pengguna
+   *
+   * @param id UUID atau ID sesi
+   * @param body
+   */
+  postSesiByIdPindaiKartu(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiPindaiHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/pindai-kartu', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus tanda curiga
+   *
+   * `{"jenis", "subjek", "catatan"}` setelah pengelola memeriksa (mis. dua mahasiswa berbagi ponsel dengan alasan sah).
+   *
+   * `POST /v1/presensi/sesi/{id}/curiga`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID atau ID sesi
+   * @param body
+   */
+  postSesiByIdCuriga(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/sesi/{id}/curiga', query: { id }, body }, options);
+  }
+
+  /**
+   * Jejak pemindaian
+   *
+   * Pengelola: 500 pindaian terakhir, termasuk yang ditolak (QR kedaluwarsa, bukan peserta, di luar lokasi, perangkat ganda).
+   *
+   * `GET /v1/presensi/sesi/{id}/log`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID atau ID sesi
+   */
+  getSesiByIdLog(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/sesi/{id}/log', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Daftar izin
+   *
+   * Izin saya dan izin yang bisa saya proses (pengelola sesi, dosen pengampu, pengelola prodi). `sebagai=saya|penyetuju` untuk memilih.
+   *
+   * `GET /v1/presensi/izin`
+   *
+   * scope: `presensi:read` · berhalaman
+   */
+  getIzin(query?: {
+    /** diajukan | disetujui | ditolak | batal */
+    status?: string;
+    /** saya | penyetuju */
+    sebagai?: string;
+    /** UUID sesi */
+    sesi_id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PresensiIzin>>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/izin', query }, options);
+  }
+
+  /**
+   * Ajukan izin/sakit
+   *
+   * `{"sesi_id": "<uuid>", "jenis": "sakit", "alasan": "...", "berkas_id": "<uuid surat dari /v1/berkas>"}`, atau untuk pertemuan kuliah tanpa
+   * sesi QR (mis. diajukan sebelum kuliah) `{"idj": 1234, "tanggal": "2026-11-20", ...}` (mahasiswa). Izin kerja dosen/tendik lewat /v1/sdm/cuti.
+   * Event presensi.izin_diajukan.
+   *
+   * `POST /v1/presensi/izin`
+   *
+   * scope: `presensi:write` · hanya token pengguna
+   *
+   * @param body
+   */
+  postIzin(body: S.PresensiIzinInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiIzin>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/izin', body }, options);
+  }
+
+  /**
+   * Unduh surat izin
+   *
+   * Pengaju dan penyetuju. ?unduh=1 untuk unduhan.
+   *
+   * `GET /v1/presensi/izin/{id}/berkas`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID izin
+   */
+  getIzinByIdBerkas(id: string | number, query?: {
+    /** 1 = unduh */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/izin/{id}/berkas', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Setujui izin
+   *
+   * Body opsional {"catatan"}. Status peserta di sesi menjadi I/S (tidak menimpa hadir); bila pertemuan kuliah sudah tercatat di SIAKAD, status A diubah ke I/S. Event presensi.izin_diproses.
+   *
+   * `POST /v1/presensi/izin/{id}/setujui`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID izin
+   */
+  postIzinByIdSetujui(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiIzin>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/izin/{id}/setujui', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tolak izin
+   *
+   * Body opsional {"catatan"}.
+   *
+   * `POST /v1/presensi/izin/{id}/tolak`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID izin
+   */
+  postIzinByIdTolak(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiIzin>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/izin/{id}/tolak', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan izin (pengaju)
+   *
+   * Body opsional {"catatan"}.
+   *
+   * `POST /v1/presensi/izin/{id}/batal`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID izin
+   */
+  postIzinByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiIzin>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/izin/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Daftar titik presensi kerja
+   *
+   * Titik aktif (gerbang, kantor, kiosk). `semua=1` (pengelola) termasuk nonaktif.
+   *
+   * `GET /v1/presensi/titik`
+   *
+   * scope: `presensi:read`
+   */
+  getTitik(query?: {
+    /** 1 = termasuk nonaktif */
+    semua?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PresensiTitik>>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/titik', query }, options);
+  }
+
+  /**
+   * Tambah titik
+   *
+   * `{"kode": "gerbang-utama", "nama": "Gerbang utama", "jenis": "gerbang", "untuk": "pegawai|dosen|tendik", "lokasi": "-0.54,123.06", "radius_m": 150, "wajib_lokasi": true, "interval_detik": 20, "unit": "rektorat"}`. presensi:admin atau admin/operator kepegawaian.
+   *
+   * `POST /v1/presensi/titik`
+   *
+   * scope: `presensi:write`
+   *
+   * @param body
+   */
+  postTitik(body: S.PresensiTitikInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiTitik>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/titik', body }, options);
+  }
+
+  /**
+   * Detail titik
+   *
+   * `GET /v1/presensi/titik/{id}`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID, ID, atau kode titik
+   */
+  getTitikById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PresensiTitik>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/titik/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah titik
+   *
+   * Isian seperti tambah; `ganti_rahasia: true` membuat QR lama langsung tidak berlaku.
+   *
+   * `POST /v1/presensi/titik/{id}`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID, ID, atau kode titik
+   * @param body
+   */
+  postTitikById(id: string | number, body: S.PresensiTitikInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PresensiTitik>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/titik/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus titik
+   *
+   * `POST /v1/presensi/titik/{id}/hapus`
+   *
+   * scope: `presensi:write`
+   *
+   * @param id UUID, ID, atau kode titik
+   */
+  postTitikByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/presensi/titik/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * QR titik saat ini (layar kiosk)
+   *
+   * Perangkat kiosk memakai token aplikasi dengan scope presensi:kiosk dan memanggil ulang setiap `sisa_detik`. Juga jumlah masuk/pulang lewat titik ini hari ini. `?svg=1` menyertakan SVG.
+   *
+   * `GET /v1/presensi/titik/{id}/qr`
+   *
+   * @param id UUID, ID, atau kode titik
+   */
+  getTitikByIdQr(id: string | number, query?: {
+    /** 1 = sertakan SVG */
+    svg?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.PresensiQr>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/titik/{id}/qr', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Jejak pindaian titik
+   *
+   * Pengelola titik: pindaian satu hari (bawaan hari ini), termasuk yang ditolak.
+   *
+   * `GET /v1/presensi/titik/{id}/log`
+   *
+   * scope: `presensi:read`
+   *
+   * @param id UUID, ID, atau kode titik
+   */
+  getTitikByIdLog(id: string | number, query?: {
+    /** YYYY-MM-DD */
+    tanggal?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/presensi/titik/{id}/log', query: { ...query, id } }, options);
   }
 }
 

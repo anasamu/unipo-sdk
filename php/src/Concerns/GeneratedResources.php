@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2950 endpoint).
+ * Akses ke semua modul API (2982 endpoint).
  */
 trait GeneratedResources
 {
@@ -91,7 +91,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (45 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (46 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -299,6 +299,12 @@ trait GeneratedResources
     public function portal(): Resources\Portal
     {
         return $this->resource(Resources\Portal::class);
+    }
+
+    /** Presensi QR: Peserta, Presensi QR: Sesi, Presensi QR: Izin, Presensi QR: Titik kerja (31 endpoint) */
+    public function presensi(): Resources\Presensi
+    {
+        return $this->resource(Resources\Presensi::class);
     }
 
     /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (87 endpoint) */

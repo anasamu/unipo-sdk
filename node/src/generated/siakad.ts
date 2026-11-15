@@ -87,7 +87,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (45 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (46 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -260,6 +260,11 @@ export class Siakad extends SiakadCore {
   /** Portal, Portal: kelola (138 endpoint) */
   get portal(): R.PortalResource {
     return this.resource('portal', () => new R.PortalResource(this));
+  }
+
+  /** Presensi QR: Peserta, Presensi QR: Sesi, Presensi QR: Izin, Presensi QR: Titik kerja (31 endpoint) */
+  get presensi(): R.PresensiResource {
+    return this.resource('presensi', () => new R.PresensiResource(this));
   }
 
   /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (87 endpoint) */
