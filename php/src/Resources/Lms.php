@@ -858,7 +858,7 @@ final class Lms extends Resource
      *
      * scope: `lms:read`
      *
-     * @param array{file: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, kelas_id: int, konteks: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas_id?: string, file?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, kelas_id: int, konteks: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

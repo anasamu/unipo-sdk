@@ -18,4 +18,13 @@ export type {
 export * as Resources from './generated/resources.js';
 export type * as Schemas from './generated/schemas.js';
 export { unggahBerkas, urlBerkas, infoBerkas, type UnggahBerkasOpsi } from './berkas.js';
+export {
+  verifikasiWebhook,
+  tandaTanganWebhook,
+  WebhookSignatureError,
+  type VerifikasiWebhookOpsi,
+  type PesanWebhook,
+  type AmplopPeristiwa,
+  type MetaPeristiwa,
+} from './webhook.js';
 export { VERSION } from './version.js';

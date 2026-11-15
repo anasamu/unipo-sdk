@@ -146,6 +146,21 @@ img.src = await urlBerkas(siakad, berkas.id!);
 Unggahan yang terputus bisa dilanjutkan: `unggahBerkas(siakad, file, { lanjutkan: idBerkas })` hanya mengirim potongan
 yang belum diterima.
 
+## Menerima webhook (event domain)
+
+SIAKAD mengirim event seperti `mahasiswa.lulus`, `krs.disetujui`, `nilai.diperbarui` ke URL yang didaftarkan di
+`POST /v1/integrasi/webhook-keluar`. Verifikasi tanda tangannya dengan body **mentah**:
+
+```ts
+import { verifikasiWebhook, WebhookSignatureError } from 'unipo-siakad-sdk';
+
+const pesan = await verifikasiWebhook({ body: rawBody, tandaTangan: req.headers['x-siakad-signature'], rahasia: process.env.SIAKAD_WEBHOOK_RAHASIA! });
+if (await sudahDiproses(pesan.id)) return; // pengiriman at-least-once: buang duplikat dengan id
+if (pesan.event === 'mahasiswa.lulus') console.log(pesan.data.nim, pesan.data._peristiwa?.korelasi_id);
+```
+
+Katalog event dan isi datanya: `await siakad.peristiwa.getKatalog()`.
+
 ## Galat
 
 ```ts

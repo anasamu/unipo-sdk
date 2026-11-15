@@ -174,6 +174,23 @@ $siakad->profil()->postDokumenByIdBerkas($dokumenId, ['berkas_id' => $berkas['id
 $url = $siakad->berkas()->getByIdUrl($berkas['id'])['url'];   // tautan sementara tanpa token
 ```
 
+## Menerima webhook (event domain)
+
+```php
+use Unipo\Siakad\Webhook\Webhook;
+use Unipo\Siakad\Webhook\WebhookSignatureException;
+
+try {
+    $pesan = Webhook::verifikasi(file_get_contents('php://input'), $_SERVER['HTTP_X_SIAKAD_SIGNATURE'] ?? null, $rahasia);
+} catch (WebhookSignatureException) {
+    http_response_code(401);
+    exit;
+}
+// $pesan['id'] untuk membuang duplikat, $pesan['event'] mis. 'mahasiswa.lulus', $pesan['data']['nim']
+```
+
+Katalog event dan isi datanya: `$siakad->peristiwa()->getKatalog()`.
+
 ## Galat
 
 ```php

@@ -56,6 +56,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Mbkm mbkm()
  * @method static \Unipo\Siakad\Resources\Notif notif()
  * @method static \Unipo\Siakad\Resources\Pddikti pddikti()
+ * @method static \Unipo\Siakad\Resources\Peristiwa peristiwa()
  * @method static \Unipo\Siakad\Resources\Perpustakaan perpustakaan()
  * @method static \Unipo\Siakad\Resources\Pmb pmb()
  * @method static \Unipo\Siakad\Resources\Portal portal()

@@ -650,6 +650,8 @@ export type PusatBerkas = {
 };
 
 export type PusatBerkasInput = {
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   berkas?: Uploadable;
   /** Mis. lampiran, bukti, laporan */
   jenis?: string;
@@ -1712,6 +1714,8 @@ export type ArsipFile = {
 };
 
 export type ArsipFileUpload = {
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   berkas?: Uploadable;
   peran?: "utama" | "lampiran" | "bukti";
   keterangan?: string;
@@ -6828,7 +6832,9 @@ export type LmsKelasDaring = {
 };
 
 export type LmsUnggah = {
-  file: Uploadable;
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
+  file?: Uploadable;
   kelas_id: number;
   konteks: "materi" | "tugas" | "jawaban" | "forum" | "soal" | "sampul";
   [key: string]: any;
@@ -7782,8 +7788,10 @@ export type LppmFile = {
 };
 
 export type LppmFileUnggah = {
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   /** File (multipart). Alternatif JSON: berkas_base64 + nama_file */
-  berkas: Uploadable;
+  berkas?: Uploadable;
   /** proposal, kontrak, laporan, bukti, sertifikat, lampiran (bawaan) */
   peran?: string | null;
   keterangan?: string | null;
@@ -8488,6 +8496,167 @@ export type PddiktiJadwalInput = {
   hari?: number;
   batas?: number;
   aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Amplop event domain (mirip CloudEvents). Sama persis dengan isi pesan webhook/broker. */
+export type PeristiwaAmplop = {
+  /** UUID event; dipakai penerima untuk membuang duplikat Contoh: `0b6f9c1e-6d1a-4a4e-9d7e-3f1f8a2b7c11` */
+  id?: string | null;
+  /** Contoh: `mahasiswa.lulus` */
+  jenis?: string | null;
+  /** Versi skema data Contoh: `1` */
+  versi?: number | null;
+  /** Contoh: `siakad/mahasiswa` */
+  sumber?: string | null;
+  /** Kunci entitas utama Contoh: `2201010001` */
+  subjek?: string | null;
+  /** ISO 8601 Contoh: `2026-11-16T09:30:00+08:00` */
+  waktu?: string | null;
+  /** request_id API pemicu; sama untuk semua event dalam satu rantai alur */
+  korelasi_id?: string | null;
+  /** UUID event yang memicu event ini (null bila dipicu langsung oleh pengguna) */
+  penyebab_id?: string | null;
+  /** username atau klien:<client_id> */
+  aktor?: string | null;
+  data?: JsonObject;
+  [key: string]: any;
+};
+
+export type PeristiwaRingkas = {
+  id?: string | null;
+  jenis?: string | null;
+  sumber?: string | null;
+  subjek?: string | null;
+  korelasi_id?: string | null;
+  aktor?: string | null;
+  waktu?: string | null;
+  /** baru (belum disebar) atau disebar */
+  status?: string | null;
+  pengantaran?: {
+    total?: number | null;
+    terkirim?: number | null;
+    antre?: number | null;
+    mati?: number | null;
+    dilewati?: number | null;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+export type PeristiwaDetail = {
+  amplop?: PeristiwaAmplop;
+  status?: string | null;
+  disebar_at?: string | null;
+  pengantaran?: Array<{
+    /** pendengar (modul SIAKAD) atau penerus (webhook, broker) */
+    jenis_tujuan?: string | null;
+    /** Contoh: `tracer.alumni_baru` */
+    tujuan?: string | null;
+    judul?: string | null;
+    /** antre, proses, terkirim, mati (dead letter), dilewati */
+    status?: string | null;
+    percobaan?: number | null;
+    galat?: string | null;
+    /** Jadwal percobaan berikutnya */
+    berikutnya_at?: string | null;
+    selesai_at?: string | null;
+    [key: string]: any;
+  }>;
+  /** Event lain dengan korelasi_id yang sama */
+  rantai?: Array<{
+    id?: string | null;
+    jenis?: string | null;
+    waktu?: string | null;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
+export type PeristiwaJenis = {
+  /** Contoh: `keuangan.tagihan_lunas` */
+  jenis?: string | null;
+  judul?: string | null;
+  keterangan?: string | null;
+  /** Modul penerbit */
+  modul?: string | null;
+  versi?: number | null;
+  /** Scope yang wajib dimiliki aplikasi untuk berlangganan event ini lewat webhook */
+  scope?: string | null;
+  /** Isi data: nama => tipe dan keterangan */
+  data?: Record<string, string>;
+  contoh?: JsonObject;
+  /** Kode pendengar di SIAKAD yang bereaksi */
+  pendengar?: Array<string | null>;
+  [key: string]: any;
+};
+
+export type PeristiwaPendengar = {
+  /** Contoh: `tracer.alumni_baru` */
+  kode?: string | null;
+  modul?: string | null;
+  judul?: string | null;
+  keterangan?: string | null;
+  /** Event yang didengar */
+  jenis?: Array<string | null>;
+  /** Event yang mungkin diterbitkan pendengar ini (rantai alur) */
+  terbit?: Array<string | null>;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+export type PeristiwaKatalog = {
+  /** Contoh: `1.0` */
+  versi_amplop?: string | null;
+  jenis?: Array<PeristiwaJenis>;
+  pendengar?: Array<PeristiwaPendengar>;
+  penerus?: Array<{
+    kode?: string | null;
+    aktif?: boolean;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
+export type PeristiwaAlur = {
+  alur?: Array<{
+    /** Contoh: `pmb-ke-mahasiswa` */
+    kode?: string | null;
+    judul?: string | null;
+    keterangan?: string | null;
+    langkah?: Array<{
+      urut?: number | null;
+      modul?: string | null;
+      /** Endpoint API pemicu */
+      endpoint?: string | null;
+      event?: string | null;
+      reaksi?: Array<string | null>;
+      [key: string]: any;
+    }>;
+    [key: string]: any;
+  }>;
+  /** Diagram alur event -> pendengar dalam sintaks Mermaid */
+  mermaid?: string | null;
+  [key: string]: any;
+};
+
+export type PeristiwaStatistik = {
+  outbox?: {
+    baru?: number | null;
+    disebar?: number | null;
+    total?: number | null;
+    [key: string]: any;
+  };
+  pengantaran?: JsonObject;
+  per_tujuan?: Array<JsonObject>;
+  /** Waktu event tertua yang belum terkirim */
+  tertua_antre?: string | null;
+  [key: string]: any;
+};
+
+export type PeristiwaUlangInput = {
+  /** Kode pendengar/penerus; kosong = semua pengantaran yang mati/dilewati Contoh: `webhook` */
+  tujuan?: string | null;
   [key: string]: any;
 };
 
@@ -9301,6 +9470,8 @@ export type PortalKonten = {
 
 export type PortalMediaUpload = {
   situs: string;
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   berkas: Uploadable;
   judul?: string;
   alt?: string;
@@ -11220,6 +11391,8 @@ export type SdmFileInput = {
   /** pegawai, riwayat:<jenis> (mis. riwayat:pendidikan), cuti, kinerja_item, usulan */
   entitas: string | null;
   entitas_id: number | null;
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   /** PDF/JPG/PNG/WebP/DOC/DOCX/XLS/XLSX */
   berkas?: Uploadable;
   keterangan?: string | null;
@@ -13005,6 +13178,8 @@ export type SpmiFile = {
 };
 
 export type SpmiFileUpload = {
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   /** multipart/form-data */
   berkas?: Uploadable;
   /** Alternatif JSON: isi file base64 */
@@ -13327,13 +13502,17 @@ export type TracerJawabanInput = {
 
 export type TracerFotoInput = {
   /** JPG/PNG/WEBP maks 2 MB */
-  berkas: Uploadable;
+  berkas?: Uploadable;
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   [key: string]: any;
 };
 
 export type TracerBerkasInput = {
+  /** Alternatif file: UUID berkas dari /v1/berkas (mis. hasil unggah bertahap) */
+  berkas_id?: string;
   /** PDF/gambar/dokumen, batas ukuran ARSIP_MAKS_MB */
-  berkas: Uploadable;
+  berkas?: Uploadable;
   /** CV, SERTIFIKAT, PRESTASI, KARYA, IDENTITAS, SKPI, IJAZAH, TRANSKRIP */
   jenis: string | null;
   /** Opsional */
