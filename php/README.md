@@ -174,6 +174,25 @@ $siakad->profil()->postDokumenByIdBerkas($dokumenId, ['berkas_id' => $berkas['id
 $url = $siakad->berkas()->getByIdUrl($berkas['id'])['url'];   // tautan sementara tanpa token
 ```
 
+## Kode QR dan dokumen terverifikasi
+
+```php
+use Unipo\Siakad\Dokumen\KodeVerifikasi;
+use Unipo\Siakad\Http\Upload;
+
+// QR SVG dengan gaya bagian (scope qr:read)
+$svg = (string) $siakad->qr()->create(['isi' => $url, 'gaya' => 'presensi', 'bagian' => 'fik', 'keluaran' => 'svg'])->data;
+
+// Terbitkan transkrip: PDF disimpan di berkas terpusat, diberi kode + QR verifikasi
+$t = $siakad->dokumen()->postTranskrip(['nim' => '2301010001'])->data;
+echo $t['kode_verifikasi'], ' ', $t['url_verifikasi'];
+
+// Pemeriksa dokumen
+$kode = KodeVerifikasi::dariQr($hasilPindai);                        // null bila bukan QR dokumen SIAKAD
+$cek = $siakad->dokumen()->getVerifikasiByKode($kode)->data;         // sah, status, pesan, ...
+$cocok = $siakad->dokumen()->postVerifikasi(['berkas' => Upload::fromPath('kiriman.pdf')])->data; // cocok, pesan
+```
+
 ## Microservices: gerbang, antrean, rahasia, event
 
 Pembantu untuk aplikasi dan layanan yang memakai infrastruktur `/v1/infra` (panduan: api.unipo.ac.id/docs/panduan/gerbang).

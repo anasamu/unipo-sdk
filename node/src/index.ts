@@ -33,3 +33,4 @@ export {
   type IdentitasGerbang, type PermintaanGerbang, type OpsiVerifikasiGerbang, type AmplopEvent, type PesanAntrean,
   type OpsiKonsumsiAntrean, type HasilKonsumsiAntrean, type Rahasia, type OpsiMuatRahasia, type OpsiTerbitkanEvent,
 } from './infra.js';
+export { kodeDariQr, formatKode, qrSvg, qrPng, cocokkanPdf, type OpsiQr } from './dokumen.js';

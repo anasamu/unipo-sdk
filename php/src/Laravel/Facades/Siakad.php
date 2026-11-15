@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Cbt cbt()
  * @method static \Unipo\Siakad\Resources\Crm crm()
  * @method static \Unipo\Siakad\Resources\Dasbor dasbor()
+ * @method static \Unipo\Siakad\Resources\Dokumen dokumen()
  * @method static \Unipo\Siakad\Resources\Dosen dosen()
  * @method static \Unipo\Siakad\Resources\Edom edom()
  * @method static \Unipo\Siakad\Resources\Fakultas fakultas()
@@ -64,6 +65,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Pmb pmb()
  * @method static \Unipo\Siakad\Resources\Portal portal()
  * @method static \Unipo\Siakad\Resources\Profil profil()
+ * @method static \Unipo\Siakad\Resources\Qr qr()
  * @method static \Unipo\Siakad\Resources\Rbac rbac()
  * @method static \Unipo\Siakad\Resources\Referensi referensi()
  * @method static \Unipo\Siakad\Resources\Repositori repositori()
@@ -71,6 +73,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Sarpras sarpras()
  * @method static \Unipo\Siakad\Resources\Sdm sdm()
  * @method static \Unipo\Siakad\Resources\Spmi spmi()
+ * @method static \Unipo\Siakad\Resources\Tema tema()
  * @method static \Unipo\Siakad\Resources\Tracer tracer()
  * @method static \Unipo\Siakad\Resources\Wisuda wisuda()
  *

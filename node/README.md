@@ -146,6 +146,27 @@ img.src = await urlBerkas(siakad, berkas.id!);
 Unggahan yang terputus bisa dilanjutkan: `unggahBerkas(siakad, file, { lanjutkan: idBerkas })` hanya mengirim potongan
 yang belum diterima.
 
+## Kode QR dan dokumen terverifikasi
+
+```ts
+import { qrSvg, kodeDariQr, formatKode, cocokkanPdf } from 'unipo-siakad-sdk';
+
+// QR dengan gaya bagian (warna, logo, bentuk diatur di /v1/qr/gaya). Butuh scope qr:read.
+const svg = await qrSvg(siakad, 'https://siakad.unipo.ac.id/api/v1/presensi/sesi/123', { gaya: 'presensi', bagian: 'fik' });
+
+// Terbitkan KRS: PDF disimpan di berkas terpusat, diberi kode + QR verifikasi.
+const krs = await siakad.dokumen.postKrs({ nim: '2301010001', tahun_id: '20261' });
+console.log(krs.data.kode_verifikasi, krs.data.url_verifikasi);
+
+// Pemeriksa dokumen: baca QR, cek status, dan cocokkan file PDF yang diterima.
+const kode = kodeDariQr(hasilPindai);            // null bila bukan QR dokumen SIAKAD
+const cek = await siakad.dokumen.getVerifikasiByKode(kode!);   // tanpa token
+const cocok = await cocokkanPdf(siakad, input.files[0]);       // { cocok, pesan, dokumen }
+formatKode(kode!);                               // "K7QM-2XPA-9RTD"
+```
+
+Komponen siap pakai (`KodeQr`, `KodeQrSiakad`, `VerifikasiDokumen`) ada di unipo-ui.
+
 ## Microservices: gerbang, antrean, rahasia, event
 
 Pembantu untuk aplikasi dan layanan yang memakai infrastruktur `/v1/infra` (panduan: api.unipo.ac.id/docs/panduan/gerbang).

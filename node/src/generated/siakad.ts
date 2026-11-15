@@ -72,6 +72,11 @@ export class Siakad extends SiakadCore {
     return this.resource('dasbor', () => new R.DasborResource(this));
   }
 
+  /** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (21 endpoint) */
+  get dokumen(): R.DokumenResource {
+    return this.resource('dokumen', () => new R.DokumenResource(this));
+  }
+
   /** Dosen, Jadwal (4 endpoint) */
   get dosen(): R.DosenResource {
     return this.resource('dosen', () => new R.DosenResource(this));
@@ -262,6 +267,11 @@ export class Siakad extends SiakadCore {
     return this.resource('profil', () => new R.ProfilResource(this));
   }
 
+  /** QR: Generator, QR: Gaya (9 endpoint) */
+  get qr(): R.QrResource {
+    return this.resource('qr', () => new R.QrResource(this));
+  }
+
   /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
   get rbac(): R.RbacResource {
     return this.resource('rbac', () => new R.RbacResource(this));
@@ -295,6 +305,11 @@ export class Siakad extends SiakadCore {
   /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File (200 endpoint) */
   get spmi(): R.SpmiResource {
     return this.resource('spmi', () => new R.SpmiResource(this));
+  }
+
+  /** Tema (6 endpoint) */
+  get tema(): R.TemaResource {
+    return this.resource('tema', () => new R.TemaResource(this));
   }
 
   /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (80 endpoint) */
