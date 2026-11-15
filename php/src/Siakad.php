@@ -135,6 +135,91 @@ class Siakad
     }
 
     /**
+     * Ambil event dari antrean tarik (/v1/infra/antrean/{kode}) dan jalankan $handler untuk tiap pesan: selesai = ack,
+     * melempar exception = tolak (muncul lagi setelah `tunda_detik`, lalu dead letter setelah maks. percobaan).
+     * Cocok dari cron tiap menit. Pengantaran at-least-once: handler harus idempoten terhadap `$event['id']`.
+     *
+     *     $siakad->konsumsiAntrean('lms.nilai-masuk', function (array $event): void { ... });
+     *
+     * @param callable(array<string, mixed> $event, array<string, mixed> $pesan): mixed $handler
+     * @param array{jumlah?: int, visibilitas_detik?: int, tunda_detik?: int, maks_putaran?: int} $opsi
+     * @return array{diproses: int, gagal: int, putaran: int}
+     */
+    public function konsumsiAntrean(string $kode, callable $handler, array $opsi = []): array
+    {
+        $jalur = '/v1/infra/antrean/' . rawurlencode($kode);
+        $hasil = ['diproses' => 0, 'gagal' => 0, 'putaran' => 0];
+        while ($hasil['putaran'] < (int) ($opsi['maks_putaran'] ?? 10)) {
+            $hasil['putaran']++;
+            $body = ['jumlah' => (int) ($opsi['jumlah'] ?? 10)] + (isset($opsi['visibilitas_detik']) ? ['visibilitas_detik' => (int) $opsi['visibilitas_detik']] : []);
+            $pesan = $this->request('POST', $jalur . '/ambil', [], $body)->data()['pesan'] ?? [];
+            if ($pesan === []) {
+                break;
+            }
+            $ack = [];
+            foreach ($pesan as $p) {
+                try {
+                    $handler($p['event'], $p);
+                    $ack[] = $p['tanda_terima'];
+                    $hasil['diproses']++;
+                } catch (\Throwable $e) {
+                    $hasil['gagal']++;
+                    $this->request('POST', $jalur . '/tolak', [], ['tanda_terima' => $p['tanda_terima'], 'tunda_detik' => (int) ($opsi['tunda_detik'] ?? 60), 'galat' => mb_substr($e->getMessage(), 0, 1000)]);
+                }
+            }
+            if ($ack !== []) {
+                $this->request('POST', $jalur . '/ack', [], ['tanda_terima' => $ack]);
+            }
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * Baca semua rahasia satu ruang dari secret manager (scope infra:rahasia, token live) lalu isi variabel lingkungan
+     * (putenv + $_ENV) dengan rahasia teks. Variabel yang sudah terisi tidak ditimpa kecuali `timpa` true.
+     *
+     *     $siakad->muatRahasia('pmb');  // XENDIT_SECRET_KEY dst. kini ada di getenv()
+     *
+     * @param array{lingkungan?: string, timpa?: bool, isi_env?: bool} $opsi
+     * @return list<array<string, mixed>>
+     */
+    public function muatRahasia(string $ruang, array $opsi = []): array
+    {
+        $daftar = $this->request('GET', '/v1/infra/rahasia-saya/' . rawurlencode($ruang), ['lingkungan' => $opsi['lingkungan'] ?? 'produksi'])->data();
+        $daftar = is_array($daftar) ? array_values($daftar) : [];
+        if ($opsi['isi_env'] ?? true) {
+            foreach ($daftar as $r) {
+                if (($r['jenis'] ?? '') !== 'teks' || !is_string($r['nilai'] ?? null)) {
+                    continue;
+                }
+                $ada = getenv((string) $r['nama']);
+                if (($opsi['timpa'] ?? false) || $ada === false || $ada === '') {
+                    putenv($r['nama'] . '=' . $r['nilai']);
+                    $_ENV[$r['nama']] = $r['nilai'];
+                }
+            }
+        }
+
+        return $daftar;
+    }
+
+    /**
+     * Terbitkan event domain layanan ini ke bus SIAKAD (POST /v1/infra/terbitkan, scope infra:terbitkan). `$jenis`
+     * wajib berawalan kode layanan di registri, mis. `lms.tugas_dinilai`.
+     *
+     * @param array<string, mixed> $data
+     * @param array{subjek?: string, versi?: int} $opsi
+     * @return array<string, mixed>
+     */
+    public function terbitkanEvent(string $jenis, array $data, array $opsi = []): array
+    {
+        $body = ['jenis' => $jenis, 'data' => $data === [] ? new \stdClass() : $data] + array_intersect_key($opsi, ['subjek' => 1, 'versi' => 1]);
+
+        return (array) $this->request('POST', '/v1/infra/terbitkan', [], $body)->data();
+    }
+
+    /**
      * Panggil endpoint apa pun secara langsung (mis. endpoint baru yang belum ada di SDK).
      * Placeholder {nama} di path diisi dari $query.
      *

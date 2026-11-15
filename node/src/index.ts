@@ -28,3 +28,8 @@ export {
   type MetaPeristiwa,
 } from './webhook.js';
 export { VERSION } from './version.js';
+export {
+  verifikasiGerbang, tandaTanganGerbang, teksTandaGerbang, konsumsiAntrean, muatRahasia, terbitkanEvent,
+  type IdentitasGerbang, type PermintaanGerbang, type OpsiVerifikasiGerbang, type AmplopEvent, type PesanAntrean,
+  type OpsiKonsumsiAntrean, type HasilKonsumsiAntrean, type Rahasia, type OpsiMuatRahasia, type OpsiTerbitkanEvent,
+} from './infra.js';

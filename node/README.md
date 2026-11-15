@@ -146,6 +146,34 @@ img.src = await urlBerkas(siakad, berkas.id!);
 Unggahan yang terputus bisa dilanjutkan: `unggahBerkas(siakad, file, { lanjutkan: idBerkas })` hanya mengirim potongan
 yang belum diterima.
 
+## Microservices: gerbang, antrean, rahasia, event
+
+Pembantu untuk aplikasi dan layanan yang memakai infrastruktur `/v1/infra` (panduan: api.unipo.ac.id/docs/panduan/gerbang).
+
+```ts
+import { verifikasiGerbang, konsumsiAntrean, muatRahasia, terbitkanEvent } from 'unipo-siakad-sdk';
+
+// Layanan di belakang gerbang api.unipo.ac.id: percayai header X-Unipo-* hanya bila tanda tangannya sah.
+app.use(async (req, res, next) => {
+  const id = await verifikasiGerbang({ metode: req.method, path: req.originalUrl, header: req.headers }, process.env.GERBANG_KUNCI!);
+  if (!id) return res.status(401).json({ error: { code: 'unauthorized', message: 'Hanya lewat api.unipo.ac.id' } });
+  res.locals.identitas = id; // { klien, pengguna, level, scope, requestId }
+  next();
+});
+
+// Saat boot: rahasia ruang "lms" dari secret manager ke process.env (scope infra:rahasia, token live).
+await muatRahasia(siakad, 'lms');
+
+// Cron tiap menit: proses event dari antrean tarik (scope infra:antrean). Galat = tolak, dicoba lagi lalu dead letter.
+await konsumsiAntrean(siakad, 'lms.nilai-masuk', async (event) => {
+  if (await sudahDiproses(event.id)) return; // at-least-once
+  await simpan(event.data);
+});
+
+// Terbitkan event domain layanan ini (scope infra:terbitkan; jenis berawalan kode layanan).
+await terbitkanEvent(siakad, 'lms.tugas_dinilai', { tugas: 7, nim: '2201010001', nilai: 88 }, { subjek: '2201010001' });
+```
+
 ## Menerima webhook (event domain)
 
 SIAKAD mengirim event seperti `mahasiswa.lulus`, `krs.disetujui`, `nilai.diperbarui` ke URL yang didaftarkan di
