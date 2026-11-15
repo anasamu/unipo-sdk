@@ -2746,7 +2746,7 @@ final class Sdm extends Resource
      *
      * scope: `sdm:write`
      *
-     * @param array{entitas: string|null, entitas_id: int|null, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, keterangan?: string|null, berkas_base64?: string|null, nama_file?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{entitas: string|null, entitas_id: int|null, berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, keterangan?: string|null, berkas_base64?: string|null, nama_file?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

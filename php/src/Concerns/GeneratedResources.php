@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2798 endpoint).
+ * Akses ke semua modul API (2805 endpoint).
  */
 trait GeneratedResources
 {
@@ -251,6 +251,12 @@ trait GeneratedResources
     public function pddikti(): Resources\Pddikti
     {
         return $this->resource(Resources\Pddikti::class);
+    }
+
+    /** Event domain (7 endpoint) */
+    public function peristiwa(): Resources\Peristiwa
+    {
+        return $this->resource(Resources\Peristiwa::class);
     }
 
     /** Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan (44 endpoint) */

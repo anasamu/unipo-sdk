@@ -222,6 +222,11 @@ export class Siakad extends SiakadCore {
     return this.resource('pddikti', () => new R.PddiktiResource(this));
   }
 
+  /** Event domain (7 endpoint) */
+  get peristiwa(): R.PeristiwaResource {
+    return this.resource('peristiwa', () => new R.PeristiwaResource(this));
+  }
+
   /** Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan (44 endpoint) */
   get perpustakaan(): R.PerpustakaanResource {
     return this.resource('perpustakaan', () => new R.PerpustakaanResource(this));

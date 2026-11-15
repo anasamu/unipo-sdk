@@ -2,6 +2,12 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
+## 1.3.0
+
+- Modul baru `peristiwa` (/v1/peristiwa, 7 operasi): katalog event domain lintas modul, peta alur bisnis, outbox dan kirim ulang (admin). Butuh SIAKAD yang sudah memuat modul Peristiwa.
+- Penerima webhook: `verifikasiWebhook({ body, tandaTangan, rahasia })` dan `tandaTanganWebhook()` (Node.js), `Unipo\Siakad\Webhook\Webhook::verifikasi()` (PHP). Memeriksa `X-Siakad-Signature` (HMAC-SHA256, toleransi 5 menit) dan mengembalikan isi pesan; tipe `PesanWebhook`, `AmplopPeristiwa`, `MetaPeristiwa`.
+- Spesifikasi diperbarui dari SIAKAD terbaru: 54 modul, 2.805 operasi (termasuk parameter `berkas_id` di endpoint unggah modul).
+
 ## 1.2.0 (2026-11-15)
 
 - Modul baru `berkas` (/v1/berkas, 14 operasi): unggah dan unduh berkas terpusat untuk semua aplikasi, disimpan di penyimpanan yang aktif di menu Integrasi (S3, R2, MinIO, Google Drive) atau disk server. Butuh SIAKAD yang sudah memuat modul Berkas.

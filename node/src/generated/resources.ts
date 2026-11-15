@@ -28827,6 +28827,130 @@ export class PddiktiResource {
   }
 }
 
+/** Event domain */
+export class PeristiwaResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Katalog event dan pendengar
+   *
+   * Semua event domain yang diterbitkan modul SIAKAD (jenis, isi data, contoh, scope yang wajib dimiliki aplikasi penerima),
+   * pendengar di dalam SIAKAD yang bereaksi, dan penerus luar (webhook, message broker) beserta status aktifnya.
+   *
+   * Aplikasi berlangganan event lewat **POST /v1/integrasi/webhook** (`"event": ["mahasiswa.lulus"]`); pesan yang dikirim
+   * berisi amplop yang sama dengan `PeristiwaAmplop` (id event dipakai untuk membuang duplikat).
+   *
+   * `GET /v1/peristiwa/katalog`
+   *
+   * publik (tanpa token)
+   */
+  getKatalog(query?: Query, options?: RequestOptions): Promise<ApiResult<S.PeristiwaKatalog>> {
+    return this.client.request({ method: 'GET', path: '/v1/peristiwa/katalog', query, public: true }, options);
+  }
+
+  /**
+   * Peta alur bisnis lintas modul
+   *
+   * Langkah, endpoint pemicu, event, dan reaksi modul lain untuk alur utama (PMB ke mahasiswa, bayar ke KRS, kuliah ke nilai, lulus ke alumni), plus diagram Mermaid seluruh event dan pendengar.
+   *
+   * `GET /v1/peristiwa/alur`
+   *
+   * publik (tanpa token)
+   */
+  getAlur(query?: Query, options?: RequestOptions): Promise<ApiResult<S.PeristiwaAlur>> {
+    return this.client.request({ method: 'GET', path: '/v1/peristiwa/alur', query, public: true }, options);
+  }
+
+  /**
+   * Statistik outbox dan pengantaran
+   *
+   * Jumlah event per status, pengantaran per status dan per tujuan (pendengar/penerus), dan waktu event tertua yang belum terkirim. Dipakai dasbor Pustikom.
+   *
+   * `GET /v1/peristiwa/statistik`
+   *
+   * scope: `peristiwa:admin`
+   */
+  getStatistik(query?: Query, options?: RequestOptions): Promise<ApiResult<S.PeristiwaStatistik>> {
+    return this.client.request({ method: 'GET', path: '/v1/peristiwa/statistik', query }, options);
+  }
+
+  /**
+   * Daftar event (outbox)
+   *
+   * Terbaru dulu. Filter: jenis, sumber (nama modul atau siakad/<modul>), subjek (mis. NIM), korelasi_id (request_id API), status (baru|disebar), tujuan (kode pendengar/penerus), pengantaran (antre|proses|terkirim|mati|dilewati) untuk melihat dead letter.
+   *
+   * `GET /v1/peristiwa`
+   *
+   * scope: `peristiwa:admin` · berhalaman
+   */
+  list(query?: {
+    /** mis. mahasiswa.lulus */
+    jenis?: string;
+    /** mis. kelulusan */
+    sumber?: string;
+    /** mis. NIM */
+    subjek?: string;
+    /** request_id API */
+    korelasi_id?: string;
+    /** baru | disebar */
+    status?: string;
+    /** kode pendengar/penerus */
+    tujuan?: string;
+    /** antre | proses | terkirim | mati | dilewati */
+    pengantaran?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PeristiwaRingkas>>> {
+    return this.client.request({ method: 'GET', path: '/v1/peristiwa', query }, options);
+  }
+
+  /**
+   * Proses antrean sekarang
+   *
+   * Body opsional {"batas": 50}. Sama dengan `php artisan peristiwa:proses` (cron tiap menit).
+   *
+   * `POST /v1/peristiwa/proses`
+   *
+   * scope: `peristiwa:admin`
+   */
+  postProses(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/peristiwa/proses', query }, options);
+  }
+
+  /**
+   * Detail event
+   *
+   * Amplop, status pengantaran ke setiap pendengar/penerus (percobaan, galat, jadwal ulang), dan event lain dalam rantai yang sama (korelasi_id).
+   *
+   * `GET /v1/peristiwa/{id}`
+   *
+   * scope: `peristiwa:admin`
+   *
+   * @param id UUID event
+   */
+  getById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PeristiwaDetail>> {
+    return this.client.request({ method: 'GET', path: '/v1/peristiwa/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Kirim ulang event
+   *
+   * Antre ulang pengantaran yang mati/dilewati lalu langsung diproses. Body opsional {"tujuan": "webhook"} untuk satu pendengar/penerus (juga untuk penerus yang baru diaktifkan sesudah event disebar).
+   *
+   * `POST /v1/peristiwa/{id}/ulang`
+   *
+   * scope: `peristiwa:admin`
+   *
+   * @param id UUID event
+   * @param body
+   */
+  postByIdUlang(id: string | number, body: S.PeristiwaUlangInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PeristiwaDetail>> {
+    return this.client.request({ method: 'POST', path: '/v1/peristiwa/{id}/ulang', query: { id }, body }, options);
+  }
+}
+
 /** Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan */
 export class PerpustakaanResource {
   constructor(private readonly client: SiakadCore) {}

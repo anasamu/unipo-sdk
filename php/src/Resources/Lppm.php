@@ -3015,7 +3015,7 @@ final class Lppm extends Resource
      *
      * @param int|string $entitas Entitas
      * @param int|string $id ID entitas
-     * @param array{berkas: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, peran?: string|null, keterangan?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, peran?: string|null, keterangan?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
