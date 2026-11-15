@@ -78,10 +78,22 @@ function samaWaktuKonstan(a: string, b: string): boolean {
   return r === 0;
 }
 
+/** Web Crypto: global di browser dan Node.js 19+, dari `node:crypto` di Node.js 18. */
+async function ambilSubtle(): Promise<SubtleCrypto> {
+  if (globalThis.crypto?.subtle) return globalThis.crypto.subtle;
+  try {
+    const nama = 'node:crypto';
+    const m = (await import(/* @vite-ignore */ nama)) as { webcrypto?: { subtle?: SubtleCrypto } };
+    if (m.webcrypto?.subtle) return m.webcrypto.subtle;
+  } catch {
+    // bukan Node.js
+  }
+  throw new Error('Web Crypto (crypto.subtle) tidak tersedia; pakai Node.js 18+ atau browser modern.');
+}
+
 /** Hitung tanda tangan `v1` untuk body dan waktu tertentu (HMAC-SHA256 hex dari "t.body"). */
 export async function tandaTanganWebhook(body: string, rahasia: string, t: number): Promise<string> {
-  const subtle = globalThis.crypto?.subtle;
-  if (!subtle) throw new Error('Web Crypto (crypto.subtle) tidak tersedia; pakai Node.js 18+ atau browser modern.');
+  const subtle = await ambilSubtle();
   const kunci = await subtle.importKey('raw', enc.encode(rahasia), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return hex(await subtle.sign('HMAC', kunci, enc.encode(`${t}.${body}`)));
 }
