@@ -2,6 +2,10 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
+## 1.3.1 (2026-11-15)
+
+- Pembantu microservices: verifikasiGerbang, konsumsiAntrean, muatRahasia, terbitkanEvent (#7)
+
 ## 1.3.0
 
 - Modul baru `peristiwa` (/v1/peristiwa, 7 operasi): katalog event domain lintas modul, peta alur bisnis, outbox dan kirim ulang (admin). Butuh SIAKAD yang sudah memuat modul Peristiwa.
