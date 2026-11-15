@@ -174,6 +174,33 @@ $siakad->profil()->postDokumenByIdBerkas($dokumenId, ['berkas_id' => $berkas['id
 $url = $siakad->berkas()->getByIdUrl($berkas['id'])['url'];   // tautan sementara tanpa token
 ```
 
+## Microservices: gerbang, antrean, rahasia, event
+
+Pembantu untuk aplikasi dan layanan yang memakai infrastruktur `/v1/infra` (panduan: api.unipo.ac.id/docs/panduan/gerbang).
+
+```php
+use Unipo\Siakad\Infra\Gerbang;
+
+// Layanan di belakang gerbang api.unipo.ac.id: percayai header X-Unipo-* hanya bila tanda tangannya sah.
+$id = Gerbang::verifikasi((string) getenv('GERBANG_KUNCI'));
+if ($id === null) {
+    http_response_code(401);
+    exit;
+}
+echo $id['pengguna'], ' ', $id['level']; // juga klien, scope, request_id
+
+// Saat boot/deploy: rahasia ruang "lms" dari secret manager ke getenv() (scope infra:rahasia, token live).
+$siakad->muatRahasia('lms');
+
+// Cron tiap menit: proses event dari antrean tarik (scope infra:antrean). Exception = tolak, dicoba lagi lalu dead letter.
+$siakad->konsumsiAntrean('lms.nilai-masuk', function (array $event): void {
+    // at-least-once: abaikan $event['id'] yang sudah diproses
+});
+
+// Terbitkan event domain layanan ini (scope infra:terbitkan; jenis berawalan kode layanan).
+$siakad->terbitkanEvent('lms.tugas_dinilai', ['tugas' => 7, 'nim' => '2201010001', 'nilai' => 88], ['subjek' => '2201010001']);
+```
+
 ## Galat
 
 ```php
