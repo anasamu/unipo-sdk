@@ -1,23 +1,40 @@
-# Memperbarui SDK otomatis saat API SIAKAD bertambah:
-# mengambil OpenAPI terbaru, membangkitkan ulang kode, lalu membuka (atau memperbarui) PR bila ada perubahan.
-# PR ini sekaligus menaikkan versi; setelah di-merge, rilis.yml menerbitkan versi itu secara otomatis.
+# SDK mengikuti API SIAKAD secara otomatis.
 #
-# Sumber spesifikasi: variabel repo SIAKAD_OPENAPI_URL, bawaan https://api.unipo.ac.id/v1/openapi.json.
-# Syarat: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests" diaktifkan.
+# Sumber spesifikasi (urutan):
+#   1. Kode SIAKAD di branch main anasamu/siakad_unipo, lewat generator/spec-dari-siakad.php. Dipakai bila secret
+#      SIAKAD_REPO_TOKEN diisi (fine-grained token dengan izin Contents: Read pada siakad_unipo). Endpoint baru masuk
+#      SDK begitu di-merge ke SIAKAD, tanpa menunggu server diperbarui.
+#   2. Tanpa secret: GET /v1/openapi.json di server (variabel repo SIAKAD_OPENAPI_URL, bawaan
+#      https://api.unipo.ac.id/v1/openapi.json). Endpoint baru masuk SDK setelah server menjalankan versi itu.
+#
+# Jalan tiap jam, lewat tombol, dan lewat repository_dispatch "siakad-api-berubah" (dikirim workflow SIAKAD saat
+# main berubah). Setelah kode PHP dan Node.js dibangkitkan ulang:
+#   - hanya ada operasi baru atau perubahan skema: versi dinaikkan (minor bila ada operasi baru, patch bila hanya
+#     skema), diuji (Node.js + PHP), di-commit ke main, lalu rilis.yml dijalankan sehingga npm, Packagist, dan
+#     GitHub Release langsung terbit. Tidak perlu PR atau langkah manual.
+#   - ada operasi yang hilang (metode SDK ikut terhapus = perubahan yang merusak): tidak dirilis otomatis.
+#     Perubahan ditaruh di branch otomatis/perbarui-spec dan dibuka PR (versi mayor) untuk ditinjau; bila Actions
+#     tidak boleh membuat PR, dibuat issue berisi tautan perbandingannya. Spesifikasi yang sama tidak dilaporkan dua kali.
+#
+# Variabel repo SPEC_OTOMATIS=pr membuat semua perubahan lewat PR (tanpa rilis otomatis).
 name: Perbarui spesifikasi API
 
 on:
   schedule:
-    - cron: '0 20 * * *' # setiap hari 04.00 WITA
+    - cron: '30 * * * *' # tiap jam
+  repository_dispatch:
+    types: [siakad-api-berubah]
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
+  issues: write
+  actions: write
 
 concurrency:
   group: perbarui-spec
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   perbarui:
@@ -29,17 +46,40 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Ambil kode SIAKAD
+        id: kode
+        env:
+          TOKEN: ${{ secrets.SIAKAD_REPO_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "ada=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git clone -q --depth 1 "https://x-access-token:${TOKEN}@github.com/anasamu/siakad_unipo.git" /tmp/siakad
+          echo "sha=$(git -C /tmp/siakad rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "ada=1" >> "$GITHUB_OUTPUT"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
       - name: Ambil OpenAPI terbaru
         id: ambil
         env:
           URL: ${{ vars.SIAKAD_OPENAPI_URL || 'https://api.unipo.ac.id/v1/openapi.json' }}
         run: |
-          if ! curl -fsSL --max-time 60 "$URL" -o /tmp/openapi.json; then
+          if [ "${{ steps.kode.outputs.ada }}" = "1" ]; then
+            (cd /tmp/siakad && composer install --no-dev --no-interaction --no-progress --prefer-dist --ignore-platform-reqs -q)
+            php generator/spec-dari-siakad.php /tmp/siakad > /tmp/openapi.json
+            echo "Sumber: kode SIAKAD main ${{ steps.kode.outputs.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          elif curl -fsSL --max-time 60 "$URL" -o /tmp/openapi.json; then
+            echo "Sumber: $URL (isi secret SIAKAD_REPO_TOKEN agar langsung dari kode SIAKAD)" >> "$GITHUB_STEP_SUMMARY"
+          else
             echo "::warning::OpenAPI tidak bisa diambil dari $URL; dilewati."
             echo "ada=0" >> "$GITHUB_OUTPUT"; exit 0
           fi
           node -e "const s=require('/tmp/openapi.json'); if(!s.openapi||!s.paths) process.exit(1)" || { echo "::error::Bukan dokumen OpenAPI"; exit 1; }
           echo "ada=1" >> "$GITHUB_OUTPUT"
+
       - name: Bandingkan dan bangkitkan ulang
         id: banding
         if: steps.ambil.outputs.ada == '1'
@@ -57,28 +97,94 @@ jobs:
           '
           node -e 'const fs=require("fs");fs.writeFileSync("openapi.json",JSON.stringify(JSON.parse(fs.readFileSync("/tmp/openapi.json","utf8")))+"\n")'
           node generator/generate.mjs
-      - name: Naikkan versi
-        if: steps.ambil.outputs.ada == '1' && (steps.banding.outputs.baru != '0' || steps.banding.outputs.hilang != '0')
+          if git diff --quiet -- openapi.json php node/src; then
+            echo "Spesifikasi sama dengan yang sudah ada; tidak ada yang dikerjakan."
+            echo "berubah=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "berubah=1" >> "$GITHUB_OUTPUT"
+          fi
+          cat /tmp/ringkas.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tentukan jalur
+        id: jalur
+        if: steps.banding.outputs.berubah == '1'
         run: |
-          # Versi sekarang sudah dirilis: naikkan minor (major bila ada operasi hilang). Belum dirilis: tambah catatan saja.
+          if [ "${{ steps.banding.outputs.hilang }}" != "0" ] || [ "${{ vars.SPEC_OTOMATIS }}" = "pr" ]; then
+            # Spesifikasi yang sama sudah menunggu tinjauan di otomatis/perbarui-spec: jangan lapor ulang.
+            if git fetch -q origin otomatis/perbarui-spec 2>/dev/null && git show FETCH_HEAD:openapi.json 2>/dev/null | cmp -s - openapi.json; then
+              echo "Perubahan yang sama sudah menunggu tinjauan di otomatis/perbarui-spec." >> "$GITHUB_STEP_SUMMARY"
+              echo "mode=sama" >> "$GITHUB_OUTPUT"
+            else
+              echo "mode=pr" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "mode=rilis" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Naikkan versi
+        if: steps.banding.outputs.berubah == '1'
+        run: |
+          # Versi sekarang sudah dirilis: naikkan (major bila ada operasi hilang, minor bila ada operasi baru,
+          # patch bila hanya skema). Belum dirilis: tambah catatan saja.
           SEKARANG="$(node generator/versi.mjs)"
           if git rev-parse -q --verify "refs/tags/v$SEKARANG" >/dev/null; then
-            JENIS=minor; [ "${{ steps.banding.outputs.hilang }}" != "0" ] && JENIS=major
+            JENIS=patch
+            [ "${{ steps.banding.outputs.baru }}" != "0" ] && JENIS=minor
+            [ "${{ steps.banding.outputs.hilang }}" != "0" ] && JENIS=major
           else
             JENIS=tetap
           fi
           node generator/versi.mjs "$JENIS" --catatan "Spesifikasi diperbarui dari SIAKAD: ${{ steps.banding.outputs.baru }} operasi baru, ${{ steps.banding.outputs.hilang }} operasi hilang (total ${{ steps.banding.outputs.total }})."
           node generator/generate.mjs
+
       - name: Uji paket Node.js
-        if: steps.ambil.outputs.ada == '1'
+        if: steps.banding.outputs.berubah == '1'
         working-directory: node
         run: npm install --no-audit --no-fund && npm run typecheck && npm run build && npm test
-      - name: Buka PR
-        if: steps.ambil.outputs.ada == '1'
+
+      - name: Uji paket PHP
+        if: steps.banding.outputs.berubah == '1'
+        run: composer update --no-interaction --no-progress --prefer-dist && vendor/bin/phpunit
+
+      - name: Commit ke main lalu rilis
+        if: steps.jalur.outputs.mode == 'rilis'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add openapi.json php node/src node/package.json node/package-lock.json CHANGELOG.md
+          VERSI="$(node generator/versi.mjs)"
+          git commit -q -m "SDK $VERSI dari OpenAPI SIAKAD: ${{ steps.banding.outputs.baru }} operasi baru [skip ci]"
+          git push origin HEAD:main
+          # Push dengan token Actions tidak memicu workflow lain, jadi rilis dijalankan lewat workflow_dispatch.
+          gh workflow run rilis.yml --ref main -f naikkan=tetap
+          echo "SDK $VERSI di-commit ke main; rilis dijalankan." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Buka PR (ada operasi hilang)
+        id: pr
+        if: steps.jalur.outputs.mode == 'pr'
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v7
         with:
           branch: otomatis/perbarui-spec
           commit-message: 'Perbarui SDK dari OpenAPI SIAKAD terbaru'
-          title: 'Perbarui SDK dari OpenAPI SIAKAD terbaru'
+          title: 'Perbarui SDK dari OpenAPI SIAKAD terbaru (perlu ditinjau)'
           body-path: /tmp/ringkas.md
           delete-branch: true
+
+      - name: Issue bila PR tidak bisa dibuat
+        if: steps.jalur.outputs.mode == 'pr' && steps.pr.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          JUDUL="SDK: spesifikasi SIAKAD berubah dan perlu ditinjau"
+          {
+            cat /tmp/ringkas.md
+            echo
+            echo "Perubahan ada di branch \`otomatis/perbarui-spec\`: https://github.com/$GITHUB_REPOSITORY/compare/main...otomatis/perbarui-spec?expand=1"
+            echo
+            echo "Actions tidak diizinkan membuat PR. Buka PR dari tautan di atas, atau aktifkan Settings > Actions > General > \"Allow GitHub Actions to create and approve pull requests\"."
+          } > /tmp/issue.md
+          NOMOR="$(gh issue list --state open --search "$JUDUL in:title" --json number --jq '.[0].number')"
+          if [ -n "$NOMOR" ]; then gh issue comment "$NOMOR" --body-file /tmp/issue.md; else gh issue create --title "$JUDUL" --body-file /tmp/issue.md; fi
