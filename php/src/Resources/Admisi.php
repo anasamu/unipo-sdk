@@ -93,13 +93,13 @@ final class Admisi extends Resource
     /**
      * Usulan NIM berikutnya
      *
-     * NIM berikutnya untuk prodi dan periode masuk (pola /admisi/format-nim, atau ditebak dari NIM angkatan terakhir prodi). Tidak menyimpan apa pun.
+     * NIM berikutnya untuk prodi dan periode masuk (aturan /admisi/aturan-nim, pola /admisi/format-nim, atau ditebak dari NIM angkatan terakhir prodi). Tidak menyimpan apa pun.
      *
      * `GET /v1/admisi/nim/usulan`
      *
      * scope: `admisi:read`
      *
-     * @param array{prodi?: string, tahun_id?: string, jumlah?: string, ...} $query
+     * @param array{prodi?: string, tahun_id?: string, jalur?: string, jumlah?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -107,6 +107,25 @@ final class Admisi extends Resource
     public function getNimUsulan(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/admisi/nim/usulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pratinjau aturan NIM
+     *
+     * Pola NIM yang berlaku untuk prodi/jalur/periode (aturan /admisi/aturan-nim, format per prodi, atau tebakan) beserta contoh NIM berikutnya. Isi `pola` untuk mencoba pola baru sebelum disimpan. Tidak menyimpan apa pun.
+     *
+     * `GET /v1/admisi/nim/pratinjau`
+     *
+     * scope: `admisi:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, jalur?: string, pola?: string, jumlah?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNimPratinjau(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/nim/pratinjau', [], $query, null, $options, false, false);
     }
 
     /**
@@ -381,6 +400,88 @@ final class Admisi extends Resource
     public function postSayaPendaftaranByIdUkt(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/admisi/saya/pendaftaran/{id}/ukt', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Keringanan biaya: skema dan pengajuan saya
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Skema potongan/keringanan/beasiswa yang terbuka untuk calon mahasiswa (sasaran maba/semua, prodi pilihan) beserta syarat berkasnya, dan pengajuan pendaftar ini (status, kelengkapan berkas, nomor SK, potongan).
+     *
+     * `GET /v1/admisi/saya/pendaftaran/{id}/potongan`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id UUID pendaftaran PMB
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaPendaftaranByIdPotongan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/saya/pendaftaran/{id}/potongan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan keringanan biaya
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Body {"skema_id", "alasan"}. Dibuat sebagai draf; unggah berkas syarat lalu ajukan. Disetujui petugas BAUK (dengan SK bila skema wajib SK); potongan mengurangi tagihan daftar ulang PMB yang belum dibayar dan dipasang ke tagihan semester setelah ber-NIM.
+     *
+     * `POST /v1/admisi/saya/pendaftaran/{id}/potongan`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id UUID pendaftaran PMB
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaPendaftaranByIdPotongan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/admisi/saya/pendaftaran/{id}/potongan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unggah berkas syarat keringanan
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Multipart "berkas" + "jenis" = kode syarat skema. Selama draf.
+     *
+     * `POST /v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/berkas`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id UUID pendaftaran PMB
+     * @param int|string $nomor Nomor pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaPendaftaranByIdPotonganByNomorBerkas(int|string $id, int|string $nomor, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/berkas', ['id' => $id, 'nomor' => $nomor], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan keringanan (kirim ke petugas)
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Syarat berkas wajib harus sudah diunggah.
+     *
+     * `POST /v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/ajukan`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id UUID pendaftaran PMB
+     * @param int|string $nomor Nomor pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaPendaftaranByIdPotonganByNomorAjukan(int|string $id, int|string $nomor, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/ajukan', ['id' => $id, 'nomor' => $nomor], $query, null, $options, false, false);
     }
 
     /**
@@ -1348,5 +1449,103 @@ final class Admisi extends Resource
     public function deleteFormatNimById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/admisi/format-nim/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: daftar
+     *
+     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/aturan-nim`
+     *
+     * scope: `admisi:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, kode_prodi?: string, tahun_mulai?: string, tahun_selesai?: string, urut_per?: string, aktif?: string, kode_fakultas?: string, jalur_masuk?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanNim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/aturan-nim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: tambah
+     *
+     * Pengelola modul.
+     *
+     * `POST /v1/admisi/aturan-nim`
+     *
+     * scope: `admisi:write`
+     *
+     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanNim(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/admisi/aturan-nim', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: detail
+     *
+     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/aturan-nim/{id}`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanNimById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/aturan-nim/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: ubah
+     *
+     * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/admisi/aturan-nim/{id}`
+     *
+     * scope: `admisi:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAturanNimById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/admisi/aturan-nim/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: hapus
+     *
+     * Pengelola modul.
+     *
+     * `DELETE /v1/admisi/aturan-nim/{id}`
+     *
+     * scope: `admisi:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAturanNimById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/admisi/aturan-nim/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 }

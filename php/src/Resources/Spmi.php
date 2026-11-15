@@ -22,7 +22,7 @@ final class Spmi extends Resource
      *
      * publik (tanpa token)
      *
-     * @param array{jenis?: string, ...} $query
+     * @param array{jenis?: string, unit?: string, fakultas?: string, prodi?: string, turunan?: int, q?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -217,6 +217,102 @@ final class Spmi extends Resource
     public function postNotifikasiByIdBaca(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/spmi/notifikasi/{id}/baca', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Statistik SPMI
+     *
+     * Untuk grafik dan laporan: tren 6 periode (persen capaian tercapai/terisi, temuan, KTS, respons survei), sebaran temuan per kategori/status/sumber/unit/standar, rata-rata hari penutupan, tindak lanjut, pemenuhan capaian, matriks risiko 5x5, akreditasi (status, peringkat, lembaga, berakhir 12 bulan), dokumen mutu, AMI (status auditee, hasil tilik, skor), survei. Lingkup unit mengikuti hak lihat.
+     *
+     * `GET /v1/spmi/statistik`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{periode_id?: int, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getStatistik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/statistik', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan mutu yang berlaku untuk saya
+     *
+     * Hasil periksa aturan dinamis kategori mutu (/v1/aturan) di titik spmi.* untuk pemilik token tanpa menolak: pelanggaran, peringatan, batas waktu/nilai, dan aturan yang baru dinilai saat aksi (saat_aksi). Cakupan prodi/fakultas mengikuti unit_id.
+     *
+     * `GET /v1/spmi/aturan`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{titik?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/aturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tim pengelola aplikasi SPMI
+     *
+     * Admin SPMI. Peran Staf LPM, Operator SPMI, dan Kepala LPM beserta izinnya, pemegang aktif (penugasan RBAC), dan personel peran admin. boleh_kelola = boleh memberi/mencabut (Kepala LPM atau ADMIN).
+     *
+     * `GET /v1/spmi/tim`
+     *
+     * scope: `spmi:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/tim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah anggota tim pengelola
+     *
+     * Kepala LPM (izin spmi.pengelola) atau ADMIN. Body: username (akun SIAKAD aktif, dosen atau tendik), peran (staf-lpm | operator-spmi | kepala-lpm; kepala-lpm hanya oleh ADMIN), selesai, nomor_sk, alasan. Dicatat sebagai penugasan RBAC global sumber aplikasi.
+     *
+     * `POST /v1/spmi/tim`
+     *
+     * scope: `spmi:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/tim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut anggota tim pengelola
+     *
+     * Kepala LPM atau ADMIN. Penugasan dinonaktifkan dengan tanggal selesai hari ini.
+     *
+     * `POST /v1/spmi/tim/{id}/cabut`
+     *
+     * scope: `spmi:write` · hanya token pengguna
+     *
+     * @param int|string $id ID penugasan RBAC
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTimByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/tim/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

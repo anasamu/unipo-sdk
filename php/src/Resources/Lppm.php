@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * LPPM: Umum, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File
+ * LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File
  */
 final class Lppm extends Resource
 {
@@ -140,6 +140,100 @@ final class Lppm extends Resource
     public function postImporLama(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/lppm/impor-lama', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Susunan tim LP2M
+     *
+     * Peran tim (staf-lp2m, keuangan-lp2m, pimpinan-lp2m, admin-lp2m) beserta isi izinnya, pemegang aktif (penugasan RBAC), dan pengelola dari tabel lppm_pengelola (termasuk dekan/WD per fakultas). Untuk tim LP2M.
+     *
+     * `GET /v1/lppm/tim`
+     *
+     * scope: `lppm:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/tim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Beri peran tim LP2M
+     *
+     * Body: {"username": "K0123", "peran": "staf-lp2m|keuangan-lp2m|pimpinan-lp2m|admin-lp2m", "selesai": "2027-12-31", "nomor_sk": "...", "alasan": "..."}. Membuat penugasan RBAC global (sumber aplikasi): pemegang langsung bisa masuk lp2m.unipo.ac.id dan bekerja sebagai pengelola LPPM dengan peran setara, termasuk tendik. pimpinan-lp2m dan admin-lp2m hanya oleh admin LP2M.
+     *
+     * `POST /v1/lppm/tim`
+     *
+     * scope: `lppm:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTim(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/tim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Calon anggota tim
+     *
+     * Akun SIAKAD aktif (dosen, tendik, atau akun lain selain mahasiswa) untuk isian pilih pengguna. Pimpinan/admin LP2M.
+     *
+     * `GET /v1/lppm/tim/calon`
+     *
+     * scope: `lppm:read` · hanya token pengguna
+     *
+     * @param array{q?: string, username?: string, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTimCalon(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/tim/calon', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut peran tim LP2M
+     *
+     * `POST /v1/lppm/tim/{id}/cabut`
+     *
+     * scope: `lppm:write` · hanya token pengguna
+     *
+     * @param int|string $id ID penugasan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTimByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/tim/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan penelitian yang berlaku untuk saya
+     *
+     * Hasil periksa aturan dinamis kategori penelitian (/v1/aturan) di titik lppm.usulan.ajukan, lppm.laporan.ajukan, lppm.luaran.ajukan untuk dosen pemilik token (atau ?nidn= bagi pengelola), beserta rekam jejak yang dihitung (kegiatan berjalan, laporan tertunggak, luaran terverifikasi).
+     *
+     * `GET /v1/lppm/aturan`
+     *
+     * scope: `lppm:read` · hanya token pengguna
+     *
+     * @param array{titik?: string, nidn?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/aturan', [], $query, null, $options, false, false);
     }
 
     /**
@@ -2002,6 +2096,25 @@ final class Lppm extends Resource
     public function getLaporan(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/lppm/laporan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar pencairan lintas kegiatan
+     *
+     * Tim LPPM (admin/operator/pimpinan/keuangan). Yang diajukan tampil lebih dulu.
+     *
+     * `GET /v1/lppm/pencairan`
+     *
+     * scope: `lppm:read` · berhalaman
+     *
+     * @param array{status?: string, periode_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPencairan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/pencairan', [], $query, null, $options, false, false);
     }
 
     /**

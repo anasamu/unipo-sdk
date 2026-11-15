@@ -112,7 +112,7 @@ export class AdmisiResource {
   /**
    * Usulan NIM berikutnya
    *
-   * NIM berikutnya untuk prodi dan periode masuk (pola /admisi/format-nim, atau ditebak dari NIM angkatan terakhir prodi). Tidak menyimpan apa pun.
+   * NIM berikutnya untuk prodi dan periode masuk (aturan /admisi/aturan-nim, pola /admisi/format-nim, atau ditebak dari NIM angkatan terakhir prodi). Tidak menyimpan apa pun.
    *
    * `GET /v1/admisi/nim/usulan`
    *
@@ -123,10 +123,36 @@ export class AdmisiResource {
     prodi?: string;
     /** Periode masuk, bawaan tahun aktif */
     tahun_id?: string;
+    /** Kode jalur masuk (untuk aturan per jalur) */
+    jalur?: string;
     /** Jumlah NIM (1-200) */
     jumlah?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/admisi/nim/usulan', query }, options);
+  }
+
+  /**
+   * Pratinjau aturan NIM
+   *
+   * Pola NIM yang berlaku untuk prodi/jalur/periode (aturan /admisi/aturan-nim, format per prodi, atau tebakan) beserta contoh NIM berikutnya. Isi `pola` untuk mencoba pola baru sebelum disimpan. Tidak menyimpan apa pun.
+   *
+   * `GET /v1/admisi/nim/pratinjau`
+   *
+   * scope: `admisi:read`
+   */
+  getNimPratinjau(query?: {
+    /** Kode prodi (wajib) */
+    prodi?: string;
+    /** Periode masuk, bawaan tahun aktif */
+    tahun_id?: string;
+    /** Kode jalur masuk */
+    jalur?: string;
+    /** Pola uji, mis. {YY}{PRODI:3}{NNNN} */
+    pola?: string;
+    /** Jumlah contoh (1-20) */
+    jumlah?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/admisi/nim/pratinjau', query }, options);
   }
 
   /**
@@ -345,6 +371,68 @@ export class AdmisiResource {
    */
   postSayaPendaftaranByIdUkt(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/admisi/saya/pendaftaran/{id}/ukt', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Keringanan biaya: skema dan pengajuan saya
+   *
+   * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Skema potongan/keringanan/beasiswa yang terbuka untuk calon mahasiswa (sasaran maba/semua, prodi pilihan) beserta syarat berkasnya, dan pengajuan pendaftar ini (status, kelengkapan berkas, nomor SK, potongan).
+   *
+   * `GET /v1/admisi/saya/pendaftaran/{id}/potongan`
+   *
+   * scope: `pmb:pendaftar`
+   *
+   * @param id UUID pendaftaran PMB
+   */
+  getSayaPendaftaranByIdPotongan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/admisi/saya/pendaftaran/{id}/potongan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ajukan keringanan biaya
+   *
+   * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Body {"skema_id", "alasan"}. Dibuat sebagai draf; unggah berkas syarat lalu ajukan. Disetujui petugas BAUK (dengan SK bila skema wajib SK); potongan mengurangi tagihan daftar ulang PMB yang belum dibayar dan dipasang ke tagihan semester setelah ber-NIM.
+   *
+   * `POST /v1/admisi/saya/pendaftaran/{id}/potongan`
+   *
+   * scope: `pmb:pendaftar`
+   *
+   * @param id UUID pendaftaran PMB
+   */
+  postSayaPendaftaranByIdPotongan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/admisi/saya/pendaftaran/{id}/potongan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unggah berkas syarat keringanan
+   *
+   * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Multipart "berkas" + "jenis" = kode syarat skema. Selama draf.
+   *
+   * `POST /v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/berkas`
+   *
+   * scope: `pmb:pendaftar`
+   *
+   * @param id UUID pendaftaran PMB
+   * @param nomor Nomor pengajuan
+   */
+  postSayaPendaftaranByIdPotonganByNomorBerkas(id: string | number, nomor: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/berkas', query: { ...query, id, nomor } }, options);
+  }
+
+  /**
+   * Ajukan keringanan (kirim ke petugas)
+   *
+   * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Syarat berkas wajib harus sudah diunggah.
+   *
+   * `POST /v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/ajukan`
+   *
+   * scope: `pmb:pendaftar`
+   *
+   * @param id UUID pendaftaran PMB
+   * @param nomor Nomor pengajuan
+   */
+  postSayaPendaftaranByIdPotonganByNomorAjukan(id: string | number, nomor: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/ajukan', query: { ...query, id, nomor } }, options);
   }
 
   /**
@@ -1218,6 +1306,107 @@ export class AdmisiResource {
    */
   deleteFormatNimById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/admisi/format-nim/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan NIM otomatis: daftar
+   *
+   * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+   *
+   * `GET /v1/admisi/aturan-nim`
+   *
+   * scope: `admisi:read` · berhalaman
+   */
+  getAturanNim(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kode_prodi?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    tahun_mulai?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    tahun_selesai?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    urut_per?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kode_fakultas?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jalur_masuk?: string;
+    /** Cari di nama, pola, kode_prodi */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.AdmisiAturanNim>>> {
+    return this.client.request({ method: 'GET', path: '/v1/admisi/aturan-nim', query }, options);
+  }
+
+  /**
+   * Aturan NIM otomatis: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/admisi/aturan-nim`
+   *
+   * scope: `admisi:write`
+   *
+   * @param body
+   */
+  postAturanNim(body: S.AdmisiAturanNimInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.AdmisiAturanNim>> {
+    return this.client.request({ method: 'POST', path: '/v1/admisi/aturan-nim', body }, options);
+  }
+
+  /**
+   * Aturan NIM otomatis: detail
+   *
+   * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+   *
+   * `GET /v1/admisi/aturan-nim/{id}`
+   *
+   * scope: `admisi:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getAturanNimById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.AdmisiAturanNim>> {
+    return this.client.request({ method: 'GET', path: '/v1/admisi/aturan-nim/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan NIM otomatis: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/admisi/aturan-nim/{id}`
+   *
+   * scope: `admisi:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putAturanNimById(id: string | number, body: S.AdmisiAturanNimInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.AdmisiAturanNim>> {
+    return this.client.request({ method: 'PUT', path: '/v1/admisi/aturan-nim/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Aturan NIM otomatis: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/admisi/aturan-nim/{id}`
+   *
+   * scope: `admisi:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteAturanNimById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/admisi/aturan-nim/{id}', query: { ...query, id } }, options);
   }
 }
 
@@ -2722,6 +2911,8 @@ export class ArsipResource {
     klasifikasi_id?: string;
     /** YYYY-MM-DD */
     tanggal?: string;
+    /** Format yang sedang disunting (belum disimpan): kembalikan contoh nomor urut 1 tanpa menyentuh penghitung */
+    format?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/arsip/penomoran/pratinjau', query }, options);
   }
@@ -3066,7 +3257,7 @@ export class ArsipResource {
   /**
    * Catat surat masuk
    *
-   * Oleh admin/pimpinan/sekretaris unit penerima. Nomor agenda dibuat otomatis; retensi dihitung dari klasifikasi (atau klasifikasi bawaan jenis). Unggah hasil pindai lewat POST /surat/{ref}/file.
+   * Oleh admin/pimpinan/sekretaris/arsiparis unit penerima. Nomor agenda dibuat otomatis; retensi dihitung dari klasifikasi (atau klasifikasi bawaan jenis). Unggah hasil pindai lewat POST /surat/{ref}/file.
    *
    * `POST /v1/arsip/surat-masuk`
    *
@@ -3127,7 +3318,7 @@ export class ArsipResource {
   /**
    * Buat konsep surat keluar
    *
-   * Semua petugas unit (termasuk staf). `template_id` + `data_templat` mengisi `isi` dari templat. `catat_langsung=true` (admin/pimpinan/sekretaris) untuk surat yang sudah ditandatangani di kertas: langsung diberi nomor (atau `nomor_surat` manual) dan dikirim.
+   * Semua petugas unit (termasuk staf). `template_id` + `data_templat` mengisi `isi` dari templat. `catat_langsung=true` (admin/pimpinan/sekretaris/arsiparis) untuk surat yang sudah ditandatangani di kertas: langsung diberi nomor (atau `nomor_surat` manual) dan dikirim.
    *
    * `POST /v1/arsip/surat-keluar`
    *
@@ -7911,6 +8102,30 @@ export class FakultasResource {
   }
 
   /**
+   * Direktori dosen (publik)
+   *
+   * Dosen aktif di prodi fakultas ini: NIDN, nama + gelar, prodi, jabatan akademik (tanpa data pribadi). Dipakai portal fakultas bila situs portal belum didaftarkan.
+   *
+   * `GET /v1/fakultas/{kode}/dosen-publik`
+   *
+   * publik (tanpa token) · berhalaman
+   *
+   * @param kode
+   */
+  getByKodeDosenPublik(kode: string | number, query?: {
+    /** Kode prodi */
+    prodi?: string;
+    /** Nama atau NIDN */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/dosen-publik', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
    * Fakultas dalam angka
    *
    * Publik, hanya jumlah agregat: prodi, mahasiswa aktif, dosen aktif, lulusan (total dan per prodi). Dipakai halaman depan aplikasi fakultas, juga bila situs portal fakultas belum didaftarkan.
@@ -8139,7 +8354,7 @@ export class FakultasResource {
   /**
    * Kurikulum
    *
-   * Mata kuliah per prodi per semester (m_mata_kuliah) dan kurikulum OBE (kurikulum_prodi).
+   * Daftar kurikulum SIAKAD (m_kurikulum per tahun), mata kuliah kurikulum terpilih per semester (m_mata_kuliah, bawaan kurikulum terbaru; detail SKS, jenis, kelompok, pengampu, kelengkapan silabus/SAP/bahan ajar), dan kurikulum OBE (kurikulum_prodi).
    *
    * `GET /v1/fakultas/{kode}/kurikulum`
    *
@@ -8148,6 +8363,8 @@ export class FakultasResource {
    * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
    */
   getByKodeKurikulum(kode: string | number, query?: {
+    /** Tahun kurikulum (m_kurikulum.tahun_id) */
+    tahun_kurikulum?: string;
     /** Batasi ke satu prodi (harus dalam kewenangan) */
     prodi?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
@@ -8806,6 +9023,1040 @@ export class FakultasResource {
    */
   postByKodeAksesByIdCabut(kode: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/akses/{id}/cabut', query: { ...query, kode, id } }, options);
+  }
+}
+
+/** Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya */
+export class GajiResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Pasang komponen gaji standar
+   *
+   * Admin. Gaji pokok, tunjangan dari SDM, honor, THR, gaji ke-13, BPJS Kesehatan/Ketenagakerjaan (tarif 2025), potongan presensi, koperasi, pinjaman, zakat. Hanya menambah kode yang belum ada.
+   *
+   * `POST /v1/gaji/komponen/bawaan`
+   *
+   * scope: `gaji:write`
+   */
+  postKomponenBawaan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/komponen/bawaan', query }, options);
+  }
+
+  /**
+   * Buat profil gaji massal
+   *
+   * Membuat profil gaji untuk pegawai aktif SDM yang belum punya (pegawai tidak tetap: tanpa BPJS, PPh pegawai tidak tetap). Rekening bank diisi kemudian. Query jenis=dosen|tendik opsional.
+   *
+   * `POST /v1/gaji/profil/buat-massal`
+   *
+   * scope: `gaji:write`
+   */
+  postProfilBuatMassal(query?: {
+    /** dosen|tendik */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/profil/buat-massal', query }, options);
+  }
+
+  /**
+   * Hitung payroll
+   *
+   * Menghitung (ulang) slip semua pegawai sasaran: gaji pokok, tunjangan, dan honor dibaca dari SDM; BPJS, potongan presensi, tetapan pegawai, PPh 21 (TER bulanan, Desember disetahunkan, gross-up). Penyesuaian manual dipertahankan. Body {pegawai_id?: [..]} untuk sebagian pegawai. Status draf/dihitung.
+   *
+   * `POST /v1/gaji/periode/{id}/hitung`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdHitung(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/hitung', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ajukan payroll
+   *
+   * dihitung -> diajukan. Body {catatan?}.
+   *
+   * `POST /v1/gaji/periode/{id}/ajukan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/ajukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Kembalikan payroll
+   *
+   * diajukan -> dihitung untuk diperbaiki. Body {catatan?}.
+   *
+   * `POST /v1/gaji/periode/{id}/kembalikan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdKembalikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/kembalikan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Setujui payroll
+   *
+   * Admin gaji (Kepala BAUK), harus orang yang berbeda dari pengaju. Membuat jurnal beban gaji per unit (D beban / K utang gaji, utang PPh 21, utang BPJS, potongan) dan menerbitkan slip ke pegawai (notifikasi).
+   *
+   * `POST /v1/gaji/periode/{id}/setujui`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdSetujui(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/setujui', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Catat pembayaran payroll
+   *
+   * disetujui -> dibayar. Body {tanggal?, rekening_id? (bawaan rekening utama universitas), catatan?}. Jurnal D utang gaji / K rekening untuk slip yang tidak ditahan, honor SDM ditandai dibayar (nomor bukti GAJI-<kode>), cicilan tetapan maju satu.
+   *
+   * `POST /v1/gaji/periode/{id}/bayar`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdBayar(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/bayar', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tutup payroll
+   *
+   * dibayar -> ditutup (terkunci).
+   *
+   * `POST /v1/gaji/periode/{id}/tutup`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdTutup(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/tutup', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan payroll
+   *
+   * Admin. Sebelum dibayar. Body {alasan}. Jurnal beban dibalik. Koreksi setelah dibayar lewat periode susulan.
+   *
+   * `POST /v1/gaji/periode/{id}/batal`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  postPeriodeByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * File transfer bank
+   *
+   * CSV (pemisah ;) untuk transfer massal: rekening, nama, bank, nominal netto, keterangan. Slip ditahan tidak ikut. format=json untuk data mentah. Setelah disetujui.
+   *
+   * `GET /v1/gaji/periode/{id}/bank`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID atau kode periode (mis. 2026-11)
+   */
+  getPeriodeByIdBank(id: string | number, query?: {
+    /** csv|json */
+    format?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/periode/{id}/bank', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Slip lengkap
+   *
+   * Pengelola gaji dan admin SDM. Identitas, kehadiran, rincian pendapatan/potongan/pajak/iuran pemberi kerja dengan dasar hitung, peringatan, kode verifikasi.
+   *
+   * `GET /v1/gaji/slip/{id}/lengkap`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID slip
+   */
+  getSlipByIdLengkap(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/slip/{id}/lengkap', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hitung ulang satu slip
+   *
+   * Setelah data SDM pegawai diperbaiki.
+   *
+   * `POST /v1/gaji/slip/{id}/hitung`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   */
+  postSlipByIdHitung(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/hitung', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tahan slip
+   *
+   * Slip tidak ikut transfer (mis. rekening bermasalah). Body {catatan?}.
+   *
+   * `POST /v1/gaji/slip/{id}/tahan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   */
+  postSlipByIdTahan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/tahan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lepas tahanan slip
+   *
+   * Sebelum periode dibayar.
+   *
+   * `POST /v1/gaji/slip/{id}/lepas`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   */
+  postSlipByIdLepas(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/lepas', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Bayar slip tertahan
+   *
+   * Setelah periode dibayar. Body {tanggal?, rekening_id?}.
+   *
+   * `POST /v1/gaji/slip/{id}/bayar`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   */
+  postSlipByIdBayar(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/bayar', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tambah penyesuaian slip
+   *
+   * Body {jenis: pendapatan|potongan, nama, nominal, kena_pajak?, komponen_id?, keterangan?}. Pajak dihitung ulang. Hanya sebelum diajukan.
+   *
+   * `POST /v1/gaji/slip/{id}/rinci`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   */
+  postSlipByIdRinci(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/rinci', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus penyesuaian slip
+   *
+   * Hanya baris manual.
+   *
+   * `POST /v1/gaji/slip/{id}/rinci/{rinci}/hapus`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID slip
+   * @param rinci ID baris
+   */
+  postSlipByIdRinciByRinciHapus(id: string | number, rinci: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/slip/{id}/rinci/{rinci}/hapus', query: { ...query, id, rinci } }, options);
+  }
+
+  /**
+   * Rekap payroll satu periode
+   *
+   * Ringkas, per unit, per jenis pegawai, per komponen, dan rincian per pegawai (pendapatan, potongan, PPh 21, BPJS, netto, status bayar). Periode lewat periode_id (ID/kode) atau tahun + bulan (reguler terakhir). Pengelola gaji (pengelola unit hanya unitnya) dan admin SDM.
+   *
+   * `GET /v1/gaji/laporan/rekap`
+   *
+   * scope: `gaji:read`
+   */
+  getLaporanRekap(query?: {
+    /** ID atau kode periode */
+    periode_id?: string;
+    /** Tahun */
+    tahun?: number;
+    /** Bulan 1-12 */
+    bulan?: number;
+    /** Unit (induk_unit, ikut turunannya) */
+    unit_id?: number;
+    /** dosen|tendik */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/laporan/rekap', query }, options);
+  }
+
+  /**
+   * Rekap payroll setahun
+   *
+   * Per bulan dan per pegawai, hanya periode yang sudah disetujui (draf=1 ikut draf, pengelola).
+   *
+   * `GET /v1/gaji/laporan/tahunan`
+   *
+   * scope: `gaji:read`
+   */
+  getLaporanTahunan(query?: {
+    /** Tahun */
+    tahun?: number;
+    /** 1 = ikut periode belum disetujui */
+    draf?: number;
+    /** Unit (induk_unit, ikut turunannya) */
+    unit_id?: number;
+    /** dosen|tendik */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/laporan/tahunan', query }, options);
+  }
+
+  /**
+   * Rekap PPh 21 masa
+   *
+   * Per pegawai: NPWP/NIK, PTKP, kategori TER, kode objek pajak, bruto, tarif, PPh 21. Dasar SPT Masa / e-Bupot 21.
+   *
+   * `GET /v1/gaji/laporan/pajak`
+   *
+   * scope: `gaji:read`
+   */
+  getLaporanPajak(query?: {
+    /** ID atau kode periode */
+    periode_id?: string;
+    /** Tahun */
+    tahun?: number;
+    /** Bulan */
+    bulan?: number;
+    /** Unit (induk_unit, ikut turunannya) */
+    unit_id?: number;
+    /** dosen|tendik */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/laporan/pajak', query }, options);
+  }
+
+  /**
+   * Statistik payroll
+   *
+   * Beban setahun dibanding tahun lalu, tren bulanan, per unit, per jenis pegawai, komposisi komponen, rata-rata per golongan, daftar periode, kelengkapan data (tanpa profil, tanpa rekening).
+   *
+   * `GET /v1/gaji/statistik`
+   *
+   * scope: `gaji:read`
+   */
+  getStatistik(query?: {
+    /** Tahun */
+    tahun?: number;
+    /** Unit (induk_unit, ikut turunannya) */
+    unit_id?: number;
+    /** dosen|tendik */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/statistik', query }, options);
+  }
+
+  /**
+   * Slip gaji saya
+   *
+   * Daftar slip pegawai yang login (periode sudah disetujui) dan profil bayar (rekening disamarkan).
+   *
+   * `GET /v1/gaji/saya`
+   *
+   * scope: `gaji:read`
+   */
+  getSaya(query?: {
+    /** Tahun */
+    tahun?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/saya', query }, options);
+  }
+
+  /**
+   * PPh 21 saya setahun
+   *
+   * Bruto, biaya jabatan, iuran pensiun/JHT, PTKP, PKP, PPh setahun, dan PPh yang sudah dipotong per masa (dasar bukti potong 1721-A1).
+   *
+   * `GET /v1/gaji/saya/pajak`
+   *
+   * scope: `gaji:read`
+   */
+  getSayaPajak(query?: {
+    /** Tahun */
+    tahun?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/saya/pajak', query }, options);
+  }
+
+  /**
+   * Rincian slip saya
+   *
+   * Slip lengkap milik sendiri.
+   *
+   * `GET /v1/gaji/saya/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID slip
+   */
+  getSayaById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/saya/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Verifikasi keaslian slip
+   *
+   * Publik, untuk kode QR pada slip cetak: nomor, nama, NIP tersamar, periode, status. Tanpa nominal.
+   *
+   * `GET /v1/gaji/verifikasi/{kode}`
+   *
+   * publik (tanpa token)
+   *
+   * @param kode Kode verifikasi 16 karakter
+   */
+  getVerifikasiByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/verifikasi/{kode}', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Komponen gaji: daftar
+   *
+   * Komponen pendapatan, potongan, dan iuran pemberi kerja. perhitungan: tetap (rupiah), persen (nilai% x dasar gaji_pokok/tetap/bruto, dibatasi batas_bawah/batas_atas), sdm_gaji_pokok, sdm_tunjangan (parameter = jenis tunjangan SDM), sdm_honor (parameter = kelompok honor), per_hadir / per_tidak_hadir / per_menit_terlambat (dari presensi SDM), manual (hanya dari tetapan pegawai). parameter bpjs_kes/bpjs_tk mengikuti kepesertaan di profil gaji. sasaran {jenis:[dosen|tendik], kategori:[tetap|tidak_tetap], status_kepegawaian:[...], golongan_id:[...], jabatan_akademik_id:[...], jabatan_id:[...], unit_id:[...]} membatasi penerima. jenis_periode: ["reguler"], ["thr"], ["gaji13"], ["susulan"]. Komponen bawaan: POST /v1/gaji/komponen/bawaan. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/komponen`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getKomponen(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kelompok?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    perhitungan?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    dasar?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kena_pajak?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pengurang_pajak?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    akun_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Cari di kode, nama */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiKomponen>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/komponen', query }, options);
+  }
+
+  /**
+   * Komponen gaji: tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/gaji/komponen`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postKomponen(body: S.GajiKomponenInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiKomponen>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/komponen', body }, options);
+  }
+
+  /**
+   * Komponen gaji: detail
+   *
+   * Komponen pendapatan, potongan, dan iuran pemberi kerja. perhitungan: tetap (rupiah), persen (nilai% x dasar gaji_pokok/tetap/bruto, dibatasi batas_bawah/batas_atas), sdm_gaji_pokok, sdm_tunjangan (parameter = jenis tunjangan SDM), sdm_honor (parameter = kelompok honor), per_hadir / per_tidak_hadir / per_menit_terlambat (dari presensi SDM), manual (hanya dari tetapan pegawai). parameter bpjs_kes/bpjs_tk mengikuti kepesertaan di profil gaji. sasaran {jenis:[dosen|tendik], kategori:[tetap|tidak_tetap], status_kepegawaian:[...], golongan_id:[...], jabatan_akademik_id:[...], jabatan_id:[...], unit_id:[...]} membatasi penerima. jenis_periode: ["reguler"], ["thr"], ["gaji13"], ["susulan"]. Komponen bawaan: POST /v1/gaji/komponen/bawaan. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/komponen/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getKomponenById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiKomponen>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/komponen/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Komponen gaji: ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/komponen/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putKomponenById(id: string | number, body: S.GajiKomponenInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiKomponen>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/komponen/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Komponen gaji: hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/gaji/komponen/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteKomponenById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/komponen/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Profil gaji pegawai: daftar
+   *
+   * Data pembayaran per pegawai: rekening bank, status PTKP (kosong = otomatis dari status nikah dan tanggungan di SDM), jenis/metode pajak, kepesertaan BPJS, unit pembebanan. Pegawai tanpa profil aktif tidak ikut payroll. Buat massal: POST /v1/gaji/profil/buat-massal. Gaji pokok dan tunjangan TIDAK di sini: diatur SDM berdasarkan SK. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/profil`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getProfil(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pegawai_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status_ptkp?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis_pajak?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    metode_pajak?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    ikut_bpjs_kes?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    ikut_bpjs_tk?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiProfil>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/profil', query }, options);
+  }
+
+  /**
+   * Profil gaji pegawai: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/gaji/profil`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postProfil(body: S.GajiProfilInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiProfil>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/profil', body }, options);
+  }
+
+  /**
+   * Profil gaji pegawai: detail
+   *
+   * Data pembayaran per pegawai: rekening bank, status PTKP (kosong = otomatis dari status nikah dan tanggungan di SDM), jenis/metode pajak, kepesertaan BPJS, unit pembebanan. Pegawai tanpa profil aktif tidak ikut payroll. Buat massal: POST /v1/gaji/profil/buat-massal. Gaji pokok dan tunjangan TIDAK di sini: diatur SDM berdasarkan SK. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/profil/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getProfilById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiProfil>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/profil/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Profil gaji pegawai: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/profil/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putProfilById(id: string | number, body: S.GajiProfilInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiProfil>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/profil/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Profil gaji pegawai: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/gaji/profil/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteProfilById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/profil/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tetapan komponen per pegawai: daftar
+   *
+   * Nilai komponen khusus untuk satu pegawai, mengalahkan cara hitung komponen: potongan koperasi, cicilan pinjaman pegawai (jumlah_kali = tenor, terpakai maju tiap payroll dibayar), zakat, tunjangan khusus. mulai/selesai format YYYY-MM. Wajib nomor dokumen (surat kuasa potong gaji/perjanjian) untuk potongan. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/tetapan`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getTetapan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pegawai_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    komponen_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Cari di nomor_dokumen, keterangan */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiTetapan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/tetapan', query }, options);
+  }
+
+  /**
+   * Tetapan komponen per pegawai: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/gaji/tetapan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postTetapan(body: S.GajiTetapanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiTetapan>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/tetapan', body }, options);
+  }
+
+  /**
+   * Tetapan komponen per pegawai: detail
+   *
+   * Nilai komponen khusus untuk satu pegawai, mengalahkan cara hitung komponen: potongan koperasi, cicilan pinjaman pegawai (jumlah_kali = tenor, terpakai maju tiap payroll dibayar), zakat, tunjangan khusus. mulai/selesai format YYYY-MM. Wajib nomor dokumen (surat kuasa potong gaji/perjanjian) untuk potongan. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/tetapan/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getTetapanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiTetapan>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/tetapan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tetapan komponen per pegawai: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/tetapan/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putTetapanById(id: string | number, body: S.GajiTetapanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiTetapan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/tetapan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Tetapan komponen per pegawai: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/gaji/tetapan/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteTetapanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/tetapan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tarif efektif PPh 21 (TER): daftar
+   *
+   * TER bulanan PP 58/2023 kategori A (TK/0, TK/1, K/0), B (TK/2, TK/3, K/1, K/2), C (K/3). Sudah terisi oleh migration; ubah hanya bila ada peraturan baru. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/ter`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getTer(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kategori?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiTer>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/ter', query }, options);
+  }
+
+  /**
+   * Tarif efektif PPh 21 (TER): tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/gaji/ter`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postTer(body: S.GajiTerInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiTer>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/ter', body }, options);
+  }
+
+  /**
+   * Tarif efektif PPh 21 (TER): detail
+   *
+   * TER bulanan PP 58/2023 kategori A (TK/0, TK/1, K/0), B (TK/2, TK/3, K/1, K/2), C (K/3). Sudah terisi oleh migration; ubah hanya bila ada peraturan baru. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/ter/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getTerById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiTer>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/ter/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tarif efektif PPh 21 (TER): ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/ter/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putTerById(id: string | number, body: S.GajiTerInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiTer>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/ter/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Tarif efektif PPh 21 (TER): hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/gaji/ter/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteTerById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/ter/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Penghasilan dan PPh sebelum payroll: daftar
+   *
+   * Penghasilan bruto, iuran JHT/JP, dan PPh 21 yang sudah dipotong di luar payroll ini pada tahun berjalan (mis. bulan-bulan dari sistem lama, atau dari pemberi kerja sebelumnya). Dipakai saat PPh masa Desember disetahunkan dan untuk ringkasan bukti potong A1. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/pajak-awal`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getPajakAwal(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pegawai_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    tahun?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiPajakAwal>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/pajak-awal', query }, options);
+  }
+
+  /**
+   * Penghasilan dan PPh sebelum payroll: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/gaji/pajak-awal`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postPajakAwal(body: S.GajiPajakAwalInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiPajakAwal>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/pajak-awal', body }, options);
+  }
+
+  /**
+   * Penghasilan dan PPh sebelum payroll: detail
+   *
+   * Penghasilan bruto, iuran JHT/JP, dan PPh 21 yang sudah dipotong di luar payroll ini pada tahun berjalan (mis. bulan-bulan dari sistem lama, atau dari pemberi kerja sebelumnya). Dipakai saat PPh masa Desember disetahunkan dan untuk ringkasan bukti potong A1. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/pajak-awal/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPajakAwalById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiPajakAwal>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/pajak-awal/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Penghasilan dan PPh sebelum payroll: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/pajak-awal/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPajakAwalById(id: string | number, body: S.GajiPajakAwalInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiPajakAwal>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/pajak-awal/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Penghasilan dan PPh sebelum payroll: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/gaji/pajak-awal/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePajakAwalById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/pajak-awal/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Periode payroll: daftar
+   *
+   * Satu proses payroll: reguler bulanan, THR, gaji ke-13, atau susulan (koreksi). Alur: buat -> POST {id}/hitung -> {id}/ajukan -> {id}/setujui (admin, berbeda dari pengaju; jurnal beban) -> {id}/bayar (jurnal pembayaran, honor SDM dibayar) -> {id}/tutup. {id}/batal sebelum dibayar. sasaran {jenis:[dosen|tendik], unit_id:[...], pegawai_id:[...]} membatasi pegawai (kosong = semua berprofil aktif). Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/periode`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getPeriode(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    tahun?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    bulan?: string;
+    /** Cari di kode, judul */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiPeriode>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/periode', query }, options);
+  }
+
+  /**
+   * Periode payroll: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/gaji/periode`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  postPeriode(body: S.GajiPeriodeInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiPeriode>> {
+    return this.client.request({ method: 'POST', path: '/v1/gaji/periode', body }, options);
+  }
+
+  /**
+   * Periode payroll: detail
+   *
+   * Satu proses payroll: reguler bulanan, THR, gaji ke-13, atau susulan (koreksi). Alur: buat -> POST {id}/hitung -> {id}/ajukan -> {id}/setujui (admin, berbeda dari pengaju; jurnal beban) -> {id}/bayar (jurnal pembayaran, honor SDM dibayar) -> {id}/tutup. {id}/batal sebelum dibayar. sasaran {jenis:[dosen|tendik], unit_id:[...], pegawai_id:[...]} membatasi pegawai (kosong = semua berprofil aktif). Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/periode/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPeriodeById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiPeriode>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/periode/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Periode payroll: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/gaji/periode/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPeriodeById(id: string | number, body: S.GajiPeriodeInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.GajiPeriode>> {
+    return this.client.request({ method: 'PUT', path: '/v1/gaji/periode/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Periode payroll: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/gaji/periode/{id}`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePeriodeById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/gaji/periode/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Slip gaji: daftar
+   *
+   * Slip per pegawai per periode (dibuat oleh hitung). Rincian lengkap: GET /v1/gaji/slip/{id}/lengkap. Penyesuaian manual: POST /v1/gaji/slip/{id}/rinci. Tahan/lepas dari transfer: POST {id}/tahan, {id}/lepas. Pengelola berlingkup unit hanya melihat slip unitnya. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/slip`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getSlip(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    periode_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pegawai_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
+    /** Cari di nomor, nama, nip */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiSlip>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/slip', query }, options);
+  }
+
+  /**
+   * Slip gaji: detail
+   *
+   * Slip per pegawai per periode (dibuat oleh hitung). Rincian lengkap: GET /v1/gaji/slip/{id}/lengkap. Penyesuaian manual: POST /v1/gaji/slip/{id}/rinci. Tahan/lepas dari transfer: POST {id}/tahan, {id}/lepas. Pengelola berlingkup unit hanya melihat slip unitnya. Hanya pengelola modul.
+   *
+   * `GET /v1/gaji/slip/{id}`
+   *
+   * scope: `gaji:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getSlipById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.GajiSlip>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/slip/{id}', query: { ...query, id } }, options);
   }
 }
 
@@ -19015,7 +20266,7 @@ export class KerjasamaResource {
   }
 }
 
-/** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan */
+/** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Buku besar, Keuangan: Kas, Keuangan: Laporan keuangan, Keuangan: Statistik, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan */
 export class KeuResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -19090,6 +20341,357 @@ export class KeuResource {
    */
   postVaNotifikasi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/keu/va/notifikasi', query }, options);
+  }
+
+  /**
+   * Daftar jurnal
+   *
+   * Jurnal umum (manual dan otomatis). Pengelola; pengelola unit hanya jurnal unitnya.
+   *
+   * `GET /v1/keu/jurnal`
+   *
+   * scope: `keu:read` · berhalaman
+   */
+  getJurnal(query?: {
+    /** draf|diposting|dibatalkan */
+    status?: string;
+    /** manual|pembayaran_mahasiswa|realisasi|realisasi_spj|penerimaan|saldo_awal|gaji */
+    sumber?: string;
+    /** umum|kas_masuk|kas_keluar|transfer|penyesuaian|saldo_awal|pembalik */
+    jenis?: string;
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Akun */
+    akun_id?: number;
+    /** Rekening */
+    rekening_id?: number;
+    /** Unit */
+    unit_id?: number;
+    /** Cari nomor/uraian/bukti */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/jurnal', query }, options);
+  }
+
+  /**
+   * Buat jurnal
+   *
+   * Body: tanggal, uraian, nomor_bukti?, jenis? (umum|penyesuaian|kas_masuk|kas_keluar|transfer), unit_id?, posting? (true = langsung diposting, hanya admin), baris: [{akun_id, debit, kredit, unit_id?, rekening_id?, keterangan?, kode_prodi?}]. Debit = kredit, minimal dua baris, akun rincian (bukan induk), periode tidak tutup.
+   *
+   * `POST /v1/keu/jurnal`
+   *
+   * scope: `keu:write`
+   */
+  postJurnal(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal', query }, options);
+  }
+
+  /**
+   * Sinkron jurnal otomatis
+   *
+   * Admin. Body: dari?, sampai?. Menjurnal saldo awal rekening, pembayaran mahasiswa (t_mahasiswa_bayar per hari/prodi/jenis biaya), pengajuan dana dibayar + selisih SPJ, dan penerimaan lain. Idempoten: nilai sumber yang berubah membuat jurnal pembalik + jurnal baru. Cron: php artisan keu:jurnal.
+   *
+   * `POST /v1/keu/jurnal/sinkron`
+   *
+   * scope: `keu:write`
+   */
+  postJurnalSinkron(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal/sinkron', query }, options);
+  }
+
+  /**
+   * Detail jurnal
+   *
+   * Beserta baris, jurnal pembalik, dan jurnal yang dibaliknya.
+   *
+   * `GET /v1/keu/jurnal/{id}`
+   *
+   * scope: `keu:read`
+   *
+   * @param id ID jurnal
+   */
+  getJurnalById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/jurnal/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah jurnal draf
+   *
+   * Body sama dengan buat (sebagian). Hanya jurnal draf.
+   *
+   * `POST /v1/keu/jurnal/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID jurnal
+   */
+  postJurnalById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Posting jurnal
+   *
+   * Admin. Jurnal draf menjadi diposting (masuk laporan).
+   *
+   * `POST /v1/keu/jurnal/{id}/posting`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID jurnal
+   */
+  postJurnalByIdPosting(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal/{id}/posting', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan jurnal
+   *
+   * Admin. Body: alasan, tanggal?. Draf ditandai dibatalkan; jurnal diposting dibalik dengan jurnal pembalik (jejak audit tetap utuh).
+   *
+   * `POST /v1/keu/jurnal/{id}/batalkan`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID jurnal
+   */
+  postJurnalByIdBatalkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal/{id}/batalkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus jurnal draf
+   *
+   * Hanya draf/dibatalkan.
+   *
+   * `POST /v1/keu/jurnal/{id}/hapus`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID jurnal
+   */
+  postJurnalByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/jurnal/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Catat kas masuk/keluar/transfer
+   *
+   * Satu langkah, langsung diposting. Body: jenis (masuk|keluar|transfer), rekening_id, rekening_tujuan_id (transfer), akun_id (lawan: pendapatan/beban), jumlah, tanggal?, uraian, nomor_bukti?, unit_id?, kode_prodi?. Pengelola unit hanya rekening unitnya.
+   *
+   * `POST /v1/keu/kas/transaksi`
+   *
+   * scope: `keu:write`
+   */
+  postKasTransaksi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/kas/transaksi', query }, options);
+  }
+
+  /**
+   * Saldo kas per unit
+   *
+   * Saldo setiap rekening dan setiap unit (fakultas ikut menjumlah prodi dan unit di bawahnya) per tanggal, plus kas masuk/keluar sejak `dari` (bawaan awal bulan).
+   *
+   * `GET /v1/keu/kas-unit`
+   *
+   * scope: `keu:read`
+   */
+  getKasUnit(query?: {
+    /** YYYY-MM-DD, bawaan hari ini */
+    tanggal?: string;
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/kas-unit', query }, options);
+  }
+
+  /**
+   * Pasang bagan akun standar
+   *
+   * Admin. Menambah bagan akun standar PTS (ISAK 35), pos laporan, pemetaan jurnal otomatis (jenis biaya lama dikenali dari namanya: UKT, gedung, ujian, semester pendek, konversi, wisuda, dll.), dan rekening utama universitas. Hanya menambah yang belum ada.
+   *
+   * `POST /v1/keu/bagan-standar`
+   *
+   * scope: `keu:write`
+   */
+  postBaganStandar(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/bagan-standar', query }, options);
+  }
+
+  /**
+   * Neraca saldo
+   *
+   * Saldo awal, mutasi debit/kredit, dan saldo akhir per akun.
+   *
+   * `GET /v1/keu/laporan/neraca-saldo`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanNeracaSaldo(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: number;
+    /** 1 = ikut unit turunan (bawaan) */
+    turunan?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/neraca-saldo', query }, options);
+  }
+
+  /**
+   * Laporan posisi keuangan
+   *
+   * Aset lancar/tidak lancar, liabilitas, dan aset neto (tanpa/dengan pembatasan) per tanggal, opsional pembanding.
+   *
+   * `GET /v1/keu/laporan/posisi-keuangan`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanPosisiKeuangan(query?: {
+    /** YYYY-MM-DD */
+    tanggal?: string;
+    /** YYYY-MM-DD */
+    pembanding?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/posisi-keuangan', query }, options);
+  }
+
+  /**
+   * Laporan aktivitas (penghasilan komprehensif)
+   *
+   * Pendapatan, beban, surplus/defisit tanpa pembatasan, pendapatan dengan pembatasan. pembanding=1 menghitung periode sebelumnya yang sama panjang.
+   *
+   * `GET /v1/keu/laporan/aktivitas`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanAktivitas(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** 1 */
+    pembanding?: number;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/aktivitas', query }, options);
+  }
+
+  /**
+   * Laporan arus kas
+   *
+   * Metode langsung: operasi, investasi, pendanaan, transfer antar rekening; saldo awal dan akhir kas.
+   *
+   * `GET /v1/keu/laporan/arus-kas`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanArusKas(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/arus-kas', query }, options);
+  }
+
+  /**
+   * Laporan perubahan aset neto
+   *
+   * Saldo awal, surplus/penambahan, saldo akhir aset neto tanpa dan dengan pembatasan.
+   *
+   * `GET /v1/keu/laporan/perubahan-aset-neto`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanPerubahanAsetNeto(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/perubahan-aset-neto', query }, options);
+  }
+
+  /**
+   * Buku besar akun/rekening
+   *
+   * Saldo awal, setiap baris jurnal dengan saldo berjalan, saldo akhir (maks 2000 baris).
+   *
+   * `GET /v1/keu/laporan/buku-besar`
+   *
+   * scope: `keu:read`
+   */
+  getLaporanBukuBesar(query?: {
+    /** Akun */
+    akun_id?: number;
+    /** Rekening */
+    rekening_id?: number;
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/laporan/buku-besar', query }, options);
+  }
+
+  /**
+   * Statistik keuangan
+   *
+   * Penerimaan mahasiswa per bulan (dibanding tahun lalu), per jenis biaya, fakultas, prodi, metode; piutang semester per prodi; belanja per unit; penerimaan lain per sumber; status pengajuan dana; pendapatan/beban/saldo kas per bulan dari buku besar; saldo kas per unit.
+   *
+   * `GET /v1/keu/statistik`
+   *
+   * scope: `keu:read`
+   */
+  getStatistik(query?: {
+    /** Tahun kalender */
+    tahun?: number;
+    /** Semester untuk piutang */
+    tahun_id?: string;
+    /** Unit */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/statistik', query }, options);
+  }
+
+  /**
+   * Transparansi biaya mahasiswa
+   *
+   * Per fakultas, prodi, dan jenis biaya (UKT, gedung, ujian, konversi, semester pendek, wisuda, ...): tarif (m_biaya), ditagihkan, dibayar, potongan, tunggakan, persen terbayar dalam satu semester. Pengelola unit hanya prodi unitnya.
+   *
+   * `GET /v1/keu/transparansi`
+   *
+   * scope: `keu:read`
+   */
+  getTransparansi(query?: {
+    /** Semester (bawaan tahun aktif) */
+    tahun_id?: string;
+    /** Fakultas */
+    kode_fakultas?: string;
+    /** Prodi */
+    kode_prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/transparansi', query }, options);
   }
 
   /**
@@ -20112,9 +21714,290 @@ export class KeuResource {
   postVaByIdTandaiDibukukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuVa>> {
     return this.client.request({ method: 'POST', path: '/v1/keu/va/{id}/tandai-dibukukan', query: { ...query, id } }, options);
   }
+
+  /**
+   * Rekening kas/bank: daftar
+   *
+   * Rekening kas, kas kecil, bank, atau virtual per unit (kosongkan unit_id untuk rekening universitas). `akun_id` = akun aset kas/bank di bagan akun. Satu rekening `utama` per unit dipakai jurnal otomatis; unit tanpa rekening utama memakai rekening utama unit induknya, lalu rekening utama universitas. Saldo awal dijurnal otomatis saat sinkron. Saldo terkini di GET /keu/kas-unit. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/rekening`
+   *
+   * scope: `keu:read` · berhalaman
+   */
+  getRekening(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    akun_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    utama?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Cari di kode, nama, bank, nomor_rekening */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuRekening>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/rekening', query }, options);
+  }
+
+  /**
+   * Rekening kas/bank: tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/keu/rekening`
+   *
+   * scope: `keu:write`
+   *
+   * @param body
+   */
+  postRekening(body: S.KeuRekeningInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuRekening>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/rekening', body }, options);
+  }
+
+  /**
+   * Rekening kas/bank: detail
+   *
+   * Rekening kas, kas kecil, bank, atau virtual per unit (kosongkan unit_id untuk rekening universitas). `akun_id` = akun aset kas/bank di bagan akun. Satu rekening `utama` per unit dipakai jurnal otomatis; unit tanpa rekening utama memakai rekening utama unit induknya, lalu rekening utama universitas. Saldo awal dijurnal otomatis saat sinkron. Saldo terkini di GET /keu/kas-unit. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/rekening/{id}`
+   *
+   * scope: `keu:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getRekeningById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuRekening>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/rekening/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Rekening kas/bank: ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keu/rekening/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putRekeningById(id: string | number, body: S.KeuRekeningInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuRekening>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keu/rekening/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Rekening kas/bank: hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/keu/rekening/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteRekeningById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keu/rekening/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pos laporan akun: daftar
+   *
+   * Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/akun-pos`
+   *
+   * scope: `keu:read` · berhalaman
+   */
+  getAkunPos(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    akun_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pos?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    arus_kas?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    dengan_pembatasan?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuAkunPos>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/akun-pos', query }, options);
+  }
+
+  /**
+   * Pos laporan akun: tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/keu/akun-pos`
+   *
+   * scope: `keu:write`
+   *
+   * @param body
+   */
+  postAkunPos(body: S.KeuAkunPosInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuAkunPos>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/akun-pos', body }, options);
+  }
+
+  /**
+   * Pos laporan akun: detail
+   *
+   * Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/akun-pos/{id}`
+   *
+   * scope: `keu:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getAkunPosById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuAkunPos>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/akun-pos/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pos laporan akun: ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keu/akun-pos/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putAkunPosById(id: string | number, body: S.KeuAkunPosInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuAkunPos>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keu/akun-pos/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Pos laporan akun: hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/keu/akun-pos/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteAkunPosById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keu/akun-pos/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pemetaan jurnal otomatis: daftar
+   *
+   * Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/pemetaan`
+   *
+   * scope: `keu:read` · berhalaman
+   */
+  getPemetaan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    akun_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    rekening_id?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuPemetaan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/pemetaan', query }, options);
+  }
+
+  /**
+   * Pemetaan jurnal otomatis: tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/keu/pemetaan`
+   *
+   * scope: `keu:write`
+   *
+   * @param body
+   */
+  postPemetaan(body: S.KeuPemetaanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuPemetaan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keu/pemetaan', body }, options);
+  }
+
+  /**
+   * Pemetaan jurnal otomatis: detail
+   *
+   * Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
+   *
+   * `GET /v1/keu/pemetaan/{id}`
+   *
+   * scope: `keu:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPemetaanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuPemetaan>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/pemetaan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pemetaan jurnal otomatis: ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keu/pemetaan/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPemetaanById(id: string | number, body: S.KeuPemetaanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuPemetaan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keu/pemetaan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Pemetaan jurnal otomatis: hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/keu/pemetaan/{id}`
+   *
+   * scope: `keu:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePemetaanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keu/pemetaan/{id}', query: { ...query, id } }, options);
+  }
 }
 
-/** Keuangan, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan */
+/** Keuangan, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keringanan dan beasiswa */
 export class KeuanganResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -22150,6 +24033,645 @@ export class KeuanganResource {
    */
   getKasirById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganKasir>> {
     return this.client.request({ method: 'GET', path: '/v1/keuangan/kasir/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Statistik keringanan dan beasiswa
+   *
+   * Transparansi: per skema (pengajuan, menunggu, disetujui, ditolak, total potongan, kuota), per kategori, per unit penanggung biaya, per prodi, dan persentase potongan terhadap tagihan periode. Pengelola berlingkup unit hanya melihat prodinya.
+   *
+   * `GET /v1/keuangan/keringanan/statistik`
+   *
+   * scope: `keuangan:read`
+   */
+  getKeringananStatistik(query?: {
+    /** Periode (kosong = semua) */
+    tahun_id?: string;
+    /** Kode prodi */
+    prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/keringanan/statistik', query }, options);
+  }
+
+  /**
+   * Terapkan keringanan ke tagihan periode
+   *
+   * Admin keuangan. Body {"tahun_id"?, "pratinjau"?: true}. Semua pengajuan disetujui yang masih berlaku (lama_semester) dipasang ke tagihan periode itu; aman diulang. Jalankan setelah generate tagihan semester (cron keu:keringanan melakukannya otomatis).
+   *
+   * `POST /v1/keuangan/keringanan/terapkan-massal`
+   *
+   * scope: `keuangan:write`
+   */
+  postKeringananTerapkanMassal(query?: {
+    /** Kode prodi (wajib bila berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/keringanan/terapkan-massal', query }, options);
+  }
+
+  /**
+   * Terapkan satu pengajuan ke tagihan
+   *
+   * Body {"tahun_id"?}. Untuk pengajuan disetujui; aman diulang.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/terapkan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID, UUID, atau nomor pengajuan
+   */
+  postPengajuanPotonganByIdTerapkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/terapkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Proses keuangan mahasiswa baru
+   *
+   * Sama dengan yang dijalankan otomatis setelah daftar ulang (event mahasiswa.terdaftar): tautkan pengajuan keringanan maba ke NIM, buat tagihan semester pertama, pasang potongan, dan akui pembayaran daftar ulang PMB per jenis biaya (/keuangan/pemetaan-pmb; sisa masuk deposit). Aman diulang.
+   *
+   * `POST /v1/keuangan/mahasiswa-baru/{nim}/proses`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param nim NIM
+   */
+  postMahasiswaBaruByNimProses(nim: string | number, query?: {
+    /** Bawaan periode masuk mahasiswa */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/mahasiswa-baru/{nim}/proses', query: { ...query, nim } }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: daftar
+   *
+   * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+   *
+   * `GET /v1/keuangan/skema-potongan`
+   *
+   * scope: `keuangan:read` · berhalaman
+   */
+  getSkemaPotongan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kategori?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    dasar?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    sasaran?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    angkatan_min?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    angkatan_maks?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    wajib_sk?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    perlu_verifikasi?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    beasiswa_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    gabung?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status?: string;
+    /** Cari di kode, nama */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuanganSkemaPotongan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/skema-potongan', query }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: tambah
+   *
+   * Pengelola modul (peran ber-unit hanya untuk unitnya).
+   *
+   * `POST /v1/keuangan/skema-potongan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param body
+   */
+  postSkemaPotongan(body: S.KeuanganSkemaPotonganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganSkemaPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/skema-potongan', body }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: detail
+   *
+   * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+   *
+   * `GET /v1/keuangan/skema-potongan/{id}`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getSkemaPotonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganSkemaPotongan>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/skema-potongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: ubah
+   *
+   * Pengelola modul (peran ber-unit hanya untuk unitnya). Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keuangan/skema-potongan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putSkemaPotonganById(id: string | number, body: S.KeuanganSkemaPotonganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganSkemaPotongan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keuangan/skema-potongan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: hapus
+   *
+   * Pengelola modul (peran ber-unit hanya untuk unitnya).
+   *
+   * `DELETE /v1/keuangan/skema-potongan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteSkemaPotonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keuangan/skema-potongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: Buka pengajuan
+   *
+   * Pengelola modul. Status harus draf/tutup, menjadi buka.
+   *
+   * `POST /v1/keuangan/skema-potongan/{id}/buka`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  postSkemaPotonganByIdBuka(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganSkemaPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/skema-potongan/{id}/buka', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Skema potongan, keringanan, dan beasiswa: Tutup pengajuan
+   *
+   * Pengelola modul. Status harus draf/buka, menjadi tutup.
+   *
+   * `POST /v1/keuangan/skema-potongan/{id}/tutup`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  postSkemaPotonganByIdTutup(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganSkemaPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/skema-potongan/{id}/tutup', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: daftar
+   *
+   * Alur: draf (mahasiswa mengisi dan mengunggah berkas syarat lewat /berkas dengan jenis = kode syarat) -> ajukan -> verifikasi (unit/fakultas, bila skema perlu_verifikasi) -> setujui (admin keuangan; wajib nomor SK dan lampiran berjenis "sk" bila skema wajib_sk; kuota dicek) -> potongan otomatis dipasang ke tagihan periode berjalan (dan periode berikutnya sampai lama_semester lewat cron keu:keringanan). Bisa juga ditolak, dikembalikan untuk diperbaiki, atau dicabut (opsional mengembalikan potongan pada tagihan yang belum lunas). Petugas boleh membuatkan pengajuan untuk mahasiswa (isi nim). Pengajuan maba dibuat dari aplikasi PMB dan ditautkan ke NIM setelah daftar ulang. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+   *
+   * `GET /v1/keuangan/pengajuan-potongan`
+   *
+   * scope: `keuangan:read` · berhalaman
+   */
+  getPengajuanPotongan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    skema_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    nim?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kode_prodi?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    tahun_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    sumber?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status?: string;
+    /** Cari di nomor, nim, nama, no_pmb */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuanganPengajuanPotongan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengajuan-potongan', query }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: tambah
+   *
+   * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status draf.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param body
+   */
+  postPengajuanPotongan(body: S.KeuanganPengajuanPotonganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan', body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: detail
+   *
+   * Alur: draf (mahasiswa mengisi dan mengunggah berkas syarat lewat /berkas dengan jenis = kode syarat) -> ajukan -> verifikasi (unit/fakultas, bila skema perlu_verifikasi) -> setujui (admin keuangan; wajib nomor SK dan lampiran berjenis "sk" bila skema wajib_sk; kuota dicek) -> potongan otomatis dipasang ke tagihan periode berjalan (dan periode berikutnya sampai lama_semester lewat cron keu:keringanan). Bisa juga ditolak, dikembalikan untuk diperbaiki, atau dicabut (opsional mengembalikan potongan pada tagihan yang belum lunas). Petugas boleh membuatkan pengajuan untuk mahasiswa (isi nim). Pengajuan maba dibuat dari aplikasi PMB dan ditautkan ke NIM setelah daftar ulang. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+   *
+   * `GET /v1/keuangan/pengajuan-potongan/{id}`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPengajuanPotonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengajuan-potongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: ubah
+   *
+   * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status draf. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keuangan/pengajuan-potongan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPengajuanPotonganById(id: string | number, body: S.KeuanganPengajuanPotonganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keuangan/pengajuan-potongan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: hapus
+   *
+   * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status draf.
+   *
+   * `DELETE /v1/keuangan/pengajuan-potongan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePengajuanPotonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keuangan/pengajuan-potongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: daftar lampiran
+   *
+   * Siapa pun yang boleh melihat barisnya.
+   *
+   * `GET /v1/keuangan/pengajuan-potongan/{id}/berkas`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPengajuanPotonganByIdBerkas(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.PusatBerkas>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengajuan-potongan/{id}/berkas', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: unggah lampiran
+   *
+   * Multipart field "berkas" (atau JSON berkas_base64 + nama_file), opsional jenis dan keterangan. PDF, gambar, dokumen Office/ODF, CSV, TXT, ZIP; maksimal PUSAT_DATA_MAKS_MB (bawaan 20 MB). Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status draf.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/berkas`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  postPengajuanPotonganByIdBerkas(id: string | number, body: S.PusatBerkasInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PusatBerkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/berkas', query: { id }, body, multipart: true }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: unduh lampiran
+   *
+   * `GET /v1/keuangan/pengajuan-potongan/{id}/berkas/{uuid}`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   * @param uuid UUID berkas
+   */
+  getPengajuanPotonganByIdBerkasByUuid(id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengajuan-potongan/{id}/berkas/{uuid}', query: { ...query, id, uuid } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: hapus lampiran
+   *
+   * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status draf.
+   *
+   * `DELETE /v1/keuangan/pengajuan-potongan/{id}/berkas/{uuid}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param uuid UUID berkas
+   */
+  deletePengajuanPotonganByIdBerkasByUuid(id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keuangan/pengajuan-potongan/{id}/berkas/{uuid}', query: { ...query, id, uuid } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Ajukan
+   *
+   * Pemilik data atau pengelola. Status harus draf, menjadi diajukan.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/ajukan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  postPengajuanPotonganByIdAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/ajukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Kembalikan untuk diperbaiki
+   *
+   * Pengelola modul. Status harus diajukan/diverifikasi, menjadi draf.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/kembalikan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postPengajuanPotonganByIdKembalikan(id: string | number, body: S.KeuanganPengajuanPotonganKembalikanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/kembalikan', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Verifikasi berkas dan kelayakan
+   *
+   * Pengelola modul. Status harus diajukan, menjadi diverifikasi.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/verifikasi`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postPengajuanPotonganByIdVerifikasi(id: string | number, body: S.KeuanganPengajuanPotonganVerifikasiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/verifikasi', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Setujui dan terapkan ke tagihan
+   *
+   * Admin modul. Status harus diajukan/diverifikasi, menjadi disetujui.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/setujui`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postPengajuanPotonganByIdSetujui(id: string | number, body: S.KeuanganPengajuanPotonganSetujuiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/setujui', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Tolak
+   *
+   * Pengelola modul. Status harus diajukan/diverifikasi, menjadi ditolak.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/tolak`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postPengajuanPotonganByIdTolak(id: string | number, body: S.KeuanganPengajuanPotonganTolakInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/tolak', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengajuan potongan/keringanan: Cabut keringanan
+   *
+   * Admin modul. Status harus disetujui/selesai, menjadi dicabut.
+   *
+   * `POST /v1/keuangan/pengajuan-potongan/{id}/cabut`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postPengajuanPotonganByIdCabut(id: string | number, body: S.KeuanganPengajuanPotonganCabutInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengajuanPotongan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengajuan-potongan/{id}/cabut', query: { id }, body }, options);
+  }
+
+  /**
+   * Pemetaan biaya PMB ke jenis biaya: daftar
+   *
+   * Jenis rincian biaya PMB (pmb_biaya.jenis: daftar_ulang, ukt, spp, pengembangan, almamater, lainnya) -> kode biaya SIAKAD. Dipakai untuk mengakui pembayaran daftar ulang PMB sebagai pembayaran tagihan semester pertama dan untuk memotong tagihan PMB maba yang keringanannya disetujui. kode_prodi kosong = semua prodi. Hanya pengelola modul.
+   *
+   * `GET /v1/keuangan/pemetaan-pmb`
+   *
+   * scope: `keuangan:read` · berhalaman
+   */
+  getPemetaanPmb(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    jenis?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    kode_prodi?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    aktif?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuanganPemetaanPmb>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pemetaan-pmb', query }, options);
+  }
+
+  /**
+   * Pemetaan biaya PMB ke jenis biaya: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/keuangan/pemetaan-pmb`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param body
+   */
+  postPemetaanPmb(body: S.KeuanganPemetaanPmbInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPemetaanPmb>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pemetaan-pmb', body }, options);
+  }
+
+  /**
+   * Pemetaan biaya PMB ke jenis biaya: detail
+   *
+   * Jenis rincian biaya PMB (pmb_biaya.jenis: daftar_ulang, ukt, spp, pengembangan, almamater, lainnya) -> kode biaya SIAKAD. Dipakai untuk mengakui pembayaran daftar ulang PMB sebagai pembayaran tagihan semester pertama dan untuk memotong tagihan PMB maba yang keringanannya disetujui. kode_prodi kosong = semua prodi. Hanya pengelola modul.
+   *
+   * `GET /v1/keuangan/pemetaan-pmb/{id}`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPemetaanPmbById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganPemetaanPmb>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pemetaan-pmb/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pemetaan biaya PMB ke jenis biaya: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keuangan/pemetaan-pmb/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPemetaanPmbById(id: string | number, body: S.KeuanganPemetaanPmbInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPemetaanPmb>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keuangan/pemetaan-pmb/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Pemetaan biaya PMB ke jenis biaya: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/keuangan/pemetaan-pmb/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePemetaanPmbById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keuangan/pemetaan-pmb/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengaturan keuangan mahasiswa: daftar
+   *
+   * Kunci yang dikenal: daftar_ulang_otomatis (bawaan 0): Tagihan daftar ulang PMB lunas = daftar ulang otomatis (NIM dari aturan NIM); kredit_daftar_ulang (bawaan 1): Pembayaran daftar ulang PMB diakui sebagai pembayaran tagihan semester pertama; tagihan_maba_otomatis (bawaan 1): Tagihan semester pertama dibuat otomatis setelah daftar ulang; potong_tagihan_pmb (bawaan 1): Potongan maba yang disetujui mengurangi tagihan daftar ulang PMB yang belum dibayar. Hanya pengelola modul.
+   *
+   * `GET /v1/keuangan/pengaturan`
+   *
+   * scope: `keuangan:read` · berhalaman
+   */
+  getPengaturan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.KeuanganPengaturan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengaturan', query }, options);
+  }
+
+  /**
+   * Pengaturan keuangan mahasiswa: tambah
+   *
+   * Hanya admin modul.
+   *
+   * `POST /v1/keuangan/pengaturan`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param body
+   */
+  postPengaturan(body: S.KeuanganPengaturanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengaturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/keuangan/pengaturan', body }, options);
+  }
+
+  /**
+   * Pengaturan keuangan mahasiswa: detail
+   *
+   * Kunci yang dikenal: daftar_ulang_otomatis (bawaan 0): Tagihan daftar ulang PMB lunas = daftar ulang otomatis (NIM dari aturan NIM); kredit_daftar_ulang (bawaan 1): Pembayaran daftar ulang PMB diakui sebagai pembayaran tagihan semester pertama; tagihan_maba_otomatis (bawaan 1): Tagihan semester pertama dibuat otomatis setelah daftar ulang; potong_tagihan_pmb (bawaan 1): Potongan maba yang disetujui mengurangi tagihan daftar ulang PMB yang belum dibayar. Hanya pengelola modul.
+   *
+   * `GET /v1/keuangan/pengaturan/{id}`
+   *
+   * scope: `keuangan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getPengaturanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.KeuanganPengaturan>> {
+    return this.client.request({ method: 'GET', path: '/v1/keuangan/pengaturan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengaturan keuangan mahasiswa: ubah
+   *
+   * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/keuangan/pengaturan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putPengaturanById(id: string | number, body: S.KeuanganPengaturanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.KeuanganPengaturan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/keuangan/pengaturan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Pengaturan keuangan mahasiswa: hapus
+   *
+   * Hanya admin modul.
+   *
+   * `DELETE /v1/keuangan/pengaturan/{id}`
+   *
+   * scope: `keuangan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deletePengaturanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/keuangan/pengaturan/{id}', query: { ...query, id } }, options);
   }
 }
 
@@ -25453,7 +27975,7 @@ export class LmsResource {
   }
 }
 
-/** LPPM: Umum, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File */
+/** LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File */
 export class LppmResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -25563,6 +28085,83 @@ export class LppmResource {
    */
   postImporLama(body: S.LppmImpor, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.LppmObjek>> {
     return this.client.request({ method: 'POST', path: '/v1/lppm/impor-lama', body }, options);
+  }
+
+  /**
+   * Susunan tim LP2M
+   *
+   * Peran tim (staf-lp2m, keuangan-lp2m, pimpinan-lp2m, admin-lp2m) beserta isi izinnya, pemegang aktif (penugasan RBAC), dan pengelola dari tabel lppm_pengelola (termasuk dekan/WD per fakultas). Untuk tim LP2M.
+   *
+   * `GET /v1/lppm/tim`
+   *
+   * scope: `lppm:read` · hanya token pengguna
+   */
+  getTim(query?: Query, options?: RequestOptions): Promise<ApiResult<S.LppmObjek>> {
+    return this.client.request({ method: 'GET', path: '/v1/lppm/tim', query }, options);
+  }
+
+  /**
+   * Beri peran tim LP2M
+   *
+   * Body: {"username": "K0123", "peran": "staf-lp2m|keuangan-lp2m|pimpinan-lp2m|admin-lp2m", "selesai": "2027-12-31", "nomor_sk": "...", "alasan": "..."}. Membuat penugasan RBAC global (sumber aplikasi): pemegang langsung bisa masuk lp2m.unipo.ac.id dan bekerja sebagai pengelola LPPM dengan peran setara, termasuk tendik. pimpinan-lp2m dan admin-lp2m hanya oleh admin LP2M.
+   *
+   * `POST /v1/lppm/tim`
+   *
+   * scope: `lppm:write` · hanya token pengguna
+   */
+  postTim(query?: Query, options?: RequestOptions): Promise<ApiResult<S.LppmObjek>> {
+    return this.client.request({ method: 'POST', path: '/v1/lppm/tim', query }, options);
+  }
+
+  /**
+   * Calon anggota tim
+   *
+   * Akun SIAKAD aktif (dosen, tendik, atau akun lain selain mahasiswa) untuk isian pilih pengguna. Pimpinan/admin LP2M.
+   *
+   * `GET /v1/lppm/tim/calon`
+   *
+   * scope: `lppm:read` · hanya token pengguna
+   */
+  getTimCalon(query?: {
+    /** Cari nama/username */
+    q?: string;
+    /** Username persis */
+    username?: string;
+    /** 1-50, bawaan 20 */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.LppmObjek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/lppm/tim/calon', query }, options);
+  }
+
+  /**
+   * Cabut peran tim LP2M
+   *
+   * `POST /v1/lppm/tim/{id}/cabut`
+   *
+   * scope: `lppm:write` · hanya token pengguna
+   *
+   * @param id ID penugasan
+   */
+  postTimByIdCabut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.LppmObjek>> {
+    return this.client.request({ method: 'POST', path: '/v1/lppm/tim/{id}/cabut', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan penelitian yang berlaku untuk saya
+   *
+   * Hasil periksa aturan dinamis kategori penelitian (/v1/aturan) di titik lppm.usulan.ajukan, lppm.laporan.ajukan, lppm.luaran.ajukan untuk dosen pemilik token (atau ?nidn= bagi pengelola), beserta rekam jejak yang dihitung (kegiatan berjalan, laporan tertunggak, luaran terverifikasi).
+   *
+   * `GET /v1/lppm/aturan`
+   *
+   * scope: `lppm:read` · hanya token pengguna
+   */
+  getAturan(query?: {
+    /** Satu titik saja */
+    titik?: string;
+    /** Dosen lain (pengelola) */
+    nidn?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.LppmObjek>> {
+    return this.client.request({ method: 'GET', path: '/v1/lppm/aturan', query }, options);
   }
 
   /**
@@ -27098,6 +29697,28 @@ export class LppmResource {
     per_page?: number;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.LppmObjek>>> {
     return this.client.request({ method: 'GET', path: '/v1/lppm/laporan', query }, options);
+  }
+
+  /**
+   * Daftar pencairan lintas kegiatan
+   *
+   * Tim LPPM (admin/operator/pimpinan/keuangan). Yang diajukan tampil lebih dulu.
+   *
+   * `GET /v1/lppm/pencairan`
+   *
+   * scope: `lppm:read` · berhalaman
+   */
+  getPencairan(query?: {
+    /** direncanakan | diajukan | dicairkan | dibatalkan */
+    status?: string;
+    /** Periode */
+    periode_id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.LppmObjek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/lppm/pencairan', query }, options);
   }
 
   /**
@@ -42338,7 +44959,7 @@ export class SarprasResource {
   }
 }
 
-/** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SISTER */
+/** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER */
 export class SdmResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -42858,6 +45479,168 @@ export class SdmResource {
   }
 
   /**
+   * Skala gaji pokok per golongan dan masa kerja: daftar
+   *
+   * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan.
+   *
+   * `GET /v1/sdm/master/gaji-pokok`
+   *
+   * scope: `sdm:read`
+   */
+  getMasterGajiPokok(query?: {
+    /** Cari */
+    q?: string;
+    /** 1 | 0 */
+    aktif?: string;
+    /** Saring jenis (unit/jabatan) */
+    jenis?: string;
+    /** Unit induk */
+    induk_id?: string;
+    /** Tahun (hari libur) */
+    tahun?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/master/gaji-pokok', query }, options);
+  }
+
+  /**
+   * Skala gaji pokok per golongan dan masa kerja: tambah
+   *
+   * `POST /v1/sdm/master/gaji-pokok`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postMasterGajiPokok(body: S.SdmMasterGajiPokokInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/master/gaji-pokok', body }, options);
+  }
+
+  /**
+   * Skala gaji pokok per golongan dan masa kerja: detail
+   *
+   * `GET /v1/sdm/master/gaji-pokok/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getMasterGajiPokokById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/master/gaji-pokok/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Skala gaji pokok per golongan dan masa kerja: ubah
+   *
+   * Kirim hanya kolom yang berubah.
+   *
+   * `PUT /v1/sdm/master/gaji-pokok/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  putMasterGajiPokokById(id: string | number, body: S.SdmMasterGajiPokokInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/master/gaji-pokok/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Skala gaji pokok per golongan dan masa kerja: hapus
+   *
+   * Ditolak bila masih dipakai; nonaktifkan saja.
+   *
+   * `DELETE /v1/sdm/master/gaji-pokok/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  deleteMasterGajiPokokById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/sdm/master/gaji-pokok/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan tunjangan otomatis (fungsional, profesi, per golongan): daftar
+   *
+   * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK.
+   *
+   * `GET /v1/sdm/master/tunjangan`
+   *
+   * scope: `sdm:read`
+   */
+  getMasterTunjangan(query?: {
+    /** Cari */
+    q?: string;
+    /** 1 | 0 */
+    aktif?: string;
+    /** Saring jenis (unit/jabatan) */
+    jenis?: string;
+    /** Unit induk */
+    induk_id?: string;
+    /** Tahun (hari libur) */
+    tahun?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/master/tunjangan', query }, options);
+  }
+
+  /**
+   * Aturan tunjangan otomatis (fungsional, profesi, per golongan): tambah
+   *
+   * `POST /v1/sdm/master/tunjangan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postMasterTunjangan(body: S.SdmMasterTunjanganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/master/tunjangan', body }, options);
+  }
+
+  /**
+   * Aturan tunjangan otomatis (fungsional, profesi, per golongan): detail
+   *
+   * `GET /v1/sdm/master/tunjangan/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getMasterTunjanganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/master/tunjangan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan tunjangan otomatis (fungsional, profesi, per golongan): ubah
+   *
+   * Kirim hanya kolom yang berubah.
+   *
+   * `PUT /v1/sdm/master/tunjangan/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  putMasterTunjanganById(id: string | number, body: S.SdmMasterTunjanganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/master/tunjangan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Aturan tunjangan otomatis (fungsional, profesi, per golongan): hapus
+   *
+   * Ditolak bila masih dipakai; nonaktifkan saja.
+   *
+   * `DELETE /v1/sdm/master/tunjangan/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  deleteMasterTunjanganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/sdm/master/tunjangan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
    * Hari libur: daftar
    *
    * Hari libur nasional dan cuti bersama (dipakai menghitung hari kerja cuti dan presensi).
@@ -43118,6 +45901,50 @@ export class SdmResource {
   }
 
   /**
+   * Hak penghasilan semua pegawai (untuk payroll)
+   *
+   * Gaji pokok dan tunjangan yang berlaku pada `tanggal` untuk pegawai yang masih bekerja, beserta tanggungan keluarga (PTKP), NPWP, dan peringatan (gaji pokok belum ada, riwayat tanpa file SK). SDM menetapkan hak; payroll keuangan (/v1/gaji) menghitung potongan, pajak, dan membayar. Admin SDM atau token aplikasi.
+   *
+   * `GET /v1/sdm/penghasilan`
+   *
+   * scope: `sdm:admin` · berhalaman
+   */
+  getPenghasilan(query?: {
+    /** YYYY-MM-DD (bawaan hari ini; untuk payroll pakai tanggal 1 bulan gaji) */
+    tanggal?: string;
+    /** Unit (beserta turunannya) */
+    unit_id?: string;
+    /** dosen | tendik */
+    jenis?: string;
+    /** Daftar ID dipisah koma */
+    pegawai_id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/penghasilan', query }, options);
+  }
+
+  /**
+   * Hak penghasilan pegawai
+   *
+   * Gaji pokok (riwayat gaji disetujui terakhir), tunjangan aktif, tanggungan keluarga, dan total pada `tanggal`. Hanya pegawai itu sendiri, atasan, dan petugas SDM.
+   *
+   * `GET /v1/sdm/pegawai/{id}/penghasilan`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getPegawaiByIdPenghasilan(id: string | number, query?: {
+    /** YYYY-MM-DD */
+    tanggal?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/penghasilan', query: { ...query, id } }, options);
+  }
+
+  /**
    * Ringkasan karier
    *
    * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
@@ -43150,6 +45977,24 @@ export class SdmResource {
     ke_id?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/cek-syarat', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan kepegawaian yang berlaku
+   *
+   * Hasil periksa aturan dinamis kategori kepegawaian (/v1/aturan) di titik sdm.cuti.ajukan, sdm.riwayat.ajukan, sdm.presensi.catat, sdm.kinerja.ajukan, dan sdm.usulan.ajukan untuk pegawai ini: boleh, pelanggaran, peringatan, batas, dan indikator. Indikator konteks (mis. lama cuti) tidak terisi, jadi aturan yang bergantung padanya dinilai saat pengajuan.
+   *
+   * `GET /v1/sdm/pegawai/{id}/aturan`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getPegawaiByIdAturan(id: string | number, query?: {
+    /** Satu titik saja (opsional) */
+    titik?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/aturan', query: { ...query, id } }, options);
   }
 
   /**
@@ -45569,6 +48414,185 @@ export class SdmResource {
   }
 
   /**
+   * Daftar pegawai (unduh)
+   *
+   * Satu baris per pegawai: identitas kepegawaian, unit, golongan, jabatan akademik, pendidikan, serdos, masa kerja, usia, perkiraan pensiun. Tanpa data pribadi. Bawaan hanya yang masih bekerja; status_aktif memilih satu status.
+   *
+   * `GET /v1/sdm/laporan/pegawai`
+   *
+   * scope: `sdm:read`
+   */
+  getLaporanPegawai(query?: {
+    /** dosen | tendik */
+    jenis?: string;
+    /** Status aktif */
+    status_aktif?: string;
+    /** Unit */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/laporan/pegawai', query }, options);
+  }
+
+  /**
+   * Rekap cuti tahunan
+   *
+   * Per pegawai: jumlah pengajuan, hari cuti disetujui per jenis, ditolak, dan sisa cuti tahunan.
+   *
+   * `GET /v1/sdm/laporan/cuti`
+   *
+   * scope: `sdm:read`
+   */
+  getLaporanCuti(query?: {
+    /** Tahun (bawaan tahun ini) */
+    tahun?: string;
+    /** Unit */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/laporan/cuti', query }, options);
+  }
+
+  /**
+   * Rekap usulan kenaikan
+   *
+   * Usulan yang dibuat dalam satu tahun: jenis, status, angka kredit, nomor dan tanggal SK.
+   *
+   * `GET /v1/sdm/laporan/usulan`
+   *
+   * scope: `sdm:read`
+   */
+  getLaporanUsulan(query?: {
+    /** Tahun (bawaan tahun ini) */
+    tahun?: string;
+    /** Jenis usulan */
+    jenis?: string;
+    /** Unit */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/laporan/usulan', query }, options);
+  }
+
+  /**
+   * Statistik kepegawaian
+   *
+   * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, honor per periode/kelompok/unit (bruto, pajak, netto, status bayar), dan antrean pekerjaan SDM. Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
+   *
+   * `GET /v1/sdm/statistik`
+   *
+   * scope: `sdm:read`
+   */
+  getStatistik(query?: {
+    /** Tahun (bawaan tahun ini) */
+    tahun?: string;
+    /** Unit */
+    unit_id?: string;
+    /** pegawai | tren | presensi | cuti | kinerja | usulan | honor | antrean */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/statistik', query }, options);
+  }
+
+  /**
+   * Daftar SOP dan kebijakan
+   *
+   * Dokumen mutu SPMI unit SDM (kebijakan, pedoman, SOP, instruksi kerja, formulir, SK) beserta file. Pegawai melihat yang disahkan; admin SDM juga draf. lingkup=semua: kebijakan yang disahkan semua unit (transparansi), bisa disaring unit_id (spmi_unit).
+   *
+   * `GET /v1/sdm/sop`
+   *
+   * scope: `sdm:read`
+   */
+  getSop(query?: {
+    /** sdm (bawaan) | semua */
+    lingkup?: string;
+    /** kebijakan | pedoman | sop | instruksi_kerja | formulir | sk | manual | standar | lainnya */
+    jenis?: string;
+    /** Status dokumen */
+    status?: string;
+    /** Unit SPMI (lingkup semua) */
+    unit_id?: string;
+    /** Cari judul/nomor */
+    q?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/sop', query }, options);
+  }
+
+  /**
+   * Tambah dokumen SDM
+   *
+   * Admin SDM. Isian dokumen mutu SPMI: jenis, nomor, judul, versi, ringkasan, status (draf|ditinjau|disahkan|kedaluwarsa|dicabut), tanggal_penetapan, berlaku_mulai, tinjau_berikutnya, ditetapkan_oleh, nomor_penetapan, tautan, publik, menggantikan_id. Unit selalu SDM; penulis dicatat sebagai pengelola SPMI unit SDM.
+   *
+   * `POST /v1/sdm/sop`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postSop(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/sop', body }, options);
+  }
+
+  /**
+   * Ubah dokumen SDM
+   *
+   * Kirim hanya kolom yang berubah. Untuk versi baru, buat dokumen baru dengan menggantikan_id.
+   *
+   * `PUT /v1/sdm/sop/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID dokumen
+   * @param body
+   */
+  putSopById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/sop/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Unggah file dokumen
+   *
+   * multipart field `berkas` atau JSON berkas_base64 + nama_file (PDF/Office/gambar).
+   *
+   * `POST /v1/sdm/sop/{id}/file`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID dokumen
+   */
+  postSopByIdFile(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/sop/{id}/file', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unduh file dokumen
+   *
+   * Dokumen disahkan bisa diunduh semua pegawai. inline=1 untuk ditampilkan.
+   *
+   * `GET /v1/sdm/sop/file/{uuid}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param uuid ID file
+   */
+  getSopFileByUuid(uuid: string | number, query?: {
+    /** 1 | 0 */
+    inline?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/sop/file/{uuid}', query: { ...query, uuid } }, options);
+  }
+
+  /**
+   * Hapus file dokumen
+   *
+   * `DELETE /v1/sdm/sop/file/{uuid}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param uuid ID file
+   */
+  deleteSopFileByUuid(uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/sdm/sop/file/{uuid}', query: { ...query, uuid } }, options);
+  }
+
+  /**
    * Status integrasi SISTER
    *
    * Pengaturan koneksi (tanpa kata sandi), jumlah pegawai terhubung, proses tarik terakhir, dan daftar jenis data.
@@ -46020,6 +49044,16 @@ export class SpmiResource {
   getPublikDokumen(query?: {
     /** Jenis dokumen (lihat /referensi jenis_dokumen) */
     jenis?: string;
+    /** Unit SPMI (kode atau id), mis. SOP dan kebijakan satu fakultas */
+    unit?: string;
+    /** Kode fakultas SIAKAD bila kode unit SPMI tidak diketahui (dipakai bila unit kosong) */
+    fakultas?: string;
+    /** Kode prodi SIAKAD bila kode unit SPMI tidak diketahui */
+    prodi?: string;
+    /** 1 = ikut unit turunan (prodi di bawah fakultas) */
+    turunan?: number;
+    /** Cari judul/nomor/ringkasan */
+    q?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/spmi/publik/dokumen', query, public: true }, options);
   }
@@ -46165,6 +49199,83 @@ export class SpmiResource {
    */
   postNotifikasiByIdBaca(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/spmi/notifikasi/{id}/baca', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Statistik SPMI
+   *
+   * Untuk grafik dan laporan: tren 6 periode (persen capaian tercapai/terisi, temuan, KTS, respons survei), sebaran temuan per kategori/status/sumber/unit/standar, rata-rata hari penutupan, tindak lanjut, pemenuhan capaian, matriks risiko 5x5, akreditasi (status, peringkat, lembaga, berakhir 12 bulan), dokumen mutu, AMI (status auditee, hasil tilik, skor), survei. Lingkup unit mengikuti hak lihat.
+   *
+   * `GET /v1/spmi/statistik`
+   *
+   * scope: `spmi:read`
+   */
+  getStatistik(query?: {
+    /** Periode (kosong = berjalan/terbaru) */
+    periode_id?: number;
+    /** Unit (beserta turunannya) */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/spmi/statistik', query }, options);
+  }
+
+  /**
+   * Aturan mutu yang berlaku untuk saya
+   *
+   * Hasil periksa aturan dinamis kategori mutu (/v1/aturan) di titik spmi.* untuk pemilik token tanpa menolak: pelanggaran, peringatan, batas waktu/nilai, dan aturan yang baru dinilai saat aksi (saat_aksi). Cakupan prodi/fakultas mengikuti unit_id.
+   *
+   * `GET /v1/spmi/aturan`
+   *
+   * scope: `spmi:read`
+   */
+  getAturan(query?: {
+    /** Satu titik spmi.* (kosong = semua) */
+    titik?: string;
+    /** Unit SPMI */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/spmi/aturan', query }, options);
+  }
+
+  /**
+   * Tim pengelola aplikasi SPMI
+   *
+   * Admin SPMI. Peran Staf LPM, Operator SPMI, dan Kepala LPM beserta izinnya, pemegang aktif (penugasan RBAC), dan personel peran admin. boleh_kelola = boleh memberi/mencabut (Kepala LPM atau ADMIN).
+   *
+   * `GET /v1/spmi/tim`
+   *
+   * scope: `spmi:read` · hanya token pengguna
+   */
+  getTim(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/spmi/tim', query }, options);
+  }
+
+  /**
+   * Tambah anggota tim pengelola
+   *
+   * Kepala LPM (izin spmi.pengelola) atau ADMIN. Body: username (akun SIAKAD aktif, dosen atau tendik), peran (staf-lpm | operator-spmi | kepala-lpm; kepala-lpm hanya oleh ADMIN), selesai, nomor_sk, alasan. Dicatat sebagai penugasan RBAC global sumber aplikasi.
+   *
+   * `POST /v1/spmi/tim`
+   *
+   * scope: `spmi:write` · hanya token pengguna
+   */
+  postTim(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/spmi/tim', query }, options);
+  }
+
+  /**
+   * Cabut anggota tim pengelola
+   *
+   * Kepala LPM atau ADMIN. Penugasan dinonaktifkan dengan tanggal selesai hari ini.
+   *
+   * `POST /v1/spmi/tim/{id}/cabut`
+   *
+   * scope: `spmi:write` · hanya token pengguna
+   *
+   * @param id ID penugasan RBAC
+   */
+  postTimByIdCabut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/spmi/tim/{id}/cabut', query: { ...query, id } }, options);
   }
 
   /**
@@ -49272,6 +52383,258 @@ export class SpmiResource {
    */
   deleteAkreditasiButirById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/spmi/akreditasi-butir/{id}', query: { ...query, id } }, options);
+  }
+}
+
+/** Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan */
+export class TaResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Ringkasan tugas akhir saya
+   *
+   * Mahasiswa: pengaturan prodi, pengajuan aktif (lengkap dengan berkas, validasi, riwayat, hak), riwayat pengajuan, `boleh_buat`, dan progres sampai wisuda. Dosen/pengelola: `menunggu_saya` dan `prodi_kelola`.
+   *
+   * `GET /v1/ta/saya`
+   *
+   * scope: `ta:read` · hanya token pengguna
+   */
+  getSaya(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/saya', query }, options);
+  }
+
+  /**
+   * Daftar pengajuan judul
+   *
+   * Mahasiswa: miliknya. Dosen/pengelola: `untuk=saya` (menunggu keputusan saya, bawaan), `pa` (mahasiswa PA saya), `kelola` (prodi yang saya kelola).
+   *
+   * `GET /v1/ta/pengajuan`
+   *
+   * scope: `ta:read` · berhalaman
+   */
+  getPengajuan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** saya | pa | kelola */
+    untuk?: string;
+    /** draf | diajukan | revisi | ditolak | disetujui | dibatalkan */
+    status?: string;
+    /** pa | prodi */
+    tahap?: string;
+    /** Kode prodi */
+    prodi?: string;
+    /** Tahun akademik */
+    tahun_id?: string;
+    /** Cari judul, NIM, nama */
+    q?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/pengajuan', query }, options);
+  }
+
+  /**
+   * Buat konsep pengajuan judul
+   *
+   * Mahasiswa. Body {judul, judul_inggris?, bidang?, jenis_penelitian?, latar_belakang?, rumusan?, metode?, usulan_pembimbing_1?, usulan_pembimbing_2? (NIDN)}. Satu pengajuan aktif per mahasiswa.
+   *
+   * `POST /v1/ta/pengajuan`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   */
+  postPengajuan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan', query }, options);
+  }
+
+  /**
+   * Detail pengajuan
+   *
+   * Untuk pemilik, dosen PA, calon/pembimbing, pengelola prodi. Termasuk berkas, langkah validasi, riwayat, pengaturan, dan `hak`.
+   *
+   * `GET /v1/ta/pengajuan/{id}`
+   *
+   * scope: `ta:read`
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  getPengajuanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/pengajuan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah pengajuan
+   *
+   * Mahasiswa, saat status draf atau revisi. Body sama dengan buat.
+   *
+   * `POST /v1/ta/pengajuan/{id}`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  postPengajuanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lampirkan berkas
+   *
+   * Body {berkas_id (UUID dari /v1/berkas milik Anda), jenis (kode berkas di pengaturan, mis. surat_pengajuan, proposal, transkrip; selain itu lainnya)}.
+   *
+   * `POST /v1/ta/pengajuan/{id}/berkas`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  postPengajuanByIdBerkas(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}/berkas', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus lampiran
+   *
+   * `POST /v1/ta/pengajuan/{id}/berkas/{bid}/hapus`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   * @param bid ID lampiran
+   */
+  postPengajuanByIdBerkasByBidHapus(id: string | number, bid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}/berkas/{bid}/hapus', query: { ...query, id, bid } }, options);
+  }
+
+  /**
+   * Lihat/unduh lampiran
+   *
+   * Untuk yang boleh melihat pengajuan.
+   *
+   * `GET /v1/ta/pengajuan/{id}/berkas/{bid}`
+   *
+   * scope: `ta:read`
+   *
+   * @param id ID atau UUID pengajuan
+   * @param bid ID lampiran
+   */
+  getPengajuanByIdBerkasByBid(id: string | number, bid: string | number, query?: {
+    /** 1 = attachment */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/pengajuan/{id}/berkas/{bid}', query: { ...query, id, bid } }, options);
+  }
+
+  /**
+   * Ajukan untuk divalidasi
+   *
+   * Memeriksa judul, berkas wajib, dan aturan dinamis titik `ta.ajukan`. Langkah validasi dibuat sesuai alur prodi (PA dilewati bila mahasiswa belum punya dosen PA).
+   *
+   * `POST /v1/ta/pengajuan/{id}/ajukan`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  postPengajuanByIdAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}/ajukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan pengajuan
+   *
+   * Mahasiswa. Body {alasan?}.
+   *
+   * `POST /v1/ta/pengajuan/{id}/batal`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  postPengajuanByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Putuskan langkah validasi
+   *
+   * Langkah `pa`: dosen PA mahasiswa (atau pengelola prodi). Langkah `prodi`: kaprodi/sekprodi/operator/BAK. Body {keputusan: setuju|revisi|tolak, catatan (wajib bila revisi/tolak), pembimbing_1, pembimbing_2?, judul? (judul final)}. Persetujuan terakhir menetapkan pembimbing (bawaan: usulan mahasiswa) dan menulis judul ke t_mahasiswa_ta (terima = Y).
+   *
+   * `POST /v1/ta/pengajuan/{id}/putuskan`
+   *
+   * scope: `ta:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID pengajuan
+   */
+  postPengajuanByIdPutuskan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengajuan/{id}/putuskan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Cari dosen untuk pembimbing
+   *
+   * NIDN, nama bergelar, prodi, jabatan akademik dosen aktif. Untuk pilihan usulan/penetapan pembimbing (mahasiswa tidak punya scope dosen:read).
+   *
+   * `GET /v1/ta/dosen`
+   *
+   * scope: `ta:read` · berhalaman
+   */
+  getDosen(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Cari NIDN atau nama */
+    q?: string;
+    /** Satu NIDN */
+    nidn?: string;
+    /** Kode prodi */
+    prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/dosen', query }, options);
+  }
+
+  /**
+   * Progres tugas akhir mahasiswa
+   *
+   * Judul, pembimbing, bimbingan, seminar proposal, ujian, yudisium, wisuda. Untuk mahasiswa itu, dosen PA-nya, dan pengelola prodi.
+   *
+   * `GET /v1/ta/mahasiswa/{nim}/progres`
+   *
+   * scope: `ta:read`
+   *
+   * @param nim NIM
+   */
+  getMahasiswaByNimProgres(nim: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/mahasiswa/{nim}/progres', query: { ...query, nim } }, options);
+  }
+
+  /**
+   * Pengaturan pengajuan judul
+   *
+   * Alur validasi, berkas wajib, usulan pembimbing, buka/tutup, petunjuk.
+   *
+   * `GET /v1/ta/pengaturan`
+   *
+   * scope: `ta:read`
+   */
+  getPengaturan(query?: {
+    /** Kode prodi (kosong = bawaan kampus) */
+    prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/ta/pengaturan', query }, options);
+  }
+
+  /**
+   * Simpan pengaturan
+   *
+   * Body {prodi (kosong = kampus, hanya admin), alur: ["pa","prodi"] | ["prodi"], berkas: [{kode, nama, wajib, keterangan?}], usulan_pembimbing, aktif, petunjuk?}. Pengelola tugas akhir prodi.
+   *
+   * `POST /v1/ta/pengaturan`
+   *
+   * scope: `ta:write`
+   */
+  postPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/ta/pengaturan', query }, options);
   }
 }
 

@@ -963,6 +963,52 @@ export type AdmisiFormatNimInput = {
   [key: string]: any;
 };
 
+/** Aturan NIM otomatis (tabel adm_aturan_nim) */
+export type AdmisiAturanNim = {
+  id?: number;
+  nama?: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_fakultas?: string;
+  kode_jenjang?: string;
+  jalur_masuk?: string;
+  /** m_tahun.tahun_id */
+  tahun_mulai?: string;
+  /** m_tahun.tahun_id */
+  tahun_selesai?: string;
+  pola?: string;
+  kode_khusus?: string;
+  mulai?: number;
+  urut_per?: "pola" | "prodi_periode";
+  prioritas?: number;
+  aktif?: boolean;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AdmisiAturanNimInput = {
+  nama: string;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_fakultas?: string;
+  kode_jenjang?: string;
+  jalur_masuk?: string;
+  /** m_tahun.tahun_id */
+  tahun_mulai?: string;
+  /** m_tahun.tahun_id */
+  tahun_selesai?: string;
+  pola: string;
+  kode_khusus?: string;
+  mulai?: number;
+  urut_per?: "pola" | "prodi_periode";
+  prioritas?: number;
+  aktif?: boolean;
+  keterangan?: string;
+  [key: string]: any;
+};
+
 /** Pengajuan status akademik (tabel akd_pengajuan) */
 export type AkademikPengajuan = {
   id?: number;
@@ -3208,6 +3254,324 @@ export type DokCocok = {
   dokumen?: DokVerifikasi;
   [key: string]: any;
 };
+
+/** Komponen gaji (tabel keu_gaji_komponen) */
+export type GajiKomponen = {
+  id?: number;
+  /** (unik) */
+  kode?: string;
+  nama?: string;
+  jenis?: "pendapatan" | "potongan" | "perusahaan";
+  kelompok?: "gaji_pokok" | "tunjangan_tetap" | "tunjangan_tidak_tetap" | "honor" | "lembur" | "thr_bonus" | "bpjs" | "iuran" | "pinjaman" | "potongan_lain" | "lainnya";
+  perhitungan?: "tetap" | "persen" | "sdm_gaji_pokok" | "sdm_tunjangan" | "sdm_honor" | "per_hadir" | "per_tidak_hadir" | "per_menit_terlambat" | "manual";
+  parameter?: string;
+  nilai?: number;
+  dasar?: "gaji_pokok" | "tetap" | "bruto";
+  batas_bawah?: number;
+  batas_atas?: number;
+  kena_pajak?: boolean;
+  pengurang_pajak?: boolean;
+  sasaran?: JsonObject;
+  jenis_periode?: JsonObject;
+  /** ID di keu_akun */
+  akun_id?: number;
+  urutan?: number;
+  aktif?: boolean;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiKomponenInput = {
+  /** (unik) */
+  kode: string;
+  nama: string;
+  jenis: "pendapatan" | "potongan" | "perusahaan";
+  kelompok?: "gaji_pokok" | "tunjangan_tetap" | "tunjangan_tidak_tetap" | "honor" | "lembur" | "thr_bonus" | "bpjs" | "iuran" | "pinjaman" | "potongan_lain" | "lainnya";
+  perhitungan: "tetap" | "persen" | "sdm_gaji_pokok" | "sdm_tunjangan" | "sdm_honor" | "per_hadir" | "per_tidak_hadir" | "per_menit_terlambat" | "manual";
+  parameter?: string;
+  nilai?: number;
+  dasar?: "gaji_pokok" | "tetap" | "bruto";
+  batas_bawah?: number;
+  batas_atas?: number;
+  kena_pajak?: boolean;
+  pengurang_pajak?: boolean;
+  sasaran?: JsonObject;
+  jenis_periode?: JsonObject;
+  /** ID di keu_akun */
+  akun_id?: number;
+  urutan?: number;
+  aktif?: boolean;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Profil gaji pegawai (tabel keu_gaji_profil) */
+export type GajiProfil = {
+  id?: number;
+  /** ID di sdm_pegawai (unik) */
+  pegawai_id?: number;
+  status_ptkp?: "TK/0" | "TK/1" | "TK/2" | "TK/3" | "K/0" | "K/1" | "K/2" | "K/3";
+  jenis_pajak?: "pegawai_tetap" | "pegawai_tidak_tetap" | "bukan_pegawai";
+  metode_pajak?: "gross" | "gross_up";
+  bank?: string;
+  kode_bank?: string;
+  no_rekening?: string;
+  atas_nama?: string;
+  ikut_bpjs_kes?: boolean;
+  ikut_bpjs_tk?: boolean;
+  /** ID di induk_unit */
+  unit_id?: number;
+  aktif?: boolean;
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiProfilInput = {
+  /** ID di sdm_pegawai (unik) */
+  pegawai_id: number;
+  status_ptkp?: "TK/0" | "TK/1" | "TK/2" | "TK/3" | "K/0" | "K/1" | "K/2" | "K/3";
+  jenis_pajak?: "pegawai_tetap" | "pegawai_tidak_tetap" | "bukan_pegawai";
+  metode_pajak?: "gross" | "gross_up";
+  bank?: string;
+  kode_bank?: string;
+  no_rekening?: string;
+  atas_nama?: string;
+  ikut_bpjs_kes?: boolean;
+  ikut_bpjs_tk?: boolean;
+  /** ID di induk_unit */
+  unit_id?: number;
+  aktif?: boolean;
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Tetapan komponen per pegawai (tabel keu_gaji_tetapan) */
+export type GajiTetapan = {
+  id?: number;
+  /** ID di sdm_pegawai */
+  pegawai_id?: number;
+  /** ID di keu_gaji_komponen */
+  komponen_id?: number;
+  nilai?: number;
+  mulai?: string;
+  selesai?: string;
+  jumlah_kali?: number;
+  /** (hanya baca) Hanya dibaca. */
+  terpakai?: number;
+  total?: number;
+  nomor_dokumen?: string;
+  aktif?: boolean;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiTetapanInput = {
+  /** ID di sdm_pegawai */
+  pegawai_id: number;
+  /** ID di keu_gaji_komponen */
+  komponen_id: number;
+  nilai: number;
+  mulai: string;
+  selesai?: string;
+  jumlah_kali?: number;
+  total?: number;
+  nomor_dokumen?: string;
+  aktif?: boolean;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Tarif efektif PPh 21 (TER) (tabel keu_gaji_ter) */
+export type GajiTer = {
+  id?: number;
+  kategori?: "A" | "B" | "C";
+  batas_bawah?: number;
+  batas_atas?: number;
+  tarif?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiTerInput = {
+  kategori: "A" | "B" | "C";
+  batas_bawah: number;
+  batas_atas?: number;
+  tarif: number;
+  [key: string]: any;
+};
+
+/** Penghasilan dan PPh sebelum payroll (tabel keu_gaji_pajak_awal) */
+export type GajiPajakAwal = {
+  id?: number;
+  tahun?: number;
+  /** ID di sdm_pegawai */
+  pegawai_id?: number;
+  jumlah_bulan?: number;
+  bruto?: number;
+  iuran?: number;
+  pph?: number;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiPajakAwalInput = {
+  tahun: number;
+  /** ID di sdm_pegawai */
+  pegawai_id: number;
+  jumlah_bulan?: number;
+  bruto?: number;
+  iuran?: number;
+  pph?: number;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Periode payroll (tabel keu_gaji_periode) */
+export type GajiPeriode = {
+  id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  kode?: string;
+  tahun?: number;
+  bulan?: number;
+  jenis?: "reguler" | "thr" | "gaji13" | "susulan";
+  judul?: string;
+  tanggal_bayar?: string;
+  sasaran?: JsonObject;
+  hari_kerja?: number;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "draf" | "dihitung" | "diajukan" | "disetujui" | "dibayar" | "ditutup" | "batal";
+  /** (hanya baca) Hanya dibaca. */
+  jumlah_pegawai?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pendapatan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  potongan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pph21?: number;
+  /** (hanya baca) Hanya dibaca. */
+  bpjs_pegawai?: number;
+  /** (hanya baca) Hanya dibaca. */
+  bpjs_perusahaan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  netto?: number;
+  /** (hanya baca) Hanya dibaca. */
+  beban?: number;
+  /** (hanya baca) Hanya dibaca. */
+  dihitung_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dihitung_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diajukan_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diajukan_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  disetujui_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  disetujui_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dibayar_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  dibayar_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  rekening_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  jurnal_beban_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  jurnal_bayar_id?: number;
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  alasan_batal?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiPeriodeInput = {
+  tahun: number;
+  bulan: number;
+  jenis?: "reguler" | "thr" | "gaji13" | "susulan";
+  judul?: string;
+  tanggal_bayar?: string;
+  sasaran?: JsonObject;
+  hari_kerja?: number;
+  catatan?: string;
+  [key: string]: any;
+};
+
+/** Slip gaji (tabel keu_gaji_slip) */
+export type GajiSlip = {
+  id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nomor?: string;
+  /** (hanya baca) Hanya dibaca. */
+  periode_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pegawai_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nama?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nip?: string;
+  /** (hanya baca) Hanya dibaca. */
+  jenis?: "dosen" | "tendik";
+  /** (hanya baca) Hanya dibaca. */
+  kategori?: string;
+  /** (hanya baca) Hanya dibaca. */
+  unit_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  unit?: string;
+  /** (hanya baca) Hanya dibaca. */
+  golongan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  jabatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status_ptkp?: string;
+  /** (hanya baca) Hanya dibaca. */
+  bank?: string;
+  /** (hanya baca) Hanya dibaca. */
+  no_rekening?: string;
+  /** (hanya baca) Hanya dibaca. */
+  hari_kerja?: number;
+  /** (hanya baca) Hanya dibaca. */
+  hari_hadir?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pendapatan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  potongan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  bruto_pajak?: number;
+  /** (hanya baca) Hanya dibaca. */
+  pph21?: number;
+  /** (hanya baca) Hanya dibaca. */
+  bpjs_pegawai?: number;
+  /** (hanya baca) Hanya dibaca. */
+  bpjs_perusahaan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  netto?: number;
+  /** (hanya baca) Hanya dibaca. */
+  beban?: number;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "normal" | "ditahan";
+  /** (hanya baca) Hanya dibaca. */
+  dibayar_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  peringatan?: JsonObject;
+  /** (hanya baca) Hanya dibaca. */
+  catatan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type GajiSlipInput = JsonObject;
 
 /** Kategori (tabel helpdesk_kategori) */
 export type HelpdeskKategori = {
@@ -6215,6 +6579,98 @@ export type KeuVaInput = {
   [key: string]: any;
 };
 
+/** Rekening kas/bank (tabel keu_rekening) */
+export type KeuRekening = {
+  id?: number;
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** ID di keu_akun */
+  akun_id?: number;
+  /** (unik) */
+  kode?: string;
+  nama?: string;
+  jenis?: "kas" | "kas_kecil" | "bank" | "virtual";
+  bank?: string;
+  nomor_rekening?: string;
+  atas_nama?: string;
+  saldo_awal?: number;
+  tanggal_saldo_awal?: string;
+  utama?: boolean;
+  aktif?: boolean;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuRekeningInput = {
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** ID di keu_akun */
+  akun_id: number;
+  /** (unik) */
+  kode: string;
+  nama: string;
+  jenis?: "kas" | "kas_kecil" | "bank" | "virtual";
+  bank?: string;
+  nomor_rekening?: string;
+  atas_nama?: string;
+  saldo_awal?: number;
+  tanggal_saldo_awal?: string;
+  utama?: boolean;
+  aktif?: boolean;
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Pos laporan akun (tabel keu_akun_pos) */
+export type KeuAkunPos = {
+  id?: number;
+  /** ID di keu_akun (unik) */
+  akun_id?: number;
+  pos?: "kas" | "piutang" | "aset_lancar_lain" | "aset_tetap" | "akumulasi_penyusutan" | "aset_lain" | "kewajiban_pendek" | "kewajiban_panjang" | "aset_neto_tanpa_pembatasan" | "aset_neto_dengan_pembatasan" | "pendapatan" | "beban" | "penghasilan_lain" | "beban_lain";
+  arus_kas?: "operasi" | "investasi" | "pendanaan" | "bukan_kas";
+  dengan_pembatasan?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuAkunPosInput = {
+  /** ID di keu_akun (unik) */
+  akun_id: number;
+  pos: "kas" | "piutang" | "aset_lancar_lain" | "aset_tetap" | "akumulasi_penyusutan" | "aset_lain" | "kewajiban_pendek" | "kewajiban_panjang" | "aset_neto_tanpa_pembatasan" | "aset_neto_dengan_pembatasan" | "pendapatan" | "beban" | "penghasilan_lain" | "beban_lain";
+  arus_kas?: "operasi" | "investasi" | "pendanaan" | "bukan_kas";
+  dengan_pembatasan?: boolean;
+  [key: string]: any;
+};
+
+/** Pemetaan jurnal otomatis (tabel keu_pemetaan) */
+export type KeuPemetaan = {
+  id?: number;
+  jenis?: "biaya_mahasiswa" | "penerimaan" | "belanja" | "saldo_awal" | "gaji";
+  kunci?: string;
+  /** ID di keu_akun */
+  akun_id?: number;
+  /** ID di keu_rekening */
+  rekening_id?: number;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuPemetaanInput = {
+  jenis: "biaya_mahasiswa" | "penerimaan" | "belanja" | "saldo_awal" | "gaji";
+  kunci?: string;
+  /** ID di keu_akun */
+  akun_id?: number;
+  /** ID di keu_rekening */
+  rekening_id?: number;
+  keterangan?: string;
+  [key: string]: any;
+};
+
 /** Periode pembayaran (tabel keu_mhs_periode) */
 export type KeuanganPeriode = {
   id?: number;
@@ -6690,6 +7146,210 @@ export type KeuanganKasir = {
 };
 
 export type KeuanganKasirInput = JsonObject;
+
+/** Skema potongan, keringanan, dan beasiswa (tabel keu_mhs_skema_potongan) */
+export type KeuanganSkemaPotongan = {
+  id?: number;
+  /** (unik) */
+  kode?: string;
+  nama?: string;
+  kategori?: "potongan" | "keringanan" | "beasiswa" | "prestasi" | "keluarga" | "kerjasama" | "lainnya";
+  dasar?: "persen" | "nominal";
+  nilai?: number;
+  maks_nominal?: number;
+  kode_biaya?: JsonObject;
+  sasaran?: "maba" | "mahasiswa" | "semua";
+  kode_prodi?: JsonObject;
+  /** m_tahun.tahun_id */
+  angkatan_min?: string;
+  /** m_tahun.tahun_id */
+  angkatan_maks?: string;
+  lama_semester?: number;
+  syarat?: JsonObject;
+  wajib_sk?: boolean;
+  perlu_verifikasi?: boolean;
+  kuota?: number;
+  daftar_mulai?: string;
+  daftar_selesai?: string;
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** ID di kmhs_beasiswa */
+  beasiswa_id?: number;
+  gabung?: boolean;
+  status?: "draf" | "buka" | "tutup";
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganSkemaPotonganInput = {
+  /** (unik) */
+  kode: string;
+  nama: string;
+  kategori?: "potongan" | "keringanan" | "beasiswa" | "prestasi" | "keluarga" | "kerjasama" | "lainnya";
+  dasar?: "persen" | "nominal";
+  nilai: number;
+  maks_nominal?: number;
+  kode_biaya?: JsonObject;
+  sasaran?: "maba" | "mahasiswa" | "semua";
+  kode_prodi?: JsonObject;
+  /** m_tahun.tahun_id */
+  angkatan_min?: string;
+  /** m_tahun.tahun_id */
+  angkatan_maks?: string;
+  lama_semester?: number;
+  syarat?: JsonObject;
+  wajib_sk?: boolean;
+  perlu_verifikasi?: boolean;
+  kuota?: number;
+  daftar_mulai?: string;
+  daftar_selesai?: string;
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** ID di kmhs_beasiswa */
+  beasiswa_id?: number;
+  gabung?: boolean;
+  status?: "draf" | "buka" | "tutup";
+  keterangan?: string;
+  [key: string]: any;
+};
+
+/** Pengajuan potongan/keringanan (tabel keu_mhs_pengajuan_potongan) */
+export type KeuanganPengajuanPotongan = {
+  id?: number;
+  /** ID di keu_mhs_skema_potongan */
+  skema_id?: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nomor?: string;
+  /** (hanya baca) Hanya dibaca. */
+  pmb_pendaftaran_id?: number;
+  /** (hanya baca) Hanya dibaca. */
+  no_pmb?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nama?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  /** (hanya baca) Hanya dibaca. */
+  pengaju?: string;
+  /** (hanya baca) Hanya dibaca. */
+  sumber?: "pengajuan" | "beasiswa" | "petugas" | "pmb";
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "draf" | "diajukan" | "diverifikasi" | "disetujui" | "ditolak" | "dicabut" | "selesai";
+  /** (hanya pengelola) */
+  nomor_sk?: string;
+  /** (hanya pengelola) */
+  tanggal_sk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diverifikasi_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diverifikasi_at?: string;
+  /** (hanya baca) Hanya dibaca. */
+  disetujui_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  disetujui_at?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  total_potongan?: number;
+  /** (hanya baca) Hanya dibaca. */
+  semester_terpakai?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganInput = {
+  /** ID di keu_mhs_skema_potongan */
+  skema_id: number;
+  /** m_mahasiswa.NIM */
+  nim?: string;
+  /** m_tahun.tahun_id */
+  tahun_id?: string;
+  alasan?: string;
+  /** (hanya pengelola) */
+  nomor_sk?: string;
+  /** (hanya pengelola) */
+  tanggal_sk?: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganKembalikanInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganVerifikasiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganSetujuiInput = {
+  nomor_sk?: string;
+  tanggal_sk?: string;
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type KeuanganPengajuanPotonganCabutInput = {
+  catatan: string;
+  kembalikan?: boolean;
+  [key: string]: any;
+};
+
+/** Pemetaan biaya PMB ke jenis biaya (tabel keu_mhs_pemetaan_pmb) */
+export type KeuanganPemetaanPmb = {
+  id?: number;
+  jenis?: "daftar_ulang" | "ukt" | "spp" | "pengembangan" | "almamater" | "lainnya";
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_biaya?: string;
+  aktif?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganPemetaanPmbInput = {
+  jenis: "daftar_ulang" | "ukt" | "spp" | "pengembangan" | "almamater" | "lainnya";
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  kode_biaya: string;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Pengaturan keuangan mahasiswa (tabel keu_mhs_pengaturan) */
+export type KeuanganPengaturan = {
+  id?: number;
+  /** (unik) */
+  kunci?: string;
+  nilai?: string;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type KeuanganPengaturanInput = {
+  /** (unik) */
+  kunci: string;
+  nilai?: string;
+  keterangan?: string;
+  [key: string]: any;
+};
 
 export type Kurikulum = {
   id?: number | null;
@@ -11753,7 +12413,7 @@ export type RbacHakAkses = {
   peran?: Array<{
     kode?: string;
     nama?: string;
-    sumber?: "level" | "penugasan" | "jabatan";
+    sumber?: "level" | "penugasan" | "jabatan" | "pegawai";
     unit?: {
       id?: number;
       kode?: string;
@@ -13414,6 +14074,35 @@ export type SdmMasterJenisCutiInput = {
   status_presensi?: "cuti" | "izin" | "sakit" | "dinas";
   aktif?: boolean;
   urut?: number | null;
+  [key: string]: any;
+};
+
+/** Skala gaji pokok per golongan dan masa kerja. Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SdmMasterGajiPokokInput = {
+  /** ID sdm_ref_golongan */
+  golongan_id: number | null;
+  masa_kerja_tahun: number | null;
+  gaji_pokok: number | null;
+  berlaku_mulai: string | null;
+  dasar?: string | null;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+/** Aturan tunjangan otomatis (fungsional, profesi, per golongan). Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SdmMasterTunjanganInput = {
+  kode: string | null;
+  nama: string | null;
+  jenis: "profesi" | "fungsional" | "kehormatan" | "khusus" | "lainnya";
+  dasar: "jabatan_akademik" | "serdos" | "golongan";
+  dasar_id?: number | null;
+  untuk?: "semua" | "dosen" | "tendik";
+  nominal?: number | null;
+  persen_gaji_pokok?: number | null;
+  berlaku_mulai?: string | null;
+  sumber_dana?: string | null;
+  dasar_hukum?: string | null;
+  aktif?: boolean;
   [key: string]: any;
 };
 

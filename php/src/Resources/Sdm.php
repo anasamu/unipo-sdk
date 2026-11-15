@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SISTER
+ * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER
  */
 final class Sdm extends Resource
 {
@@ -617,6 +617,194 @@ final class Sdm extends Resource
     }
 
     /**
+     * Skala gaji pokok per golongan dan masa kerja: daftar
+     *
+     * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan.
+     *
+     * `GET /v1/sdm/master/gaji-pokok`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{q?: string, aktif?: string, jenis?: string, induk_id?: string, tahun?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMasterGajiPokok(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/master/gaji-pokok', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Skala gaji pokok per golongan dan masa kerja: tambah
+     *
+     * `POST /v1/sdm/master/gaji-pokok`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{golongan_id: int|null, masa_kerja_tahun: int|null, gaji_pokok: float|int|null, berlaku_mulai: string|null, dasar?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postMasterGajiPokok(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/master/gaji-pokok', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Skala gaji pokok per golongan dan masa kerja: detail
+     *
+     * `GET /v1/sdm/master/gaji-pokok/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMasterGajiPokokById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/master/gaji-pokok/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Skala gaji pokok per golongan dan masa kerja: ubah
+     *
+     * Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/sdm/master/gaji-pokok/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array{golongan_id: int|null, masa_kerja_tahun: int|null, gaji_pokok: float|int|null, berlaku_mulai: string|null, dasar?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putMasterGajiPokokById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/master/gaji-pokok/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Skala gaji pokok per golongan dan masa kerja: hapus
+     *
+     * Ditolak bila masih dipakai; nonaktifkan saja.
+     *
+     * `DELETE /v1/sdm/master/gaji-pokok/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteMasterGajiPokokById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/master/gaji-pokok/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan tunjangan otomatis (fungsional, profesi, per golongan): daftar
+     *
+     * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK.
+     *
+     * `GET /v1/sdm/master/tunjangan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{q?: string, aktif?: string, jenis?: string, induk_id?: string, tahun?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMasterTunjangan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/master/tunjangan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan tunjangan otomatis (fungsional, profesi, per golongan): tambah
+     *
+     * `POST /v1/sdm/master/tunjangan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array{kode: string|null, nama: string|null, jenis: string, dasar: string, dasar_id?: int|null, untuk?: string, nominal?: float|int|null, persen_gaji_pokok?: float|int|null, berlaku_mulai?: string|null, sumber_dana?: string|null, dasar_hukum?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postMasterTunjangan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/master/tunjangan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan tunjangan otomatis (fungsional, profesi, per golongan): detail
+     *
+     * `GET /v1/sdm/master/tunjangan/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMasterTunjanganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/master/tunjangan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan tunjangan otomatis (fungsional, profesi, per golongan): ubah
+     *
+     * Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/sdm/master/tunjangan/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array{kode: string|null, nama: string|null, jenis: string, dasar: string, dasar_id?: int|null, untuk?: string, nominal?: float|int|null, persen_gaji_pokok?: float|int|null, berlaku_mulai?: string|null, sumber_dana?: string|null, dasar_hukum?: string|null, aktif?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putMasterTunjanganById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/master/tunjangan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan tunjangan otomatis (fungsional, profesi, per golongan): hapus
+     *
+     * Ditolak bila masih dipakai; nonaktifkan saja.
+     *
+     * `DELETE /v1/sdm/master/tunjangan/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteMasterTunjanganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/master/tunjangan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Hari libur: daftar
      *
      * Hari libur nasional dan cuti bersama (dipakai menghitung hari kerja cuti dan presensi).
@@ -900,6 +1088,45 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hak penghasilan semua pegawai (untuk payroll)
+     *
+     * Gaji pokok dan tunjangan yang berlaku pada `tanggal` untuk pegawai yang masih bekerja, beserta tanggungan keluarga (PTKP), NPWP, dan peringatan (gaji pokok belum ada, riwayat tanpa file SK). SDM menetapkan hak; payroll keuangan (/v1/gaji) menghitung potongan, pajak, dan membayar. Admin SDM atau token aplikasi.
+     *
+     * `GET /v1/sdm/penghasilan`
+     *
+     * scope: `sdm:admin` · berhalaman
+     *
+     * @param array{tanggal?: string, unit_id?: string, jenis?: string, pegawai_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenghasilan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/penghasilan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hak penghasilan pegawai
+     *
+     * Gaji pokok (riwayat gaji disetujui terakhir), tunjangan aktif, tanggungan keluarga, dan total pada `tanggal`. Hanya pegawai itu sendiri, atasan, dan petugas SDM.
+     *
+     * `GET /v1/sdm/pegawai/{id}/penghasilan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdPenghasilan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/penghasilan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ringkasan karier
      *
      * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
@@ -937,6 +1164,26 @@ final class Sdm extends Resource
     public function getPegawaiByIdCekSyarat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/pegawai/{id}/cek-syarat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan kepegawaian yang berlaku
+     *
+     * Hasil periksa aturan dinamis kategori kepegawaian (/v1/aturan) di titik sdm.cuti.ajukan, sdm.riwayat.ajukan, sdm.presensi.catat, sdm.kinerja.ajukan, dan sdm.usulan.ajukan untuk pegawai ini: boleh, pelanggaran, peringatan, batas, dan indikator. Indikator konteks (mis. lama cuti) tidak terisi, jadi aturan yang bergantung padanya dinilai saat pengajuan.
+     *
+     * `GET /v1/sdm/pegawai/{id}/aturan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{titik?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdAturan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/aturan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -3863,6 +4110,198 @@ final class Sdm extends Resource
     public function getLaporanDosenProdi(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/laporan/dosen-prodi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar pegawai (unduh)
+     *
+     * Satu baris per pegawai: identitas kepegawaian, unit, golongan, jabatan akademik, pendidikan, serdos, masa kerja, usia, perkiraan pensiun. Tanpa data pribadi. Bawaan hanya yang masih bekerja; status_aktif memilih satu status.
+     *
+     * `GET /v1/sdm/laporan/pegawai`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{jenis?: string, status_aktif?: string, unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanPegawai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/laporan/pegawai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekap cuti tahunan
+     *
+     * Per pegawai: jumlah pengajuan, hari cuti disetujui per jenis, ditolak, dan sisa cuti tahunan.
+     *
+     * `GET /v1/sdm/laporan/cuti`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{tahun?: string, unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanCuti(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/laporan/cuti', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekap usulan kenaikan
+     *
+     * Usulan yang dibuat dalam satu tahun: jenis, status, angka kredit, nomor dan tanggal SK.
+     *
+     * `GET /v1/sdm/laporan/usulan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{tahun?: string, jenis?: string, unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanUsulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/laporan/usulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Statistik kepegawaian
+     *
+     * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, honor per periode/kelompok/unit (bruto, pajak, netto, status bayar), dan antrean pekerjaan SDM. Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
+     *
+     * `GET /v1/sdm/statistik`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{tahun?: string, unit_id?: string, bagian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getStatistik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/statistik', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar SOP dan kebijakan
+     *
+     * Dokumen mutu SPMI unit SDM (kebijakan, pedoman, SOP, instruksi kerja, formulir, SK) beserta file. Pegawai melihat yang disahkan; admin SDM juga draf. lingkup=semua: kebijakan yang disahkan semua unit (transparansi), bisa disaring unit_id (spmi_unit).
+     *
+     * `GET /v1/sdm/sop`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{lingkup?: string, jenis?: string, status?: string, unit_id?: string, q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSop(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sop', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah dokumen SDM
+     *
+     * Admin SDM. Isian dokumen mutu SPMI: jenis, nomor, judul, versi, ringkasan, status (draf|ditinjau|disahkan|kedaluwarsa|dicabut), tanggal_penetapan, berlaku_mulai, tinjau_berikutnya, ditetapkan_oleh, nomor_penetapan, tautan, publik, menggantikan_id. Unit selalu SDM; penulis dicatat sebagai pengelola SPMI unit SDM.
+     *
+     * `POST /v1/sdm/sop`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSop(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sop', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah dokumen SDM
+     *
+     * Kirim hanya kolom yang berubah. Untuk versi baru, buat dokumen baru dengan menggantikan_id.
+     *
+     * `PUT /v1/sdm/sop/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID dokumen
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putSopById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/sop/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Unggah file dokumen
+     *
+     * multipart field `berkas` atau JSON berkas_base64 + nama_file (PDF/Office/gambar).
+     *
+     * `POST /v1/sdm/sop/{id}/file`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID dokumen
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSopByIdFile(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sop/{id}/file', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh file dokumen
+     *
+     * Dokumen disahkan bisa diunduh semua pegawai. inline=1 untuk ditampilkan.
+     *
+     * `GET /v1/sdm/sop/file/{uuid}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $uuid ID file
+     * @param array{inline?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSopFileByUuid(int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/sop/file/{uuid}', ['uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus file dokumen
+     *
+     * `DELETE /v1/sdm/sop/file/{uuid}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $uuid ID file
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteSopFileByUuid(int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/sop/file/{uuid}', ['uuid' => $uuid], $query, null, $options, false, false);
     }
 
     /**

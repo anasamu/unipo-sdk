@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan
+ * Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Buku besar, Keuangan: Kas, Keuangan: Laporan keuangan, Keuangan: Statistik, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan
  */
 final class Keu extends Resource
 {
@@ -87,6 +87,372 @@ final class Keu extends Resource
     public function postVaNotifikasi(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keu/va/notifikasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar jurnal
+     *
+     * Jurnal umum (manual dan otomatis). Pengelola; pengelola unit hanya jurnal unitnya.
+     *
+     * `GET /v1/keu/jurnal`
+     *
+     * scope: `keu:read` · berhalaman
+     *
+     * @param array{status?: string, sumber?: string, jenis?: string, dari?: string, sampai?: string, akun_id?: int, rekening_id?: int, unit_id?: int, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJurnal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/jurnal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat jurnal
+     *
+     * Body: tanggal, uraian, nomor_bukti?, jenis? (umum|penyesuaian|kas_masuk|kas_keluar|transfer), unit_id?, posting? (true = langsung diposting, hanya admin), baris: [{akun_id, debit, kredit, unit_id?, rekening_id?, keterangan?, kode_prodi?}]. Debit = kredit, minimal dua baris, akun rincian (bukan induk), periode tidak tutup.
+     *
+     * `POST /v1/keu/jurnal`
+     *
+     * scope: `keu:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sinkron jurnal otomatis
+     *
+     * Admin. Body: dari?, sampai?. Menjurnal saldo awal rekening, pembayaran mahasiswa (t_mahasiswa_bayar per hari/prodi/jenis biaya), pengajuan dana dibayar + selisih SPJ, dan penerimaan lain. Idempoten: nilai sumber yang berubah membuat jurnal pembalik + jurnal baru. Cron: php artisan keu:jurnal.
+     *
+     * `POST /v1/keu/jurnal/sinkron`
+     *
+     * scope: `keu:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnalSinkron(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal/sinkron', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail jurnal
+     *
+     * Beserta baris, jurnal pembalik, dan jurnal yang dibaliknya.
+     *
+     * `GET /v1/keu/jurnal/{id}`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID jurnal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJurnalById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/jurnal/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah jurnal draf
+     *
+     * Body sama dengan buat (sebagian). Hanya jurnal draf.
+     *
+     * `POST /v1/keu/jurnal/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID jurnal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnalById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Posting jurnal
+     *
+     * Admin. Jurnal draf menjadi diposting (masuk laporan).
+     *
+     * `POST /v1/keu/jurnal/{id}/posting`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID jurnal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnalByIdPosting(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal/{id}/posting', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan jurnal
+     *
+     * Admin. Body: alasan, tanggal?. Draf ditandai dibatalkan; jurnal diposting dibalik dengan jurnal pembalik (jejak audit tetap utuh).
+     *
+     * `POST /v1/keu/jurnal/{id}/batalkan`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID jurnal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnalByIdBatalkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal/{id}/batalkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus jurnal draf
+     *
+     * Hanya draf/dibatalkan.
+     *
+     * `POST /v1/keu/jurnal/{id}/hapus`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID jurnal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJurnalByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/jurnal/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Catat kas masuk/keluar/transfer
+     *
+     * Satu langkah, langsung diposting. Body: jenis (masuk|keluar|transfer), rekening_id, rekening_tujuan_id (transfer), akun_id (lawan: pendapatan/beban), jumlah, tanggal?, uraian, nomor_bukti?, unit_id?, kode_prodi?. Pengelola unit hanya rekening unitnya.
+     *
+     * `POST /v1/keu/kas/transaksi`
+     *
+     * scope: `keu:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKasTransaksi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/kas/transaksi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Saldo kas per unit
+     *
+     * Saldo setiap rekening dan setiap unit (fakultas ikut menjumlah prodi dan unit di bawahnya) per tanggal, plus kas masuk/keluar sejak `dari` (bawaan awal bulan).
+     *
+     * `GET /v1/keu/kas-unit`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{tanggal?: string, dari?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKasUnit(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/kas-unit', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pasang bagan akun standar
+     *
+     * Admin. Menambah bagan akun standar PTS (ISAK 35), pos laporan, pemetaan jurnal otomatis (jenis biaya lama dikenali dari namanya: UKT, gedung, ujian, semester pendek, konversi, wisuda, dll.), dan rekening utama universitas. Hanya menambah yang belum ada.
+     *
+     * `POST /v1/keu/bagan-standar`
+     *
+     * scope: `keu:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBaganStandar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/bagan-standar', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Neraca saldo
+     *
+     * Saldo awal, mutasi debit/kredit, dan saldo akhir per akun.
+     *
+     * `GET /v1/keu/laporan/neraca-saldo`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{dari?: string, sampai?: string, unit_id?: int, turunan?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanNeracaSaldo(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/neraca-saldo', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan posisi keuangan
+     *
+     * Aset lancar/tidak lancar, liabilitas, dan aset neto (tanpa/dengan pembatasan) per tanggal, opsional pembanding.
+     *
+     * `GET /v1/keu/laporan/posisi-keuangan`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{tanggal?: string, pembanding?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanPosisiKeuangan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/posisi-keuangan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan aktivitas (penghasilan komprehensif)
+     *
+     * Pendapatan, beban, surplus/defisit tanpa pembatasan, pendapatan dengan pembatasan. pembanding=1 menghitung periode sebelumnya yang sama panjang.
+     *
+     * `GET /v1/keu/laporan/aktivitas`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{dari?: string, sampai?: string, pembanding?: int, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanAktivitas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/aktivitas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan arus kas
+     *
+     * Metode langsung: operasi, investasi, pendanaan, transfer antar rekening; saldo awal dan akhir kas.
+     *
+     * `GET /v1/keu/laporan/arus-kas`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{dari?: string, sampai?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanArusKas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/arus-kas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan perubahan aset neto
+     *
+     * Saldo awal, surplus/penambahan, saldo akhir aset neto tanpa dan dengan pembatasan.
+     *
+     * `GET /v1/keu/laporan/perubahan-aset-neto`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{dari?: string, sampai?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanPerubahanAsetNeto(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/perubahan-aset-neto', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buku besar akun/rekening
+     *
+     * Saldo awal, setiap baris jurnal dengan saldo berjalan, saldo akhir (maks 2000 baris).
+     *
+     * `GET /v1/keu/laporan/buku-besar`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{akun_id?: int, rekening_id?: int, dari?: string, sampai?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanBukuBesar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/laporan/buku-besar', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Statistik keuangan
+     *
+     * Penerimaan mahasiswa per bulan (dibanding tahun lalu), per jenis biaya, fakultas, prodi, metode; piutang semester per prodi; belanja per unit; penerimaan lain per sumber; status pengajuan dana; pendapatan/beban/saldo kas per bulan dari buku besar; saldo kas per unit.
+     *
+     * `GET /v1/keu/statistik`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{tahun?: int, tahun_id?: string, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getStatistik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/statistik', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Transparansi biaya mahasiswa
+     *
+     * Per fakultas, prodi, dan jenis biaya (UKT, gedung, ujian, konversi, semester pendek, wisuda, ...): tarif (m_biaya), ditagihkan, dibayar, potongan, tunggakan, persen terbayar dalam satu semester. Pengelola unit hanya prodi unitnya.
+     *
+     * `GET /v1/keu/transparansi`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{tahun_id?: string, kode_fakultas?: string, kode_prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTransparansi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/transparansi', [], $query, null, $options, false, false);
     }
 
     /**
@@ -1233,5 +1599,299 @@ final class Keu extends Resource
     public function postVaByIdTandaiDibukukan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keu/va/{id}/tandai-dibukukan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekening kas/bank: daftar
+     *
+     * Rekening kas, kas kecil, bank, atau virtual per unit (kosongkan unit_id untuk rekening universitas). `akun_id` = akun aset kas/bank di bagan akun. Satu rekening `utama` per unit dipakai jurnal otomatis; unit tanpa rekening utama memakai rekening utama unit induknya, lalu rekening utama universitas. Saldo awal dijurnal otomatis saat sinkron. Saldo terkini di GET /keu/kas-unit. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/rekening`
+     *
+     * scope: `keu:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, unit_id?: string, akun_id?: string, jenis?: string, utama?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRekening(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/rekening', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekening kas/bank: tambah
+     *
+     * Hanya admin modul.
+     *
+     * `POST /v1/keu/rekening`
+     *
+     * scope: `keu:write`
+     *
+     * @param array{unit_id?: int, akun_id: int, kode: string, nama: string, jenis?: string, bank?: string, nomor_rekening?: string, atas_nama?: string, saldo_awal?: float|int, tanggal_saldo_awal?: string, utama?: bool, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRekening(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/rekening', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rekening kas/bank: detail
+     *
+     * Rekening kas, kas kecil, bank, atau virtual per unit (kosongkan unit_id untuk rekening universitas). `akun_id` = akun aset kas/bank di bagan akun. Satu rekening `utama` per unit dipakai jurnal otomatis; unit tanpa rekening utama memakai rekening utama unit induknya, lalu rekening utama universitas. Saldo awal dijurnal otomatis saat sinkron. Saldo terkini di GET /keu/kas-unit. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/rekening/{id}`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRekeningById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/rekening/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekening kas/bank: ubah
+     *
+     * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/keu/rekening/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{unit_id?: int, akun_id: int, kode: string, nama: string, jenis?: string, bank?: string, nomor_rekening?: string, atas_nama?: string, saldo_awal?: float|int, tanggal_saldo_awal?: string, utama?: bool, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putRekeningById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/keu/rekening/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rekening kas/bank: hapus
+     *
+     * Hanya admin modul.
+     *
+     * `DELETE /v1/keu/rekening/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteRekeningById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/keu/rekening/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pos laporan akun: daftar
+     *
+     * Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/akun-pos`
+     *
+     * scope: `keu:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, akun_id?: string, pos?: string, arus_kas?: string, dengan_pembatasan?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkunPos(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/akun-pos', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pos laporan akun: tambah
+     *
+     * Hanya admin modul.
+     *
+     * `POST /v1/keu/akun-pos`
+     *
+     * scope: `keu:write`
+     *
+     * @param array{akun_id: int, pos: string, arus_kas?: string, dengan_pembatasan?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkunPos(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/akun-pos', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pos laporan akun: detail
+     *
+     * Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/akun-pos/{id}`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkunPosById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/akun-pos/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pos laporan akun: ubah
+     *
+     * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/keu/akun-pos/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{akun_id: int, pos: string, arus_kas?: string, dengan_pembatasan?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkunPosById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/keu/akun-pos/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pos laporan akun: hapus
+     *
+     * Hanya admin modul.
+     *
+     * `DELETE /v1/keu/akun-pos/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAkunPosById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/keu/akun-pos/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: daftar
+     *
+     * Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/pemetaan`
+     *
+     * scope: `keu:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, jenis?: string, akun_id?: string, rekening_id?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemetaan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/pemetaan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: tambah
+     *
+     * Hanya admin modul.
+     *
+     * `POST /v1/keu/pemetaan`
+     *
+     * scope: `keu:write`
+     *
+     * @param array{jenis: string, kunci?: string, akun_id?: int, rekening_id?: int, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemetaan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/pemetaan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: detail
+     *
+     * Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/pemetaan/{id}`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemetaanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/pemetaan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: ubah
+     *
+     * Hanya admin modul. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/keu/pemetaan/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{jenis: string, kunci?: string, akun_id?: int, rekening_id?: int, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putPemetaanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/keu/pemetaan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: hapus
+     *
+     * Hanya admin modul.
+     *
+     * `DELETE /v1/keu/pemetaan/{id}`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deletePemetaanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/keu/pemetaan/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 }

@@ -398,7 +398,7 @@ final class Arsip extends Resource
      *
      * scope: `arsip:read`
      *
-     * @param array{unit_id: int, untuk?: string, jenis_id?: string, klasifikasi_id?: string, tanggal?: string, ...} $query
+     * @param array{unit_id: int, untuk?: string, jenis_id?: string, klasifikasi_id?: string, tanggal?: string, format?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -743,7 +743,7 @@ final class Arsip extends Resource
     /**
      * Catat surat masuk
      *
-     * Oleh admin/pimpinan/sekretaris unit penerima. Nomor agenda dibuat otomatis; retensi dihitung dari klasifikasi (atau klasifikasi bawaan jenis). Unggah hasil pindai lewat POST /surat/{ref}/file.
+     * Oleh admin/pimpinan/sekretaris/arsiparis unit penerima. Nomor agenda dibuat otomatis; retensi dihitung dari klasifikasi (atau klasifikasi bawaan jenis). Unggah hasil pindai lewat POST /surat/{ref}/file.
      *
      * `POST /v1/arsip/surat-masuk`
      *
@@ -779,7 +779,7 @@ final class Arsip extends Resource
     /**
      * Buat konsep surat keluar
      *
-     * Semua petugas unit (termasuk staf). `template_id` + `data_templat` mengisi `isi` dari templat. `catat_langsung=true` (admin/pimpinan/sekretaris) untuk surat yang sudah ditandatangani di kertas: langsung diberi nomor (atau `nomor_surat` manual) dan dikirim.
+     * Semua petugas unit (termasuk staf). `template_id` + `data_templat` mengisi `isi` dari templat. `catat_langsung=true` (admin/pimpinan/sekretaris/arsiparis) untuk surat yang sudah ditandatangani di kertas: langsung diberi nomor (atau `nomor_surat` manual) dan dikirim.
      *
      * `POST /v1/arsip/surat-keluar`
      *

@@ -33,6 +33,26 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Direktori dosen (publik)
+     *
+     * Dosen aktif di prodi fakultas ini: NIDN, nama + gelar, prodi, jabatan akademik (tanpa data pribadi). Dipakai portal fakultas bila situs portal belum didaftarkan.
+     *
+     * `GET /v1/fakultas/{kode}/dosen-publik`
+     *
+     * publik (tanpa token) · berhalaman
+     *
+     * @param int|string $kode
+     * @param array{prodi?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeDosenPublik(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/dosen-publik', ['kode' => $kode], $query, null, $options, false, true);
+    }
+
+    /**
      * Fakultas dalam angka
      *
      * Publik, hanya jumlah agregat: prodi, mahasiswa aktif, dosen aktif, lulusan (total dan per prodi). Dipakai halaman depan aplikasi fakultas, juga bila situs portal fakultas belum didaftarkan.
@@ -257,14 +277,14 @@ final class Fakultas extends Resource
     /**
      * Kurikulum
      *
-     * Mata kuliah per prodi per semester (m_mata_kuliah) dan kurikulum OBE (kurikulum_prodi).
+     * Daftar kurikulum SIAKAD (m_kurikulum per tahun), mata kuliah kurikulum terpilih per semester (m_mata_kuliah, bawaan kurikulum terbaru; detail SKS, jenis, kelompok, pengampu, kelengkapan silabus/SAP/bahan ajar), dan kurikulum OBE (kurikulum_prodi).
      *
      * `GET /v1/fakultas/{kode}/kurikulum`
      *
      * scope: `fakultas:read`
      *
      * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
-     * @param array{prodi?: string, ...} $query
+     * @param array{tahun_kurikulum?: string, prodi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
