@@ -909,6 +909,26 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Calon penerima peran
+     *
+     * Akun SIAKAD aktif milik dosen/karyawan fakultas ini, untuk isian pilih pengguna (pemberian peran, pengelola portal). Izin fakultas.pengaturan atau fakultas.portal.
+     *
+     * `GET /v1/fakultas/{kode}/akses/calon`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{q?: string, username?: string, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeAksesCalon(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/akses/calon', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Cabut peran tendik/operator
      *
      * Izin fakultas.pengaturan.

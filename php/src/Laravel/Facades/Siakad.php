@@ -64,6 +64,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Perpustakaan perpustakaan()
  * @method static \Unipo\Siakad\Resources\Pmb pmb()
  * @method static \Unipo\Siakad\Resources\Portal portal()
+ * @method static \Unipo\Siakad\Resources\Presensi presensi()
  * @method static \Unipo\Siakad\Resources\Profil profil()
  * @method static \Unipo\Siakad\Resources\Qr qr()
  * @method static \Unipo\Siakad\Resources\Rbac rbac()

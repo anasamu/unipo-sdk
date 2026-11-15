@@ -2,6 +2,12 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
+## 1.6.0 (belum dirilis)
+
+- Modul baru `presensi` (/v1/presensi, 31 operasi): presensi QR kuliah (disahkan ke presensi SIAKAD dan kelas LMS), kegiatan, dan titik kerja dosen/tendik (ke presensi SDM). Sesi (buat, buka, tutup, sahkan, batal, kode cadangan), QR berganti (`getSesiByIdQr`, `getTitikByIdQr`, `getKartu`), pindai (`postPindai`, `postSesiByIdPindaiKartu`), peserta dan koreksi status, tanda curiga, jejak pindaian, izin/sakit dengan surat, titik kerja. Butuh SIAKAD yang sudah memuat modul Presensi.
+- Operasi baru `fakultas.getByKodeAksesCalon` (calon penerima peran dasbor fakultas).
+- Spesifikasi diperbarui dari SIAKAD terbaru: 61 modul, 2.982 operasi. Tidak ada operasi yang dihapus.
+
 ## 1.5.0 (belum dirilis)
 
 - Modul baru `qr` (/v1/qr, 9 operasi): generator kode QR modern (warna, gradasi, bentuk modul dan mata, logo, bingkai teks), gaya tersimpan per bagian, PNG bisa disimpan ke berkas terpusat. Butuh SIAKAD yang sudah memuat modul Qr.

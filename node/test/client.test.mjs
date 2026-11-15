@@ -94,6 +94,24 @@ test('409 aturan_dilanggar menjadi AturanDilanggarError dengan rincian aturan', 
   await assert.rejects(s.mahasiswa.getByNim('B'), (e) => e instanceof ConflictError && !(e instanceof AturanDilanggarError));
 });
 
+test('modul presensi: pindai QR dan QR sesi berganti', async () => {
+  const fetch = mockFetch((c) => {
+    if (c.path === '/v1/auth/token') return { body: token() };
+    if (c.path === '/v1/presensi/pindai') return { body: { data: { sudah: false, pesan: 'Presensi tercatat.', hadir: { status: 'H' } } } };
+    return { body: { data: { isi: 'UP1.S.x.y.z', sisa_detik: 12, interval_detik: 20, gaya: { kode: 'presensi', bagian: 'prodi-55201' } } } };
+  });
+  const s = new Siakad(opts(fetch));
+  const r = await s.presensi.postPindai({ token: 'UP1.S.x.y.z', lokasi: '0.47,121.93', perangkat: 'abc' });
+  assert.equal(r.data.hadir.status, 'H');
+  const pindai = fetch.calls.find((c) => c.path === '/v1/presensi/pindai');
+  assert.equal(pindai.method, 'POST');
+  assert.equal(JSON.parse(pindai.body).perangkat, 'abc');
+  const q = await s.presensi.getSesiByIdQr('5e551000-0000-4000-8000-000000000001', { svg: '1' });
+  assert.equal(q.data.sisa_detik, 12);
+  assert.equal(fetch.calls.at(-1).path, '/v1/presensi/sesi/5e551000-0000-4000-8000-000000000001/qr');
+  assert.equal(fetch.calls.at(-1).query.get('svg'), '1');
+});
+
 test('429 diulang setelah Retry-After', async () => {
   let ke = 0;
   const fetch = mockFetch((c) => {

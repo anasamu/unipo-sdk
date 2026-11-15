@@ -10839,6 +10839,309 @@ export type PortalKategoriRequest = {
   [key: string]: any;
 };
 
+export type PresensiSesi = {
+  /** UUID */
+  id?: string | null;
+  /** kuliah | kegiatan */
+  jenis?: string | null;
+  /** Contoh: `Basis Data kelas A` */
+  judul?: string | null;
+  keterangan?: string | null;
+  /** draf | buka | tutup | disahkan | batal */
+  status?: string | null;
+  /** Contoh: `2026-11-16` */
+  tanggal?: string | null;
+  mulai_at?: string | null;
+  selesai_at?: string | null;
+  dibuka_at?: string | null;
+  ditutup_at?: string | null;
+  /** Hanya untuk jenis kuliah */
+  kuliah?: {
+    idj?: number | null;
+    kode_prodi?: string | null;
+    tahun_id?: string | null;
+    kode_mk?: string | null;
+    kelas?: string | null;
+    nidn?: string | null;
+    /** m_jam.idj */
+    jam?: number | null;
+    jam_selesai?: number | null;
+    lama?: number | null;
+    /** Jurnal/berita acara */
+    bahasan?: string | null;
+    /** t_dosen_presensi.iddm setelah disahkan */
+    siakad_iddm?: number | null;
+    /** Kelas LMS jadwal ini (bila ada) */
+    lms_kelas_id?: number | null;
+    /** lms_presensi_sesi salinan setelah disahkan */
+    lms_sesi_id?: number | null;
+    [key: string]: any;
+  };
+  /** kelas | undangan | terbuka | mahasiswa | pegawai */
+  peserta?: string | null;
+  /** Bagian penyelenggara (gaya QR) */
+  unit?: string | null;
+  /** Contoh: `20` */
+  interval_detik?: number | null;
+  pakai_kode?: boolean;
+  /** Kode cadangan (hanya pengelola) */
+  kode?: string | null;
+  izinkan_kartu?: boolean;
+  terlambat_menit?: number | null;
+  lokasi?: {
+    lat?: number | null;
+    lng?: number | null;
+    radius_m?: number | null;
+    wajib?: boolean;
+    [key: string]: any;
+  };
+  tolak_perangkat_ganda?: boolean;
+  /** A | I | S */
+  status_kosong?: string | null;
+  jumlah_hadir?: number | null;
+  ringkasan?: {
+    /** Jumlah peserta daftar (null = terbuka) */
+    peserta?: number | null;
+    hadir?: number | null;
+    izin?: number | null;
+    sakit?: number | null;
+    alpa?: number | null;
+    belum?: number | null;
+    terlambat?: number | null;
+    curiga?: number | null;
+    persen_hadir?: number | null;
+    [key: string]: any;
+  };
+  hak?: {
+    kelola?: boolean;
+    bantu?: boolean;
+    [key: string]: any;
+  };
+  petugas?: Array<string>;
+  disahkan_at?: string | null;
+  disahkan_oleh?: string | null;
+  dibuat_oleh?: string | null;
+  created_at?: string | null;
+  /** Hasil pengesahan ke SIAKAD: iddm, baru, mahasiswa/diubah, tidak_tercatat, pesan */
+  siakad?: JsonObject | null;
+  /** Salinan ke kelas LMS: kelas_id, sesi_id, pertemuan_ke, mahasiswa (null bila jadwal tanpa kelas LMS) */
+  lms?: JsonObject | null;
+  [key: string]: any;
+};
+
+export type PresensiSesiInput = {
+  /** kuliah | kegiatan */
+  jenis?: string | null;
+  /** Kuliah: t_jadwal.idj */
+  idj?: number | null;
+  /** Kuliah: kelas LMS (pengganti idj) */
+  lms_kelas_id?: number | null;
+  tanggal?: string | null;
+  jam?: number | null;
+  jam_selesai?: number | null;
+  lama?: number | null;
+  nidn?: string | null;
+  bahasan?: string | null;
+  judul?: string | null;
+  keterangan?: string | null;
+  mulai_at?: string | null;
+  selesai_at?: string | null;
+  /** Kegiatan: undangan | terbuka | mahasiswa | pegawai */
+  peserta?: string | null;
+  undangan?: Array<{
+    /** mahasiswa | dosen | tendik */
+    jenis?: string | null;
+    /** NIM/NIDN/username */
+    subjek?: string | null;
+    nama?: string | null;
+    peran?: string | null;
+    [key: string]: any;
+  }>;
+  ganti_undangan?: boolean;
+  unit?: string | null;
+  /** Contoh: `20` */
+  interval_detik?: number | null;
+  pakai_kode?: boolean;
+  izinkan_kartu?: boolean;
+  /** "lat,lng" Contoh: `-0.5435,123.0568` */
+  lokasi?: string | null;
+  radius_m?: number | null;
+  wajib_lokasi?: boolean;
+  /** Kode/UUID titik (pakai lokasinya) */
+  titik?: string | null;
+  tolak_perangkat_ganda?: boolean;
+  terlambat_menit?: number | null;
+  status_kosong?: string | null;
+  petugas?: Array<string>;
+  /** Langsung buka */
+  buka?: boolean;
+  [key: string]: any;
+};
+
+export type PresensiQr = {
+  /** Token bertanda tangan */
+  token?: string | null;
+  /** Teks yang dijadikan QR (token, atau URL PRESENSI_URL?t=token) */
+  isi?: string | null;
+  jendela?: number | null;
+  berlaku_sampai?: string | null;
+  /** Panggil ulang setelah ini */
+  sisa_detik?: number | null;
+  interval_detik?: number | null;
+  /** Kode cadangan sesi */
+  kode?: string | null;
+  /** Gaya QR untuk KodeQrSiakad / GET /v1/qr/gaya/efektif */
+  gaya?: {
+    /** Contoh: `presensi` */
+    kode?: string | null;
+    bagian?: string | null;
+    [key: string]: any;
+  };
+  /** SVG bila ?svg=1 dan generator QR terpasang */
+  svg?: string | null;
+  ringkasan?: {
+    /** Jumlah peserta daftar (null = terbuka) */
+    peserta?: number | null;
+    hadir?: number | null;
+    izin?: number | null;
+    sakit?: number | null;
+    alpa?: number | null;
+    belum?: number | null;
+    terlambat?: number | null;
+    curiga?: number | null;
+    persen_hadir?: number | null;
+    [key: string]: any;
+  };
+  terbaru?: Array<JsonObject | null>;
+  /** Kartu: jenis, subjek, nama */
+  pemilik?: JsonObject | null;
+  /** QR titik: data titik */
+  titik?: JsonObject | null;
+  /** QR titik: jumlah masuk/pulang */
+  hari_ini?: JsonObject | null;
+  peringatan?: string | null;
+  [key: string]: any;
+};
+
+export type PresensiPindaiInput = {
+  /** Isi QR yang dipindai */
+  token?: string | null;
+  /** Kode cadangan (tanpa token) */
+  kode?: string | null;
+  /** "lat,lng" */
+  lokasi?: string | null;
+  /** ID perangkat stabil dari aplikasi */
+  perangkat?: string | null;
+  /** Titik kerja: masuk | pulang (bawaan otomatis) */
+  aksi?: string | null;
+  [key: string]: any;
+};
+
+export type PresensiPindaiHasil = {
+  /** Sudah tercatat sebelumnya */
+  sudah?: boolean;
+  /** Contoh: `Presensi tercatat.` */
+  pesan?: string | null;
+  hadir?: {
+    jenis?: string | null;
+    subjek?: string | null;
+    nama?: string | null;
+    status?: string | null;
+    waktu?: string | null;
+    cara?: string | null;
+    terlambat?: boolean;
+    terlambat_menit?: number | null;
+    jarak_m?: number | null;
+    curiga?: boolean;
+    [key: string]: any;
+  };
+  /** Sesi (id, jenis, judul, tanggal, kelas, kode_mk) */
+  sesi?: JsonObject | null;
+  /** Titik kerja: masuk | pulang */
+  aksi?: string | null;
+  titik?: JsonObject | null;
+  /** Titik kerja: baris sdm_presensi */
+  presensi?: JsonObject | null;
+  [key: string]: any;
+};
+
+export type PresensiIzin = {
+  id?: string | null;
+  sesi_id?: string | null;
+  sesi_judul?: string | null;
+  idj?: number | null;
+  tanggal?: string | null;
+  jenis_subjek?: string | null;
+  subjek?: string | null;
+  nama?: string | null;
+  /** izin | sakit */
+  jenis?: string | null;
+  alasan?: string | null;
+  berkas_id?: string | null;
+  /** diajukan | disetujui | ditolak | batal */
+  status?: string | null;
+  diproses_oleh?: string | null;
+  diproses_at?: string | null;
+  catatan_proses?: string | null;
+  created_at?: string | null;
+  diterapkan?: JsonObject | null;
+  [key: string]: any;
+};
+
+export type PresensiIzinInput = {
+  sesi_id?: string | null;
+  idj?: number | null;
+  tanggal?: string | null;
+  /** izin | sakit */
+  jenis?: string | null;
+  alasan?: string | null;
+  /** UUID dari /v1/berkas */
+  berkas_id?: string | null;
+  [key: string]: any;
+};
+
+export type PresensiTitik = {
+  id?: string | null;
+  /** Contoh: `gerbang-utama` */
+  kode?: string | null;
+  nama?: string | null;
+  /** gerbang | kantor | ruang | lainnya */
+  jenis?: string | null;
+  /** pegawai | dosen | tendik */
+  untuk?: string | null;
+  unit?: string | null;
+  lokasi?: {
+    lat?: number | null;
+    lng?: number | null;
+    radius_m?: number | null;
+    wajib?: boolean;
+    [key: string]: any;
+  };
+  wajib_lokasi?: boolean;
+  interval_detik?: number | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PresensiTitikInput = {
+  kode?: string | null;
+  nama?: string | null;
+  jenis?: string | null;
+  untuk?: string | null;
+  unit?: string | null;
+  /** "lat,lng" */
+  lokasi?: string | null;
+  radius_m?: number | null;
+  wajib_lokasi?: boolean;
+  interval_detik?: number | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  ganti_rahasia?: boolean;
+  [key: string]: any;
+};
+
 /** Riwayat pekerjaan (tabel profil_riwayat_pekerjaan) */
 export type ProfilPekerjaan = {
   id?: number;
