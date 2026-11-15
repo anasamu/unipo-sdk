@@ -1,7 +1,7 @@
 <!-- Dibuat otomatis oleh generator/generate.mjs. Jangan diubah manual. -->
 # Daftar modul
 
-2982 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
+2984 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
 
 Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/lms/kelas/{id}` (operationId `getLmsKelasById`) menjadi `lms.getKelasById(id)`. Endpoint akar modul menjadi `list`/`create`/`update`/`replace`/`delete`.
 
@@ -20,7 +20,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `dokumen` | Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik | 21 |
 | `dosen` | Dosen, Jadwal | 4 |
 | `edom` | EDOM: Soal, EDOM: Pengisian, EDOM: Hasil | 14 |
-| `fakultas` | Fakultas, Fakultas: kelola akademik | 46 |
+| `fakultas` | Fakultas, Fakultas: kelola akademik | 47 |
 | `helpdesk` | Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket | 25 |
 | `humas` | Humas, Humas: redaksi | 53 |
 | `iku` | IKU: Dasbor, IKU: Pengaturan, IKU: Bukti | 27 |
@@ -35,7 +35,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `kelulusan` | Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI | 76 |
 | `kemahasiswaan` | Kemahasiswaan: Beasiswa, Kemahasiswaan: Organisasi, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran | 92 |
 | `kerjasama` | Kerja sama: Laporan, Kerja sama: Mitra, Kerja sama: Dokumen, Kerja sama: Kegiatan, Kerja sama: Evaluasi | 43 |
-| `keu` | Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan | 61 |
+| `keu` | Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan | 62 |
 | `keuangan` | Keuangan, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan | 115 |
 | `kurikulum` | Akademik | 1 |
 | `kurikulumObe` | Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS | 67 |
