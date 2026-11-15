@@ -7165,6 +7165,386 @@ export class DasborResource {
   }
 }
 
+/** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik */
+export class DokumenResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Pilihan templat
+   *
+   * Publik. Jenis dokumen, ukuran kertas (mm), huruf, gaya garis kop, letak QR, posisi tanda tangan, penanda {..}, dan aturan bawaan. Untuk editor templat di UI.
+   *
+   * `GET /v1/dokumen/opsi`
+   *
+   * publik (tanpa token)
+   */
+  getOpsi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/opsi', query, public: true }, options);
+  }
+
+  /**
+   * Daftar templat tersimpan
+   *
+   * `GET /v1/dokumen/templat`
+   *
+   * scope: `dokumen:read`
+   */
+  getTemplat(query?: {
+    /** Saring jenis (termasuk templat semua jenis) */
+    jenis?: string;
+    /** Kode unit */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat', query }, options);
+  }
+
+  /**
+   * Tambah templat
+   *
+   * Body {nama, bagian?, jenis?, keterangan?, pengaturan, aktif?}. Satu templat per bagian + jenis (jenis kosong = semua jenis). Tingkat kampus hanya dokumen:admin; bagian oleh dokumen:admin atau pimpinan/admin unit itu (atau induknya) di arsip_petugas. Gambar (logo, kop gambar, tanda tangan, stempel) = berkas PNG/JPG milik penyimpan atau publik.
+   *
+   * `POST /v1/dokumen/templat`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postTemplat(body: S.DokTemplatInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTemplat>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat', body }, options);
+  }
+
+  /**
+   * Templat yang berlaku
+   *
+   * Gabungan bawaan → kampus → unit induk → bagian (semua jenis lalu jenis ini), `lapis` = templat yang ikut, `data` = nilai penanda {..}.
+   *
+   * `GET /v1/dokumen/templat/efektif`
+   *
+   * scope: `dokumen:read`
+   */
+  getTemplatEfektif(query: {
+    /** Jenis dokumen */
+    jenis: string;
+    /** Kode unit */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.DokTemplatEfektif>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat/efektif', query }, options);
+  }
+
+  /**
+   * Pratinjau PDF templat
+   *
+   * Body {jenis, bagian?, pengaturan?}: PDF contoh (application/pdf) dengan aturan berlaku + `pengaturan` yang belum disimpan, untuk editor templat langsung.
+   *
+   * `POST /v1/dokumen/templat/pratinjau`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param body
+   */
+  postTemplatPratinjau(body: S.DokPratinjauInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat/pratinjau', body }, options);
+  }
+
+  /**
+   * Detail templat
+   *
+   * `GET /v1/dokumen/templat/{id}`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param id UUID templat
+   */
+  getTemplatById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.DokTemplat>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah templat
+   *
+   * Body sebagian: nama, keterangan, pengaturan (menggantikan seluruh aturan templat ini), aktif.
+   *
+   * `POST /v1/dokumen/templat/{id}`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param id UUID templat
+   * @param body
+   */
+  postTemplatById(id: string | number, body: S.DokTemplatInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTemplat>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus templat
+   *
+   * `POST /v1/dokumen/templat/{id}/hapus`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param id UUID templat
+   */
+  postTemplatByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Terbitkan KRS
+   *
+   * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/krs (mahasiswa hanya miliknya). Tanda tangan dosen PA dan mahasiswa.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/krs`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postKrs(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/krs', body }, options);
+  }
+
+  /**
+   * Terbitkan KHS
+   *
+   * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/khs. Nilai yang belum boleh tampil ditulis "-".
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/khs`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postKhs(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/khs', body }, options);
+  }
+
+  /**
+   * Terbitkan transkrip nilai
+   *
+   * Body {nim}. Nilai terbaik tiap mata kuliah, sama dengan GET /v1/mahasiswa/{nim}/transkrip.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/transkrip`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postTranskrip(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/transkrip', body }, options);
+  }
+
+  /**
+   * Terbitkan kwitansi
+   *
+   * Body {transaksi_id}. Hak sama dengan GET /v1/keuangan/transaksi/{id}/kwitansi.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/kwitansi`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postKwitansi(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/kwitansi', body }, options);
+  }
+
+  /**
+   * Terbitkan PDF surat keluar
+   *
+   * Body {surat: id/uuid}. Surat harus sudah disetujui; kop mengikuti unit surat, penandatangan dari surat, tembusan di bawah tanda tangan.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/surat-keluar`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postSuratKeluar(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/surat-keluar', body }, options);
+  }
+
+  /**
+   * Terbitkan dokumen bebas
+   *
+   * Untuk surat keterangan, sertifikat, berita acara, laporan, undangan, dll. Body {jenis, judul, isi_html, bagian?, subjudul?, nomor?, tanggal?, penandatangan?: [{jabatan, nama, nip, label_nip}], pemilik?, pemilik_nama?, ringkasan? (objek kunci → teks untuk halaman verifikasi), kedaluwarsa? (YYYY-MM-DD), sumber_modul?, sumber_ref?}. Hanya dokumen:admin atau petugas admin/pimpinan/sekretaris unit penerbit. HTML dibersihkan.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/buat`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postBuat(body: S.DokBuatInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/buat', body }, options);
+  }
+
+  /**
+   * Dokumen terbit
+   *
+   * Admin: semua; petugas unit (dengan `bagian`): dokumen unitnya; lainnya: dokumen miliknya atau yang dibuatnya.
+   *
+   * `GET /v1/dokumen/terbit`
+   *
+   * scope: `dokumen:read` · berhalaman
+   */
+  getTerbit(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Jenis */
+    jenis?: string;
+    /** sah, diganti, dibatalkan */
+    status?: string;
+    /** Kode unit */
+    bagian?: string;
+    /** NIM/username */
+    pemilik?: string;
+    /** krs, khs, transkrip, kwitansi, arsip_surat, ... */
+    sumber_modul?: string;
+    /** Referensi */
+    sumber_ref?: string;
+    /** Cari judul, nomor, kode */
+    q?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.DokTerbit>>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/terbit', query }, options);
+  }
+
+  /**
+   * Detail dokumen terbit
+   *
+   * `GET /v1/dokumen/terbit/{id}`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param id UUID dokumen
+   */
+  getTerbitById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/terbit/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unduh PDF
+   *
+   * PDF dari penyimpanan (atau 302 ke URL sementara bucket). `?unduh=1` sebagai attachment.
+   *
+   * `GET /v1/dokumen/terbit/{id}/unduh`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param id UUID dokumen
+   */
+  getTerbitByIdUnduh(id: string | number, query?: {
+    /** 1 = attachment */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/terbit/{id}/unduh', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan dokumen
+   *
+   * Body {alasan}. Halaman verifikasi akan menyatakan dokumen dibatalkan. Oleh dokumen:admin atau pimpinan/admin unit penerbit.
+   *
+   * `POST /v1/dokumen/terbit/{id}/batal`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param id UUID dokumen
+   * @param body
+   */
+  postTerbitByIdBatal(id: string | number, body: S.DokBatalInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/terbit/{id}/batal', query: { id }, body }, options);
+  }
+
+  /**
+   * Halaman verifikasi (tujuan QR)
+   *
+   * Tanpa token. Peramban mendapat halaman HTML; `Accept: application/json` atau `?format=json` mendapat data. Nama pemilik dan NIM disamarkan.
+   *
+   * `GET /v1/dokumen/v/{kode}`
+   *
+   * publik (tanpa token)
+   *
+   * @param kode Kode verifikasi 12 karakter (tanda - boleh)
+   */
+  getVByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.DokVerifikasi>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/v/{kode}', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Verifikasi kode (JSON)
+   *
+   * Tanpa token. `sah` false bila dibatalkan, diganti versi baru, atau kedaluwarsa; `pesan` menjelaskan.
+   *
+   * `GET /v1/dokumen/verifikasi/{kode}`
+   *
+   * publik (tanpa token)
+   *
+   * @param kode Kode verifikasi
+   */
+  getVerifikasiByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.DokVerifikasi>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/verifikasi/{kode}', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Cocokkan file PDF
+   *
+   * Tanpa token. Multipart `berkas` (PDF, maks. 20 MB) atau JSON `berkas_base64`, opsional `kode`. Membandingkan SHA-256 file dengan catatan terbit: mendeteksi PDF yang diubah walau QR-nya asli.
+   *
+   * `POST /v1/dokumen/verifikasi`
+   *
+   * publik (tanpa token)
+   *
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  postVerifikasi(body: S.DokCocokInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokCocok>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/verifikasi', body, multipart: true, public: true }, options);
+  }
+}
+
 /** Dosen, Jadwal */
 export class DosenResource {
   constructor(private readonly client: SiakadCore) {}
@@ -20977,7 +21357,7 @@ export class KeuanganResource {
   /**
    * Dispensasi pembayaran: daftar
    *
-   * Mahasiswa mengajukan dispensasi (tetap boleh KRS/ujian dengan janji bayar); pengelola keuangan memutuskan. Dispensasi yang disetujui tampil di GET /keuangan/mahasiswa/{nim}/syarat untuk aplikasi KRS/ujian. Aturan syarat bayar di halaman SIAKAD lama tidak diubah. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+   * Mahasiswa mengajukan dispensasi (tetap boleh KRS/ujian dengan janji bayar); pengelola keuangan memutuskan. Dispensasi yang disetujui tampil di GET /keuangan/mahasiswa/{nim}/syarat dan otomatis mengecualikan aturan dinamis kategori keuangan (/v1/aturan) di KRS/ujian. Syarat pengajuan diatur aturan titik keuangan.dispensasi.ajukan. Aturan syarat bayar di halaman SIAKAD lama tidak diubah. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
    *
    * `GET /v1/keuangan/dispensasi`
    *
@@ -21028,7 +21408,7 @@ export class KeuanganResource {
   /**
    * Dispensasi pembayaran: detail
    *
-   * Mahasiswa mengajukan dispensasi (tetap boleh KRS/ujian dengan janji bayar); pengelola keuangan memutuskan. Dispensasi yang disetujui tampil di GET /keuangan/mahasiswa/{nim}/syarat untuk aplikasi KRS/ujian. Aturan syarat bayar di halaman SIAKAD lama tidak diubah. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+   * Mahasiswa mengajukan dispensasi (tetap boleh KRS/ujian dengan janji bayar); pengelola keuangan memutuskan. Dispensasi yang disetujui tampil di GET /keuangan/mahasiswa/{nim}/syarat dan otomatis mengecualikan aturan dinamis kategori keuangan (/v1/aturan) di KRS/ujian. Syarat pengajuan diatur aturan titik keuangan.dispensasi.ajukan. Aturan syarat bayar di halaman SIAKAD lama tidak diubah. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
    *
    * `GET /v1/keuangan/dispensasi/{id}`
    *
@@ -21182,7 +21562,7 @@ export class KeuanganResource {
   /**
    * Cicilan pembayaran: daftar
    *
-   * Mahasiswa mengajukan cicilan untuk satu tagihan; saat disetujui angsuran bulanan dibuat dari sisa tagihan. Pembayaran tagihan yang sama (lewat API) otomatis mengisi angsuran berurutan; semua lunas = status lunas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+   * Mahasiswa mengajukan cicilan untuk satu tagihan; saat disetujui angsuran bulanan dibuat dari sisa tagihan. Pembayaran tagihan yang sama (lewat API) otomatis mengisi angsuran berurutan; semua lunas = status lunas. Syarat pengajuan (mis. jumlah angsuran maksimal) diatur aturan titik keuangan.cicilan.ajukan (/v1/aturan). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
    *
    * `GET /v1/keuangan/cicilan`
    *
@@ -21231,7 +21611,7 @@ export class KeuanganResource {
   /**
    * Cicilan pembayaran: detail
    *
-   * Mahasiswa mengajukan cicilan untuk satu tagihan; saat disetujui angsuran bulanan dibuat dari sisa tagihan. Pembayaran tagihan yang sama (lewat API) otomatis mengisi angsuran berurutan; semua lunas = status lunas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+   * Mahasiswa mengajukan cicilan untuk satu tagihan; saat disetujui angsuran bulanan dibuat dari sisa tagihan. Pembayaran tagihan yang sama (lewat API) otomatis mengisi angsuran berurutan; semua lunas = status lunas. Syarat pengajuan (mis. jumlah angsuran maksimal) diatur aturan titik keuangan.cicilan.ajukan (/v1/aturan). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
    *
    * `GET /v1/keuangan/cicilan/{id}`
    *
@@ -36987,6 +37367,170 @@ export class ProfilResource {
   }
 }
 
+/** QR: Generator, QR: Gaya */
+export class QrResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Pilihan gaya QR
+   *
+   * Publik. Daftar bentuk modul, bentuk mata, jenis gradasi, sumber logo, posisi/bentuk bingkai, tingkat koreksi, batas ukuran, gaya bawaan, dan preset (bawaan, presensi, dokumen, kartu). Untuk pembuat gaya di UI.
+   *
+   * `GET /v1/qr/opsi`
+   *
+   * publik (tanpa token)
+   */
+  getOpsi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/qr/opsi', query, public: true }, options);
+  }
+
+  /**
+   * Buat kode QR
+   *
+   * Body:
+   *
+   * ```json
+   * {"isi": "https://siakad.unipo.ac.id/v/AB12CD", "gaya": "presensi", "bagian": "fik", "ukuran": 512, "keluaran": "json"}
+   * ```
+   *
+   * - `isi` (wajib, maks. 2000 byte): teks/URL yang dikodekan.
+   * - `gaya`: kode gaya tersimpan (dicari di `bagian` lalu unit induknya sampai kampus, lalu preset), atau objek gaya
+   *   lengkap (lihat skema QrGaya dan GET /v1/qr/opsi). Kosong = gaya `bawaan`.
+   * - `gaya_tambahan`: objek gaya parsial yang menimpa gaya tersimpan (mis. hanya `bingkai.teks`).
+   * - `ukuran`: lebar 64-2048 px (bawaan 512). `koreksi`, `margin`: menimpa gaya.
+   * - `keluaran`: `json` (bawaan; `svg` + `data_uri`, dan `data_uri_png` bila `png: true`), `svg` (image/svg+xml
+   *   mentah), `png` (image/png mentah).
+   * - `simpan: true` (scope qr:write): PNG disimpan ke berkas terpusat (penyimpanan utama menu Integrasi: S3/R2/MinIO/Google
+   *   Drive, cadangan disk) dan dicatat; isi + gaya + ukuran yang sama memakai berkas yang sudah ada (200, `baru=false`).
+   *   Atribut berkas: `modul`, `referensi`, `visibilitas` (privat|publik), `folder`, `nama_file`.
+   *
+   * Logo berkas (`gaya.logo.berkas_id`) harus gambar PNG/JPG/WebP yang boleh Anda baca atau berkas publik. Koreksi otomatis
+   * naik ke Q/H bila ada logo. `peringatan` berisi saran keterbacaan (kontras, margin, logo).
+   *
+   * `POST /v1/qr`
+   *
+   * scope: `qr:read`
+   *
+   * @param body
+   */
+  create(body: S.QrBuatInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.QrHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/qr', body }, options);
+  }
+
+  /**
+   * Gaya yang berlaku
+   *
+   * Publik (untuk layar kiosk/presensi). Gaya `kode` untuk `bagian`: milik bagian itu, unit induknya sampai kampus, lalu preset. Logo dikembalikan sebagai data URI di `gaya.logo.data` supaya komponen KodeQr di browser bisa langsung merender.
+   *
+   * `GET /v1/qr/gaya/efektif`
+   *
+   * publik (tanpa token)
+   */
+  getGayaEfektif(query?: {
+    /** Kode gaya, mis. presensi, dokumen, kartu, bawaan */
+    kode?: string;
+    /** Kode unit (GET /v1/arsip/unit), mis. fik, 55201, baak */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.QrGayaEfektif>> {
+    return this.client.request({ method: 'GET', path: '/v1/qr/gaya/efektif', query, public: true }, options);
+  }
+
+  /**
+   * Daftar gaya tersimpan
+   *
+   * `GET /v1/qr/gaya`
+   *
+   * scope: `qr:read`
+   */
+  getGaya(query?: {
+    /** Saring kode */
+    kode?: string;
+    /** Saring kode unit */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/qr/gaya', query }, options);
+  }
+
+  /**
+   * Tambah gaya
+   *
+   * Body {kode, nama, bagian?, keterangan?, gaya, aktif?}. Satu kode per bagian. Tingkat kampus (bagian kosong) hanya qr:admin; gaya bagian oleh qr:admin atau pimpinan/admin unit itu (atau unit induknya) di arsip_petugas.
+   *
+   * `POST /v1/qr/gaya`
+   *
+   * scope: `qr:write`
+   *
+   * @param body
+   */
+  postGaya(body: S.QrGayaInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.QrGayaTersimpan>> {
+    return this.client.request({ method: 'POST', path: '/v1/qr/gaya', body }, options);
+  }
+
+  /**
+   * Detail gaya
+   *
+   * `GET /v1/qr/gaya/{id}`
+   *
+   * scope: `qr:read`
+   *
+   * @param id UUID gaya QR
+   */
+  getGayaById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.QrGayaTersimpan>> {
+    return this.client.request({ method: 'GET', path: '/v1/qr/gaya/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah gaya
+   *
+   * Body sebagian: nama, keterangan, gaya (menggantikan seluruh gaya), aktif. Kode dan bagian tetap.
+   *
+   * `POST /v1/qr/gaya/{id}`
+   *
+   * scope: `qr:write`
+   *
+   * @param id UUID gaya QR
+   * @param body
+   */
+  postGayaById(id: string | number, body: S.QrGayaInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.QrGayaTersimpan>> {
+    return this.client.request({ method: 'POST', path: '/v1/qr/gaya/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus gaya
+   *
+   * Hapus lunak; QR berikutnya memakai gaya unit induk atau preset.
+   *
+   * `POST /v1/qr/gaya/{id}/hapus`
+   *
+   * scope: `qr:write`
+   *
+   * @param id UUID gaya QR
+   */
+  postGayaByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/qr/gaya/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau gaya (SVG)
+   *
+   * Mengembalikan image/svg+xml.
+   *
+   * `GET /v1/qr/gaya/{id}/pratinjau`
+   *
+   * scope: `qr:read`
+   *
+   * @param id UUID gaya QR
+   */
+  getGayaByIdPratinjau(id: string | number, query?: {
+    /** Isi contoh */
+    isi?: string;
+    /** px 64-1024 */
+    ukuran?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/qr/gaya/{id}/pratinjau', query: { ...query, id } }, options);
+  }
+}
+
 /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan */
 export class RbacResource {
   constructor(private readonly client: SiakadCore) {}
@@ -48124,6 +48668,131 @@ export class SpmiResource {
    */
   deleteAkreditasiButirById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/spmi/akreditasi-butir/{id}', query: { ...query, id } }, options);
+  }
+}
+
+/** Tema */
+export class TemaResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Semua tema (admin)
+   *
+   * Semua lapis tema yang pernah diatur. Hanya ADMIN atau token ber-scope tema:admin.
+   *
+   * `GET /v1/tema`
+   *
+   * scope: `tema:read`
+   */
+  list(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/tema', query }, options);
+  }
+
+  /**
+   * Tema berlaku
+   *
+   * Publik. Tema yang berlaku untuk aplikasi (dan lingkupnya): gabungan lapis `kampus` → `<aplikasi>` → `<aplikasi>?lingkup=`.
+   *
+   * - `tema`: pilihan generator tema unipo-ui (`buatTema` dari `unipo-ui/tema`): primary, secondary, netral, radius, font,
+   *   fontJudul, teks, bayangan, gerak, ... Objek kosong = bawaan unipo-ui.
+   * - `tata`: tata letak milik aplikasi (mis. aplikasi fakultas: hero, navbar, mode, bagian[]).
+   * - `sendiri`: isi lapis ini saja (untuk formulir pengaturan), `warisan`: gabungan lapis di atasnya, `sumber`: lapis yang terisi.
+   *
+   * Aplikasi cukup memasang `<TemaAplikasi aplikasi="..." lingkup="...">` dari unipo-ui/siakad, atau membaca endpoint ini
+   * lalu `buatTema(tema)`. Boleh disimpan di cache browser; `versi` naik setiap perubahan.
+   *
+   * `GET /v1/tema/{aplikasi}`
+   *
+   * publik (tanpa token)
+   *
+   * @param aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+   */
+  getByAplikasi(aplikasi: string | number, query?: {
+    /** Pemasangan aplikasi, mis. kode fakultas untuk aplikasi fakultas (05, FT, atau kode unit). Kosong = tema aplikasi. */
+    lingkup?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/tema/{aplikasi}', query: { ...query, aplikasi }, public: true }, options);
+  }
+
+  /**
+   * Simpan tema
+   *
+   * Body: `{"tema": {"primary": "#0f766e", "netral": "slate", "radius": 8, "font": "inter"}, "tata": {"mode": "pengguna", "hero": "gambar"}, "catatan": "..."}`.
+   * Menggantikan seluruh isi lapis ini; kunci tema yang tidak dikirim mengikuti lapis di atasnya. Nilai tidak dikenal dibuang,
+   * teks `tata` dibersihkan dari HTML. Setiap simpan menjadi versi baru di riwayat.
+   *
+   * Hak: izin RBAC `<aplikasi>.tema` (global, atau berlingkup unit yang sesuai `lingkup`); aplikasi fakultas: izin
+   * `fakultas.tema` di tingkat fakultas. Lapis `kampus` hanya ADMIN / scope tema:admin.
+   *
+   * `POST /v1/tema/{aplikasi}`
+   *
+   * scope: `tema:write`
+   *
+   * @param aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+   * @param body
+   */
+  postByAplikasi(aplikasi: string | number, body: S.TemaInput, options?: RequestOptions & { query?: {
+      /** Pemasangan aplikasi, mis. kode fakultas untuk aplikasi fakultas (05, FT, atau kode unit). Kosong = tema aplikasi. */
+      lingkup?: string;
+    } & Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/tema/{aplikasi}', query: { aplikasi }, body }, options);
+  }
+
+  /**
+   * Bolehkah saya mengubah tema ini
+   *
+   * `boleh` = punya izin `<aplikasi>.tema` (berlingkup unit lingkup), atau ADMIN. Untuk menampilkan menu Pengaturan tema.
+   *
+   * `GET /v1/tema/{aplikasi}/akses`
+   *
+   * scope: `tema:read` · hanya token pengguna
+   *
+   * @param aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+   */
+  getByAplikasiAkses(aplikasi: string | number, query?: {
+    /** Pemasangan aplikasi, mis. kode fakultas untuk aplikasi fakultas (05, FT, atau kode unit). Kosong = tema aplikasi. */
+    lingkup?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/tema/{aplikasi}/akses', query: { ...query, aplikasi } }, options);
+  }
+
+  /**
+   * Riwayat tema
+   *
+   * Perubahan terakhir lapis ini (bawaan 30, `batas` maks. 100). Hak sama dengan simpan.
+   *
+   * `GET /v1/tema/{aplikasi}/riwayat`
+   *
+   * scope: `tema:read`
+   *
+   * @param aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+   */
+  getByAplikasiRiwayat(aplikasi: string | number, query?: {
+    /** Jumlah versi */
+    batas?: string;
+    /** Pemasangan aplikasi, mis. kode fakultas untuk aplikasi fakultas (05, FT, atau kode unit). Kosong = tema aplikasi. */
+    lingkup?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/tema/{aplikasi}/riwayat', query: { ...query, aplikasi } }, options);
+  }
+
+  /**
+   * Pulihkan versi tema
+   *
+   * Menyalin versi lama menjadi tema berlaku (dicatat sebagai versi baru). Hak sama dengan simpan.
+   *
+   * `POST /v1/tema/{aplikasi}/riwayat/{id}/pulihkan`
+   *
+   * scope: `tema:write`
+   *
+   * @param aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+   * @param id ID riwayat
+   */
+  postByAplikasiRiwayatByIdPulihkan(aplikasi: string | number, id: string | number, query?: {
+    /** Pemasangan aplikasi, mis. kode fakultas untuk aplikasi fakultas (05, FT, atau kode unit). Kosong = tema aplikasi. */
+    lingkup?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/tema/{aplikasi}/riwayat/{id}/pulihkan', query: { ...query, aplikasi, id } }, options);
   }
 }
 

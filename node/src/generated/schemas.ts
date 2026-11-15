@@ -2932,6 +2932,283 @@ export type DasborEwsAbaikanInput = {
   [key: string]: any;
 };
 
+/** Aturan dokumen (sebagian). Kunci yang tidak diisi mengikuti lapis di atasnya. */
+export type DokPengaturan = {
+  kertas?: "A4" | "F4" | "Letter" | "Legal" | "A5";
+  orientasi?: "potret" | "lanskap";
+  margin?: {
+    /** mm */
+    atas?: number;
+    /** mm */
+    kanan?: number;
+    /** mm */
+    bawah?: number;
+    /** mm */
+    kiri?: number;
+    [key: string]: any;
+  };
+  font?: "helvetica" | "times" | "dejavusans" | "dejavuserif" | "courier";
+  /** pt 7-16 */
+  ukuran_font?: number;
+  /** Hex, kepala tabel Contoh: `#0f3d5e` */
+  warna_utama?: string;
+  kop?: {
+    tampil?: boolean;
+    /** Kop di setiap halaman (bawaan hanya halaman pertama) */
+    semua_halaman?: boolean;
+    perataan?: "tengah" | "kiri";
+    logo?: "kampus" | "berkas" | "tanpa";
+    /** UUID berkas PNG/JPG */
+    logo_berkas_id?: string;
+    /** Logo kedua di kanan (mis. logo fakultas/akreditasi) */
+    logo_kanan_berkas_id?: string;
+    /** Kop berupa satu gambar utuh (menggantikan logo + teks) */
+    gambar_berkas_id?: string;
+    baris?: Array<{
+      /** Boleh memakai penanda {..} Contoh: `{nama_pt}` */
+      teks?: string;
+      /** pt */
+      ukuran?: number;
+      tebal?: boolean;
+      /** hex */
+      warna?: string;
+      [key: string]: any;
+    }>;
+    /** Contoh: `{alamat_unit}` */
+    alamat?: string;
+    /** Contoh: `Telp. {telepon_unit} · {email_unit} · {website_pt}` */
+    kontak?: string;
+    garis?: "tunggal" | "ganda" | "tebal_tipis" | "tanpa";
+    /** hex */
+    warna_garis?: string;
+    /** mm 10-40 */
+    tinggi_logo?: number;
+    [key: string]: any;
+  };
+  judul?: {
+    /** pt */
+    ukuran?: number;
+    huruf_besar?: boolean;
+    garis_bawah?: boolean;
+    [key: string]: any;
+  };
+  /** Penandatangan bawaan bila dokumen tidak membawa penandatangan sendiri */
+  ttd?: {
+    tampil?: boolean;
+    posisi?: "kanan" | "kiri" | "tengah";
+    /** Contoh: `{kota}` */
+    kota?: string;
+    jabatan?: string;
+    nama?: string;
+    nip?: string;
+    /** Contoh: `NIP` */
+    label_nip?: string;
+    /** Gambar tanda tangan (PNG transparan) */
+    gambar_berkas_id?: string;
+    /** Gambar stempel */
+    stempel_berkas_id?: string;
+    [key: string]: any;
+  };
+  kaki?: {
+    teks?: string;
+    nomor_halaman?: boolean;
+    waktu_cetak?: boolean;
+    [key: string]: any;
+  };
+  qr?: {
+    posisi?: "ttd" | "kanan_bawah" | "kiri_bawah" | "kanan_atas" | "tanpa";
+    /** mm 14-45 */
+    ukuran?: number;
+    /** Kode gaya /v1/qr Contoh: `dokumen` */
+    gaya?: string;
+    teks?: string;
+    [key: string]: any;
+  };
+  tanda_air?: {
+    /** Mis. SALINAN */
+    teks?: string;
+    /** 0.02-0.3 */
+    opasitas?: number;
+    [key: string]: any;
+  };
+  /** Hanya bermakna di templat kampus per jenis: unit penerbit bawaan, mis. "keuangan" untuk kwitansi */
+  bagian_penerbit?: string;
+  [key: string]: any;
+};
+
+export type DokTemplatInput = {
+  nama?: string;
+  keterangan?: string;
+  /** Kode unit arsip; kosong = kampus */
+  bagian?: string;
+  /** Kosong = semua jenis */
+  jenis?: "umum" | "surat_keluar" | "surat_keterangan" | "sk" | "krs" | "khs" | "transkrip" | "kwitansi" | "sertifikat" | "berita_acara" | "laporan" | "undangan" | "kartu";
+  pengaturan?: DokPengaturan;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+export type DokTemplat = {
+  id?: string;
+  nama?: string;
+  keterangan?: string;
+  jenis?: string;
+  bagian?: string;
+  bagian_nama?: string;
+  pengaturan?: DokPengaturan;
+  aktif?: boolean;
+  diubah_oleh?: string;
+  diubah_at?: string;
+  [key: string]: any;
+};
+
+export type DokTemplatEfektif = {
+  jenis?: string;
+  bagian?: string;
+  pengaturan?: DokPengaturan;
+  lapis?: Array<JsonObject>;
+  /** Nilai penanda {..} */
+  data?: Record<string, string>;
+  [key: string]: any;
+};
+
+export type DokPratinjauInput = {
+  jenis?: "umum" | "surat_keluar" | "surat_keterangan" | "sk" | "krs" | "khs" | "transkrip" | "kwitansi" | "sertifikat" | "berita_acara" | "laporan" | "undangan" | "kartu";
+  bagian?: string;
+  pengaturan?: DokPengaturan;
+  [key: string]: any;
+};
+
+export type DokSumberInput = {
+  /** KRS, KHS, transkrip */
+  nim?: string;
+  /** KRS, KHS (bawaan tahun aktif) Contoh: `20261` */
+  tahun_id?: string;
+  /** Kwitansi */
+  transaksi_id?: number;
+  /** Surat keluar: id atau uuid */
+  surat?: string;
+  /** Unit penerbit (opsional) */
+  bagian?: string;
+  keluaran?: "json" | "pdf";
+  unduh?: boolean;
+  /** PDF bertanda air, tidak disimpan */
+  pratinjau?: boolean;
+  /** json: sertakan pdf_base64 */
+  sertakan_pdf?: boolean;
+  [key: string]: any;
+};
+
+export type DokBuatInput = {
+  jenis?: "umum" | "surat_keluar" | "surat_keterangan" | "sk" | "krs" | "khs" | "transkrip" | "kwitansi" | "sertifikat" | "berita_acara" | "laporan" | "undangan" | "kartu";
+  judul?: string;
+  subjudul?: string;
+  nomor?: string;
+  /** YYYY-MM-DD */
+  tanggal?: string;
+  /** HTML aman */
+  isi_html?: string;
+  bagian?: string;
+  penandatangan?: Array<{
+    jabatan?: string;
+    nama?: string;
+    nip?: string;
+    label_nip?: string;
+    [key: string]: any;
+  }>;
+  pemilik?: string;
+  pemilik_nama?: string;
+  ringkasan?: Record<string, string>;
+  /** YYYY-MM-DD */
+  kedaluwarsa?: string;
+  sumber_modul?: string;
+  sumber_ref?: string;
+  keluaran?: "json" | "pdf";
+  pratinjau?: boolean;
+  [key: string]: any;
+};
+
+export type DokTerbit = {
+  id?: string;
+  /** Contoh: `K7QM2XPA9RTD` */
+  kode_verifikasi?: string;
+  /** Isi QR */
+  url_verifikasi?: string;
+  jenis?: string;
+  jenis_nama?: string;
+  judul?: string;
+  nomor?: string;
+  bagian?: string;
+  bagian_nama?: string;
+  pemilik?: string;
+  pemilik_nama?: string;
+  ringkasan?: JsonObject;
+  sha256?: string;
+  ukuran?: number;
+  halaman?: number;
+  berkas_id?: string;
+  unduh?: string;
+  status?: "sah" | "diganti" | "dibatalkan";
+  alasan_batal?: string;
+  dibatalkan_at?: string;
+  sumber_modul?: string;
+  sumber_ref?: string;
+  kedaluwarsa_at?: string;
+  dibuat_oleh?: string;
+  diterbitkan_at?: string;
+  /** Bila sertakan_pdf */
+  pdf_base64?: string;
+  [key: string]: any;
+};
+
+export type DokVerifikasi = {
+  sah?: boolean;
+  status?: string;
+  pesan?: string;
+  /** Contoh: `K7QM-2XPA-9RTD` */
+  kode?: string;
+  jenis?: string;
+  jenis_nama?: string;
+  judul?: string;
+  nomor?: string;
+  penerbit?: string;
+  /** Disamarkan */
+  pemilik?: string;
+  /** Disamarkan */
+  pemilik_id?: string;
+  ringkasan?: JsonObject;
+  diterbitkan_at?: string;
+  kedaluwarsa_at?: string;
+  dibatalkan_at?: string;
+  sha256?: string;
+  halaman?: number;
+  [key: string]: any;
+};
+
+export type DokBatalInput = {
+  /** Wajib, tampil di halaman verifikasi Contoh: `Salah input nilai` */
+  alasan: string;
+  [key: string]: any;
+};
+
+export type DokCocokInput = {
+  /** File PDF (maks. 20 MB) */
+  berkas?: Uploadable;
+  /** Alternatif JSON */
+  berkas_base64?: string;
+  /** Opsional: kode verifikasi di QR, untuk pesan yang lebih jelas */
+  kode?: string;
+  [key: string]: any;
+};
+
+export type DokCocok = {
+  cocok?: boolean;
+  sha256?: string;
+  pesan?: string;
+  dokumen?: DokVerifikasi;
+  [key: string]: any;
+};
+
 /** Kategori (tabel helpdesk_kategori) */
 export type HelpdeskKategori = {
   id?: number;
@@ -10800,6 +11077,156 @@ export type ProfilPermohonanTolakInput = {
   [key: string]: any;
 };
 
+/** Gaya QR. Kunci yang tidak dikirim memakai bawaan (atau gaya dasar yang ditimpa). */
+export type QrGaya = {
+  /** Warna modul (hex) Contoh: `#0f172a` */
+  warna?: string;
+  /** Warna latar (hex) atau "transparan" Contoh: `#ffffff` */
+  latar?: string;
+  /** Gradasi warna modul; null = polos */
+  gradasi?: {
+    jenis?: "linear" | "radial";
+    /** Derajat untuk linear (0 = kiri ke kanan, 90 = atas ke bawah) */
+    sudut?: number;
+    warna?: Array<string>;
+    [key: string]: any;
+  };
+  /** Bentuk titik data */
+  modul?: "kotak" | "bulat" | "titik" | "rounded" | "menyatu" | "berlian" | "garis_v" | "garis_h";
+  /** Bentuk bingkai mata (pola pencari di 3 pojok) */
+  mata_luar?: "kotak" | "rounded" | "bulat" | "daun";
+  /** Bentuk bola mata */
+  mata_dalam?: "kotak" | "rounded" | "bulat" | "daun" | "berlian";
+  /** Hex; null = ikut warna/gradasi modul */
+  warna_mata_luar?: string;
+  /** Hex; null = ikut warna/gradasi modul */
+  warna_mata_dalam?: string;
+  logo?: {
+    /** kampus = logo di data perguruan tinggi; berkas = berkas_id dari /v1/berkas; data = data URI */
+    sumber?: "kampus" | "berkas" | "data";
+    /** UUID berkas PNG/JPG/WebP */
+    berkas_id?: string;
+    /** data:image/png;base64,... (maks. 400 KB) */
+    data?: string;
+    /** Lebar logo terhadap QR, 0.08-0.30 (bawaan 0.2) */
+    ukuran?: number;
+    /** Kosongkan modul di bawah logo (bawaan true) */
+    kosongkan?: boolean;
+    /** Jarak kosong di sekitar logo, modul (0-4) */
+    margin?: number;
+    /** Warna di belakang logo (hex) atau null */
+    latar?: string;
+    /** Logo dipotong lingkaran */
+    bulat?: boolean;
+    [key: string]: any;
+  };
+  bingkai?: {
+    /** Maks. 40 karakter Contoh: `Pindai untuk presensi` */
+    teks?: string;
+    posisi?: "bawah" | "atas";
+    bentuk?: "kotak" | "pil";
+    /** Warna bingkai (hex) */
+    warna?: string;
+    /** Warna teks (hex) */
+    warna_teks?: string;
+    [key: string]: any;
+  };
+  /** Tingkat koreksi galat; naik otomatis ke Q/H bila ada logo */
+  koreksi?: "L" | "M" | "Q" | "H";
+  /** Zona sunyi, modul (0-10, bawaan 4) */
+  margin?: number;
+  /** Sudut bulat latar, persen setengah sisi (0-50) */
+  radius_latar?: number;
+  [key: string]: any;
+};
+
+export type QrBuatInput = {
+  /** Teks/URL (maks. 2000 byte) Contoh: `https://siakad.unipo.ac.id/v/AB12CD` */
+  isi: string;
+  /** Kode gaya tersimpan (string) atau objek QrGaya */
+  gaya?: string | QrGaya;
+  gaya_tambahan?: QrGaya;
+  /** Kode unit untuk mencari gaya Contoh: `fik` */
+  bagian?: string;
+  /** Lebar px 64-2048 Contoh: `512` */
+  ukuran?: number;
+  koreksi?: "L" | "M" | "Q" | "H";
+  margin?: number;
+  keluaran?: "json" | "svg" | "png";
+  /** Keluaran json: sertakan data_uri_png */
+  png?: boolean;
+  /** Simpan PNG ke /v1/berkas (scope qr:write) */
+  simpan?: boolean;
+  /** Modul pemakai berkas Contoh: `presensi` */
+  modul?: string;
+  /** Referensi di modul */
+  referensi?: string;
+  visibilitas?: "privat" | "publik";
+  folder?: string;
+  nama_file?: string;
+  [key: string]: any;
+};
+
+export type QrHasil = {
+  /** SVG lengkap */
+  svg?: string;
+  /** data:image/svg+xml;base64,... */
+  data_uri?: string;
+  /** Bila png=true */
+  data_uri_png?: string;
+  /** Versi QR 1-40 */
+  versi?: number;
+  /** Jumlah modul per sisi */
+  modul?: number;
+  koreksi?: string;
+  ukuran?: number;
+  gaya?: QrGaya;
+  peringatan?: Array<string>;
+  /** Bila simpan=true: {id, baru, berkas {id, nama, unduh, url, ...}} */
+  simpan?: JsonObject;
+  [key: string]: any;
+};
+
+export type QrGayaInput = {
+  /** Huruf kecil/angka/_/-, mis. presensi, dokumen, kartu Contoh: `presensi` */
+  kode?: string;
+  /** Nama gaya */
+  nama?: string;
+  keterangan?: string;
+  /** Kode unit arsip; kosong = kampus */
+  bagian?: string;
+  gaya?: QrGaya;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+export type QrGayaTersimpan = {
+  /** UUID */
+  id?: string;
+  kode?: string;
+  nama?: string;
+  keterangan?: string;
+  bagian?: string;
+  bagian_nama?: string;
+  gaya?: QrGaya;
+  aktif?: boolean;
+  diubah_oleh?: string;
+  diubah_at?: string;
+  [key: string]: any;
+};
+
+export type QrGayaEfektif = {
+  kode?: string;
+  /** Unit pemilik gaya yang dipakai; null = kampus/preset */
+  bagian?: string;
+  sumber?: "tersimpan" | "bawaan";
+  /** UUID gaya tersimpan */
+  id?: string;
+  nama?: string;
+  gaya?: QrGaya;
+  [key: string]: any;
+};
+
 /** Aplikasi (tabel rbac_aplikasi) */
 export type RbacAplikasi = {
   id?: number;
@@ -13919,6 +14346,51 @@ export type SpmiFileUpload = {
   /** Wajib bersama berkas_base64 */
   nama_file?: string;
   keterangan?: string;
+  [key: string]: any;
+};
+
+/** Pilihan buatTema unipo-ui; kunci yang tidak diisi mengikuti lapis di atasnya atau bawaan */
+export type TemaOpsi = {
+  /** Warna utama (hex) Contoh: `#0f766e` */
+  primary?: string;
+  /** Warna aksen (hex) Contoh: `#f59e0b` */
+  secondary?: string;
+  /** Primer mode gelap (hex) */
+  primaryGelap?: string;
+  success?: string;
+  warning?: string;
+  danger?: string;
+  info?: string;
+  /** Latar mode terang */
+  latar?: string;
+  /** Latar mode gelap */
+  latarGelap?: string;
+  /** unipo | slate | abu | hangat | zaitun */
+  netral?: string;
+  /** Sudut dasar 0-28 px Contoh: `10` */
+  radius?: number;
+  /** jakarta | inter | poppins | dmsans | sistem | serif */
+  font?: string;
+  /** Sama dengan font, atau sama */
+  fontJudul?: string;
+  /** jetbrains | sistem */
+  fontMono?: string;
+  /** Ukuran teks isi 12-18 px Contoh: `14` */
+  teks?: number;
+  /** tanpa | halus | normal | tegas */
+  bayangan?: string;
+  /** normal | cepat | lambat | tanpa */
+  gerak?: string;
+  muatFont?: boolean;
+  [key: string]: any;
+};
+
+export type TemaInput = {
+  tema?: TemaOpsi;
+  /** Tata letak milik aplikasi (kunci huruf kecil, teks tanpa HTML) */
+  tata?: JsonObject;
+  /** Catatan perubahan (maks. 255) */
+  catatan?: string;
   [key: string]: any;
 };
 

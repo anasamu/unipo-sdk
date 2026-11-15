@@ -2,6 +2,13 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
+## 1.5.0 (belum dirilis)
+
+- Modul baru `qr` (/v1/qr, 9 operasi): generator kode QR modern (warna, gradasi, bentuk modul dan mata, logo, bingkai teks), gaya tersimpan per bagian, PNG bisa disimpan ke berkas terpusat. Butuh SIAKAD yang sudah memuat modul Qr.
+- Modul baru `dokumen` (/v1/dokumen, 21 operasi): templat dokumen per bagian (kertas, kop surat, tanda tangan, QR), penerbitan PDF KRS/KHS/transkrip/kwitansi/surat keluar/dokumen bebas, arsip terbit, dan verifikasi publik (kode dan pencocokan file PDF).
+- Pembantu: `qrSvg()`, `qrPng()`, `cocokkanPdf()`, `kodeDariQr()`, `formatKode()` (Node.js); `Unipo\Siakad\Dokumen\KodeVerifikasi::dariQr()` dan `::format()` (PHP).
+- Spesifikasi diperbarui dari SIAKAD terbaru: 60 modul, 2.950 operasi (termasuk modul `tema`). Tidak ada operasi yang dihapus.
+
 ## 1.4.0 (2026-11-15)
 
 - Modul baru `aturan` (/v1/aturan, 22 operasi): aturan akademik/keuangan dinamis (katalog titik dan indikator, CRUD, aktifkan dengan SK, pengecualian, pengatur, periksa/uji). Butuh SIAKAD yang sudah memuat modul Aturan.

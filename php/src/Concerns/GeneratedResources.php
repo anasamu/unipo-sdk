@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2914 endpoint).
+ * Akses ke semua modul API (2950 endpoint).
  */
 trait GeneratedResources
 {
@@ -71,6 +71,12 @@ trait GeneratedResources
     public function dasbor(): Resources\Dasbor
     {
         return $this->resource(Resources\Dasbor::class);
+    }
+
+    /** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (21 endpoint) */
+    public function dokumen(): Resources\Dokumen
+    {
+        return $this->resource(Resources\Dokumen::class);
     }
 
     /** Dosen, Jadwal (4 endpoint) */
@@ -301,6 +307,12 @@ trait GeneratedResources
         return $this->resource(Resources\Profil::class);
     }
 
+    /** QR: Generator, QR: Gaya (9 endpoint) */
+    public function qr(): Resources\Qr
+    {
+        return $this->resource(Resources\Qr::class);
+    }
+
     /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
     public function rbac(): Resources\Rbac
     {
@@ -341,6 +353,12 @@ trait GeneratedResources
     public function spmi(): Resources\Spmi
     {
         return $this->resource(Resources\Spmi::class);
+    }
+
+    /** Tema (6 endpoint) */
+    public function tema(): Resources\Tema
+    {
+        return $this->resource(Resources\Tema::class);
     }
 
     /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (80 endpoint) */
