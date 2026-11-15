@@ -1065,7 +1065,7 @@ final class Tracer extends Resource
      * `POST /v1/tracer/alumni/{nim}/foto`
      *
      * @param int|string $nim NIM
-     * @param array{berkas: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, berkas_id?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1101,7 +1101,7 @@ final class Tracer extends Resource
      * `POST /v1/tracer/alumni/{nim}/berkas`
      *
      * @param int|string $nim NIM
-     * @param array{berkas: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, jenis: string|null, judul?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, jenis: string|null, judul?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

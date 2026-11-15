@@ -856,7 +856,7 @@ final class Portal extends Resource
      *
      * scope: `portal:write`
      *
-     * @param array{situs: string, berkas: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, judul?: string, alt?: string, alt_en?: string, kredit?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{situs: string, berkas_id?: string, berkas: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, judul?: string, alt?: string, alt_en?: string, kredit?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

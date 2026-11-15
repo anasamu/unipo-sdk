@@ -1559,7 +1559,7 @@ final class Spmi extends Resource
      *
      * @param int|string $entitas dokumen | capaian | kegiatan | tilik | auditee | temuan | tindak_lanjut | rtm | akreditasi | butir | pelaporan | risiko
      * @param int|string $id ID data
-     * @param array{berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, berkas_base64?: string, nama_file?: string, keterangan?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, berkas_base64?: string, nama_file?: string, keterangan?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

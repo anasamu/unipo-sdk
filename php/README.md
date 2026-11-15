@@ -201,6 +201,23 @@ $siakad->konsumsiAntrean('lms.nilai-masuk', function (array $event): void {
 $siakad->terbitkanEvent('lms.tugas_dinilai', ['tugas' => 7, 'nim' => '2201010001', 'nilai' => 88], ['subjek' => '2201010001']);
 ```
 
+## Menerima webhook (event domain)
+
+```php
+use Unipo\Siakad\Webhook\Webhook;
+use Unipo\Siakad\Webhook\WebhookSignatureException;
+
+try {
+    $pesan = Webhook::verifikasi(file_get_contents('php://input'), $_SERVER['HTTP_X_SIAKAD_SIGNATURE'] ?? null, $rahasia);
+} catch (WebhookSignatureException) {
+    http_response_code(401);
+    exit;
+}
+// $pesan['id'] untuk membuang duplikat, $pesan['event'] mis. 'mahasiswa.lulus', $pesan['data']['nim']
+```
+
+Katalog event dan isi datanya: `$siakad->peristiwa()->getKatalog()`.
+
 ## Galat
 
 ```php
