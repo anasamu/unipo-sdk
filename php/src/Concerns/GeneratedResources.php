@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2982 endpoint).
+ * Akses ke semua modul API (2984 endpoint).
  */
 trait GeneratedResources
 {
@@ -91,7 +91,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (46 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (47 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -181,7 +181,7 @@ trait GeneratedResources
         return $this->resource(Resources\Kerjasama::class);
     }
 
-    /** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan (61 endpoint) */
+    /** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan (62 endpoint) */
     public function keu(): Resources\Keu
     {
         return $this->resource(Resources\Keu::class);

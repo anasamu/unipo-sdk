@@ -87,7 +87,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (46 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (47 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -162,7 +162,7 @@ export class Siakad extends SiakadCore {
     return this.resource('kerjasama', () => new R.KerjasamaResource(this));
   }
 
-  /** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan (61 endpoint) */
+  /** Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan (62 endpoint) */
   get keu(): R.KeuResource {
     return this.resource('keu', () => new R.KeuResource(this));
   }

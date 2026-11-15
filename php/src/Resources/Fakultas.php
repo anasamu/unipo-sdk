@@ -375,6 +375,26 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Unit keuangan saya
+     *
+     * Unit induk (fakultas dan prodi) yang boleh dilihat untuk keuangan fakultas (izin fakultas.keuangan), dengan tanda kelola (fakultas.keuangan.kelola). Dekan/operator: fakultas + semua prodi; kaprodi: prodinya. Data keuangan sendiri lewat /v1/keu.
+     *
+     * `GET /v1/fakultas/{kode}/keuangan/unit`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeKeuanganUnit(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/keuangan/unit', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Data modul unit fakultas
      *
      * jenis: surat (arsip surat masuk/keluar unit fakultas + disposisi), kepegawaian (sdm_pegawai), spmi (dokumen + temuan), lppm (usulan penelitian/pengabdian), lms (kelas), cbt (ujian), kalender (kegiatan unit). Hanya baca; ubah data lewat API modulnya.

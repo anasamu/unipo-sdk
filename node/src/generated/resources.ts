@@ -8257,6 +8257,21 @@ export class FakultasResource {
   }
 
   /**
+   * Unit keuangan saya
+   *
+   * Unit induk (fakultas dan prodi) yang boleh dilihat untuk keuangan fakultas (izin fakultas.keuangan), dengan tanda kelola (fakultas.keuangan.kelola). Dekan/operator: fakultas + semua prodi; kaprodi: prodinya. Data keuangan sendiri lewat /v1/keu.
+   *
+   * `GET /v1/fakultas/{kode}/keuangan/unit`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeKeuanganUnit(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/keuangan/unit', query: { ...query, kode } }, options);
+  }
+
+  /**
    * Data modul unit fakultas
    *
    * jenis: surat (arsip surat masuk/keluar unit fakultas + disposisi), kepegawaian (sdm_pegawai), spmi (dokumen + temuan), lppm (usulan penelitian/pengabdian), lms (kelas), cbt (ujian), kalender (kegiatan unit). Hanya baca; ubah data lewat API modulnya.
@@ -19038,6 +19053,30 @@ export class KeuResource {
     kode_prodi?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/keu/pembayaran-mahasiswa', query }, options);
+  }
+
+  /**
+   * Buku kas unit
+   *
+   * Kas masuk (penerimaan lain) dan kas keluar (pengajuan dana dibayar/SPJ) per tanggal dengan saldo berjalan, dihitung dari keu_penerimaan dan keu_realisasi. Pengelola, dibatasi unitnya.
+   *
+   * `GET /v1/keu/kas`
+   *
+   * scope: `keu:read`
+   */
+  getKas(query?: {
+    /** Periode anggaran */
+    periode_id?: number;
+    /** Unit */
+    unit_id?: number;
+    /** 1 = ikut unit turunan (prodi di bawah fakultas) */
+    turunan?: number;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/keu/kas', query }, options);
   }
 
   /**

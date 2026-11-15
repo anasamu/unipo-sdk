@@ -52,6 +52,25 @@ final class Keu extends Resource
     }
 
     /**
+     * Buku kas unit
+     *
+     * Kas masuk (penerimaan lain) dan kas keluar (pengajuan dana dibayar/SPJ) per tanggal dengan saldo berjalan, dihitung dari keu_penerimaan dan keu_realisasi. Pengelola, dibatasi unitnya.
+     *
+     * `GET /v1/keu/kas`
+     *
+     * scope: `keu:read`
+     *
+     * @param array{periode_id?: int, unit_id?: int, turunan?: int, dari?: string, sampai?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/kas', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Notifikasi pembayaran bank
      *
      * Dipanggil aplikasi penghubung bank/payment gateway (token aplikasi dengan keu:write). Body: bank, nomor_va, referensi_bank, jumlah, dibayar_pada (opsional), data (opsional, disimpan apa adanya). Idempoten per bank + referensi_bank. VA aktif ditandai dibayar dan mahasiswa mendapat notifikasi. Tidak menulis ke tabel pembayaran lama.
