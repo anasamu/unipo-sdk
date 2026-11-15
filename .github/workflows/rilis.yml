@@ -159,6 +159,17 @@ jobs:
           node generator/versi.mjs --catatan-rilis > /tmp/catatan.md
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --notes-file /tmp/catatan.md --verify-tag
 
+      - name: Kabari portal api.unipo.ac.id
+        # Portal membangun ulang dokumentasi dan galeri dengan versi baru. Opsional: tanpa secret API_UNIPO_DISPATCH
+        # portal tetap memeriksa npm tiap jam.
+        if: steps.versi.outputs.rilis == '1'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.API_UNIPO_DISPATCH }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "Secret API_UNIPO_DISPATCH belum diisi; portal akan memperbarui sendiri dalam satu jam."; exit 0; fi
+          gh api repos/anasamu/api_unipo/dispatches -f event_type=library-rilis -f "client_payload[sumber]=${{ github.repository }}" -f "client_payload[versi]=${{ steps.versi.outputs.versi }}"
+
       - name: Tandai tanggal rilis di CHANGELOG
         if: steps.versi.outputs.rilis == '1' && github.ref_type != 'tag'
         continue-on-error: true
