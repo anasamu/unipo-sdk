@@ -72,6 +72,7 @@ class SiakadException extends \RuntimeException
             $status === 403 => PermissionException::class,
             $status === 404 => NotFoundException::class,
             $status === 405 => MethodNotAllowedException::class,
+            $status === 409 && $code === 'aturan_dilanggar' => AturanDilanggarException::class,
             $status === 409 => ConflictException::class,
             $status === 413, $status === 415 => PayloadException::class,
             $status === 422 => ValidationException::class,

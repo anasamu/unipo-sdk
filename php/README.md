@@ -242,6 +242,7 @@ try {
 | `NotFoundException` | 404 |
 | `MethodNotAllowedException` | 405 |
 | `ConflictException` | 409 |
+| `AturanDilanggarException` | 409 `aturan_dilanggar`: ditolak aturan dinamis SIAKAD (`/v1/aturan`). `$e->pelanggaran()` berisi `id`, `nama`, `pesan` per aturan; juga `titik()`, `batas()` |
 | `PayloadException` | 413, 415 |
 | `ValidationException` | 422 |
 | `RateLimitException` | 429 (`retryAfter()`) |

@@ -401,9 +401,11 @@ export type KrsPenawaran = {
   alasan?: string | null;
   /** standar, uma, atau umsb */
   mode?: string | null;
+  /** Batas SIAKAD, diperketat aturan batas_nilai sks_diambil */
   batas_sks?: number | null;
   ips_sebelumnya?: number | null;
   sks_terambil?: number | null;
+  aturan?: AturanRingkas;
   mata_kuliah?: Array<{
     /** ID mata kuliah, dikirim saat ambil KRS */
     id?: number | null;
@@ -1844,6 +1846,377 @@ export type ArsipPenyusutanInput = {
   [key: string]: any;
 };
 
+export type Aturan = {
+  /** UUID */
+  id?: string | null;
+  /** Contoh: `SYARAT-KKN` */
+  kode?: string | null;
+  /** Contoh: `Syarat pendaftaran KKN` */
+  nama?: string | null;
+  keterangan?: string | null;
+  /** Contoh: `kkn.daftar` */
+  titik?: string | null;
+  titik_judul?: string | null;
+  /** Contoh: `kemahasiswaan` */
+  kategori?: string | null;
+  /** syarat | batas_waktu | batas_nilai */
+  jenis?: string | null;
+  /** Kosong = semua */
+  cakupan?: {
+    /** Kode prodi */
+    prodi?: Array<string>;
+    /** Kode fakultas (m_program_studi.kode_fak) */
+    fakultas?: Array<string>;
+    jenjang?: Array<string>;
+    /** Titik kelas */
+    kelas?: Array<string>;
+    /** Semester masuk paling awal Contoh: `20221` */
+    angkatan_min?: string | null;
+    /** Semester masuk paling akhir */
+    angkatan_max?: string | null;
+    [key: string]: any;
+  };
+  /** {"semua": [{"indikator": "ipk", "op": ">=", "nilai": 2.75, "pesan": "..."}]} atau {"salah_satu": [...]}; boleh bersarang 3 tingkat */
+  kondisi?: JsonObject | null;
+  /** batas_waktu: {"mulai", "selesai"}; batas_nilai: {"target", "op", "nilai" | "tabel"} */
+  parameter?: JsonObject | null;
+  tahun_id?: string | null;
+  berlaku_mulai?: string | null;
+  berlaku_selesai?: string | null;
+  /** blokir | peringatan */
+  mode?: string | null;
+  pesan?: string | null;
+  prioritas?: number | null;
+  /** draf | aktif | nonaktif */
+  status?: string | null;
+  versi?: number | null;
+  diaktifkan_oleh?: string | null;
+  diaktifkan_at?: string | null;
+  dibuat_oleh?: string | null;
+  diubah_oleh?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  dihapus_at?: string | null;
+  /** Di daftar */
+  jumlah_sk?: number | null;
+  /** Di detail */
+  lampiran?: Array<{
+    /** UUID lampiran */
+    id?: string | null;
+    /** sk | lampiran */
+    jenis?: string | null;
+    /** Contoh: `045/UNIPO/SK/XI/2026` */
+    nomor?: string | null;
+    /** Contoh: `2026-11-15` */
+    tanggal?: string | null;
+    perihal?: string | null;
+    /** UUID berkas terpusat */
+    berkas_id?: string | null;
+    nama_file?: string | null;
+    mime?: string | null;
+    ukuran?: number | null;
+    dilepas_at?: string | null;
+    oleh?: string | null;
+    waktu?: string | null;
+    [key: string]: any;
+  }>;
+  /** Di detail (pengatur) */
+  pengecualian?: Array<{
+    id?: string | null;
+    /** mahasiswa | dosen | prodi */
+    subjek_jenis?: string | null;
+    subjek?: string | null;
+    alasan?: string | null;
+    berlaku_sampai?: string | null;
+    /** Surat/SK dispensasi */
+    berkas_id?: string | null;
+    oleh?: string | null;
+    waktu?: string | null;
+    berlaku?: boolean;
+    [key: string]: any;
+  }>;
+  pengatur?: Array<{
+    /** peran | izin */
+    jenis?: string | null;
+    kode?: string | null;
+    /** titik | kategori | bawaan */
+    sumber?: string | null;
+    [key: string]: any;
+  }>;
+  boleh_atur?: boolean;
+  /** Hanya di respons aktifkan/ubah aturan aktif: hasil penulisan batas_waktu ke tabel batas lama */
+  tulis_tembus?: {
+    diterapkan?: boolean;
+    /** Mengapa tidak ditulis ke tabel lama */
+    alasan?: string | null;
+    /** krs_mhs | krs | krs_dosen | nilai | nilai_dosen | ta | uji_ta */
+    jenis_lama?: string | null;
+    baris?: Array<{
+      id?: number | null;
+      kode_prodi?: string | null;
+      idkp?: string | null;
+      /** {"mulai", "selesai"} */
+      dari?: JsonObject | null;
+      /** {"mulai", "selesai"} */
+      menjadi?: JsonObject | null;
+      [key: string]: any;
+    }>;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+/** Ringkasan aturan dinamis (/v1/aturan) yang disisipkan di respons modul lain */
+export type AturanRingkas = {
+  titik?: string | null;
+  /** false = ada aturan blokir yang tidak terpenuhi */
+  boleh?: boolean;
+  pelanggaran?: Array<{
+    /** UUID aturan */
+    id?: string | null;
+    nama?: string | null;
+    pesan?: string | null;
+    [key: string]: any;
+  }>;
+  peringatan?: Array<{
+    /** UUID aturan */
+    id?: string | null;
+    nama?: string | null;
+    pesan?: string | null;
+    [key: string]: any;
+  }>;
+  /** Batas berlaku, mis. {"sks_diambil": {"op": "<=", "nilai": 21}, "waktu": {"mulai", "selesai"}} */
+  batas?: JsonObject | null;
+  [key: string]: any;
+};
+
+export type AturanInput = {
+  /** Opsional, unik */
+  kode?: string | null;
+  /** Contoh: `Batas input nilai dosen 2026 ganjil` */
+  nama?: string | null;
+  keterangan?: string | null;
+  /** Dari katalog Contoh: `nilai.input.dosen` */
+  titik?: string | null;
+  /** Bawaan kategori pertama titik Contoh: `akademik` */
+  kategori?: string | null;
+  /** Contoh: `batas_waktu` */
+  jenis?: string | null;
+  /** Kosong = semua */
+  cakupan?: {
+    /** Kode prodi */
+    prodi?: Array<string>;
+    /** Kode fakultas (m_program_studi.kode_fak) */
+    fakultas?: Array<string>;
+    jenjang?: Array<string>;
+    /** Titik kelas */
+    kelas?: Array<string>;
+    /** Semester masuk paling awal Contoh: `20221` */
+    angkatan_min?: string | null;
+    /** Semester masuk paling akhir */
+    angkatan_max?: string | null;
+    [key: string]: any;
+  };
+  /** {"semua": [{"indikator": "ipk", "op": ">=", "nilai": 2.75, "pesan": "..."}]} atau {"salah_satu": [...]}; boleh bersarang 3 tingkat */
+  kondisi?: JsonObject | null;
+  parameter?: JsonObject | null;
+  /** Contoh: `20261` */
+  tahun_id?: string | null;
+  /** Masa berlaku aturan */
+  berlaku_mulai?: string | null;
+  berlaku_selesai?: string | null;
+  /** blokir (bawaan) | peringatan */
+  mode?: string | null;
+  /** Pesan pengganti bila tidak terpenuhi */
+  pesan?: string | null;
+  prioritas?: number | null;
+  /** Catatan perubahan (riwayat) */
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type AturanLampiran = {
+  /** UUID lampiran */
+  id?: string | null;
+  /** sk | lampiran */
+  jenis?: string | null;
+  /** Contoh: `045/UNIPO/SK/XI/2026` */
+  nomor?: string | null;
+  /** Contoh: `2026-11-15` */
+  tanggal?: string | null;
+  perihal?: string | null;
+  /** UUID berkas terpusat */
+  berkas_id?: string | null;
+  nama_file?: string | null;
+  mime?: string | null;
+  ukuran?: number | null;
+  dilepas_at?: string | null;
+  oleh?: string | null;
+  waktu?: string | null;
+  [key: string]: any;
+};
+
+export type AturanLampiranInput = {
+  /** UUID dari /v1/berkas */
+  berkas_id?: string | null;
+  /** sk (bawaan) | lampiran */
+  jenis?: string | null;
+  /** Wajib untuk SK */
+  nomor?: string | null;
+  /** YYYY-MM-DD */
+  tanggal?: string | null;
+  perihal?: string | null;
+  [key: string]: any;
+};
+
+export type AturanPengecualian = {
+  id?: string | null;
+  /** mahasiswa | dosen | prodi */
+  subjek_jenis?: string | null;
+  subjek?: string | null;
+  alasan?: string | null;
+  berlaku_sampai?: string | null;
+  /** Surat/SK dispensasi */
+  berkas_id?: string | null;
+  oleh?: string | null;
+  waktu?: string | null;
+  berlaku?: boolean;
+  [key: string]: any;
+};
+
+export type AturanPengecualianInput = {
+  /** mahasiswa | dosen | prodi */
+  subjek_jenis?: string | null;
+  /** NIM, NIDN/username, atau kode prodi */
+  subjek?: string | null;
+  alasan?: string | null;
+  /** YYYY-MM-DD[ HH:MM]; kosong = tanpa batas */
+  berlaku_sampai?: string | null;
+  /** Surat/SK dispensasi (opsional) */
+  berkas_id?: string | null;
+  [key: string]: any;
+};
+
+export type AturanPengaturInput = {
+  /** Contoh: `akademik` */
+  kategori?: string | null;
+  /** Opsional: khusus satu titik */
+  titik?: string | null;
+  pengatur?: Array<{
+    /** peran | izin */
+    jenis?: string | null;
+    /** Contoh: `bak` */
+    kode?: string | null;
+    keterangan?: string | null;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
+export type AturanPeriksaInput = {
+  /** Contoh: `krs.ambil` */
+  titik?: string | null;
+  /** Mahasiswa: kosong = diri sendiri */
+  nim?: string | null;
+  /** Titik kelas */
+  kode_prodi?: string | null;
+  kelas?: string | null;
+  /** NIDN/username untuk pengecualian dosen */
+  dosen?: string | null;
+  /** Bawaan tahun aktif */
+  tahun_id?: string | null;
+  /** Indikator konteks titik, mis. {"sks_diambil": 24} */
+  konteks?: JsonObject | null;
+  /** Uji/admin: waktu pemeriksaan lain */
+  waktu?: string | null;
+  [key: string]: any;
+};
+
+export type AturanHasil = {
+  titik?: string | null;
+  judul?: string | null;
+  tahun_id?: string | null;
+  waktu?: string | null;
+  subjek?: JsonObject | null;
+  /** false bila ada aturan blokir yang dilanggar */
+  boleh?: boolean;
+  pelanggaran?: Array<{
+    id?: number | null;
+    uuid?: string | null;
+    kode?: string | null;
+    nama?: string | null;
+    kategori?: string | null;
+    jenis?: string | null;
+    mode?: string | null;
+    /** Pesan untuk pengguna Contoh: `SKS lulus minimal 100 (sekarang 92).` */
+    pesan?: string | null;
+    /** Kondisi yang gagal: indikator, op, nilai, sekarang, pesan */
+    rincian?: Array<JsonObject | null>;
+    [key: string]: any;
+  }>;
+  peringatan?: Array<{
+    id?: number | null;
+    uuid?: string | null;
+    kode?: string | null;
+    nama?: string | null;
+    kategori?: string | null;
+    jenis?: string | null;
+    mode?: string | null;
+    /** Pesan untuk pengguna Contoh: `SKS lulus minimal 100 (sekarang 92).` */
+    pesan?: string | null;
+    /** Kondisi yang gagal: indikator, op, nilai, sekarang, pesan */
+    rincian?: Array<JsonObject | null>;
+    [key: string]: any;
+  }>;
+  diterapkan?: Array<number>;
+  dikecualikan?: Array<JsonObject | null>;
+  /** Batas yang berlaku: {"waktu": {"mulai", "selesai"}, "sks_diambil": {"op": "<=", "nilai": 21}} */
+  batas?: JsonObject | null;
+  /** Nilai indikator yang dipakai (tidak tampil bila pemanggil tidak berhak melihat data mahasiswa) */
+  indikator?: JsonObject | null;
+  [key: string]: any;
+};
+
+export type AturanKatalog = {
+  kategori?: Array<{
+    kode?: string | null;
+    judul?: string | null;
+    izin_bawaan?: string | null;
+    [key: string]: any;
+  }>;
+  jenis?: Array<{
+    kode?: string | null;
+    judul?: string | null;
+    [key: string]: any;
+  }>;
+  operator?: Array<string>;
+  titik?: Array<{
+    kode?: string | null;
+    judul?: string | null;
+    keterangan?: string | null;
+    kategori?: Array<string>;
+    subjek?: string | null;
+    jenis?: Array<string>;
+    konteks?: Array<string>;
+    indikator?: Array<string>;
+    /** Batas waktu lama yang ikut diperiksa */
+    batas_lama?: string | null;
+    /** Endpoint yang menegakkan */
+    penerapan?: Array<string>;
+    [key: string]: any;
+  }>;
+  indikator?: Array<{
+    kode?: string | null;
+    judul?: string | null;
+    tipe?: string | null;
+    subjek?: string | null;
+    sumber?: string | null;
+    keterangan?: string | null;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
 export type Berkas = {
   /** UUID Contoh: `6f1c2d3e-1111-4a2b-9c3d-123456789abc` */
   id?: string | null;
@@ -1871,6 +2244,9 @@ export type Berkas = {
   klien_id?: string | null;
   jumlah_unduh?: number | null;
   dibuat_at?: string | null;
+  /** Hanya untuk berkas di sampah (admin, ?terhapus=1) */
+  dihapus_at?: string | null;
+  dihapus_oleh?: string | null;
   /** Path unduh bertoken Contoh: `/v1/berkas/6f1c2d3e-1111-4a2b-9c3d-123456789abc/unduh` */
   unduh?: string | null;
   /** Tautan unduh sementara (tanpa token) */
@@ -2012,6 +2388,91 @@ export type BerkasUbah = {
   nama?: string | null;
   kategori?: string | null;
   keterangan?: string | null;
+  /** Pindah ke folder; null/"" = akar Contoh: `Surat Masuk/2026` */
+  folder?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasFolder = {
+  /** Contoh: `Surat Masuk/2026` */
+  path?: string | null;
+  /** Contoh: `2026` */
+  nama?: string | null;
+  /** Contoh: `Surat Masuk` */
+  induk?: string | null;
+  /** Berkas langsung di folder ini */
+  jumlah_berkas?: number | null;
+  /** Byte, isi langsung */
+  ukuran?: number | null;
+  /** Termasuk subfolder */
+  total_berkas?: number | null;
+  /** Byte, termasuk subfolder */
+  total_ukuran?: number | null;
+  jumlah_subfolder?: number | null;
+  /** abu, merah, oranye, kuning, hijau, teal, biru, ungu, merah_muda */
+  warna?: string | null;
+  dibuat_at?: string | null;
+  terakhir_isi_at?: string | null;
+  /** Hanya pada ubah */
+  berkas_dipindah?: number | null;
+  [key: string]: any;
+};
+
+export type BerkasFolderDaftar = {
+  akar?: {
+    jumlah_berkas?: number | null;
+    ukuran?: number | null;
+    total_berkas?: number | null;
+    total_ukuran?: number | null;
+    jumlah_subfolder?: number | null;
+    [key: string]: any;
+  };
+  folder?: Array<BerkasFolder>;
+  [key: string]: any;
+};
+
+export type BerkasFolderBuat = {
+  /** Contoh: `Surat Masuk` */
+  nama: string | null;
+  /** Path induk; kosong = akar */
+  induk?: string | null;
+  /** Contoh: `biru` */
+  warna?: string | null;
+  /** Contoh: `arsip` */
+  modul?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasFolderUbah = {
+  /** Contoh: `Surat Masuk` */
+  path: string | null;
+  /** Contoh: `Surat Masuk 2026` */
+  nama?: string | null;
+  /** null = akar */
+  induk_baru?: string | null;
+  warna?: string | null;
+  modul?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasFolderHapus = {
+  /** Contoh: `Draf` */
+  path: string | null;
+  /** Berkas di dalamnya ikut ke sampah */
+  isi?: boolean;
+  modul?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasPindahBanyak = {
+  id: Array<string | null>;
+  /** null/"" = akar */
+  folder: string | null;
+  [key: string]: any;
+};
+
+export type BerkasHapusBanyak = {
+  id: Array<string | null>;
   [key: string]: any;
 };
 
@@ -2958,6 +3419,270 @@ export type IndukLog = {
 };
 
 export type IndukLogInput = JsonObject;
+
+export type InfraStatus = {
+  /** normal, sebagian_terganggu, gangguan, tidak_diketahui Contoh: `normal` */
+  status?: string | null;
+  layanan?: Array<{
+    /** Contoh: `sso` */
+    kode?: string | null;
+    /** Contoh: `SSO UNIPO` */
+    nama?: string | null;
+    /** monolith, layanan, frontend, eksternal */
+    jenis?: string | null;
+    /** sehat, terganggu, mati, tidak_diketahui Contoh: `sehat` */
+    status?: string | null;
+    /** Contoh: `120` */
+    latensi_ms?: number | null;
+    diperiksa_at?: string | null;
+    berubah_at?: string | null;
+    /** Persen cek yang tidak mati dalam 24 jam */
+    uptime_24j?: number | null;
+    [key: string]: any;
+  }>;
+  diperbarui_at?: string | null;
+  [key: string]: any;
+};
+
+export type InfraLayanan = {
+  /** UUID */
+  id?: string | null;
+  /** Contoh: `lms` */
+  kode?: string | null;
+  /** Contoh: `LMS e-learning` */
+  nama?: string | null;
+  /** monolith, layanan, frontend, eksternal Contoh: `layanan` */
+  jenis?: string | null;
+  /** Tujuan proxy gerbang Contoh: `https://e-learning.unipo.ac.id` */
+  url_dasar?: string | null;
+  /** Contoh: `https://e-learning.unipo.ac.id/bff/sehat` */
+  url_kesehatan?: string | null;
+  /** Menit Contoh: `5` */
+  interval_cek?: number | null;
+  /** Contoh: `2000` */
+  batas_lambat_ms?: number | null;
+  /** Klien API milik layanan */
+  klien_id?: string | null;
+  pemilik?: string | null;
+  repositori?: string | null;
+  keterangan?: string | null;
+  aktif?: boolean;
+  /** sehat, terganggu, mati, tidak_diketahui Contoh: `sehat` */
+  status?: string | null;
+  latensi_ms?: number | null;
+  kode_http?: number | null;
+  /** Dilaporkan health check */
+  versi?: string | null;
+  galat?: string | null;
+  gagal_beruntun?: number | null;
+  /** Sudah punya kunci HMAC header identitas */
+  kunci_gerbang?: boolean;
+  uptime_24j?: number | null;
+  diperiksa_at?: string | null;
+  berubah_at?: string | null;
+  dibuat_at?: string | null;
+  diubah_at?: string | null;
+  [key: string]: any;
+};
+
+export type InfraLayananInput = {
+  /** Wajib saat daftar; huruf kecil/angka/- Contoh: `lms` */
+  kode?: string | null;
+  /** Contoh: `LMS e-learning` */
+  nama?: string | null;
+  /** monolith, layanan, frontend, eksternal Contoh: `layanan` */
+  jenis?: string | null;
+  /** Contoh: `https://e-learning.unipo.ac.id` */
+  url_dasar?: string | null;
+  /** Contoh: `https://e-learning.unipo.ac.id/bff/sehat` */
+  url_kesehatan?: string | null;
+  /** 1-1440 menit Contoh: `5` */
+  interval_cek?: number | null;
+  /** 100-60000 Contoh: `2000` */
+  batas_lambat_ms?: number | null;
+  /** Klien API layanan (boleh menerbitkan event berawalan kode) Contoh: `lms-bff` */
+  klien_id?: string | null;
+  /** Contoh: `Pustikom` */
+  pemilik?: string | null;
+  repositori?: string | null;
+  keterangan?: string | null;
+  aktif?: boolean;
+  [key: string]: any;
+};
+
+export type InfraRute = {
+  /** UUID */
+  id?: string | null;
+  /** Contoh: `LMS` */
+  nama?: string | null;
+  /** Contoh: `/v1/lms` */
+  awalan?: string | null;
+  /** Kosong = semua */
+  metode?: Array<string | null>;
+  /** monolith atau layanan Contoh: `monolith` */
+  tujuan?: string | null;
+  /** Kode layanan tujuan */
+  layanan?: string | null;
+  layanan_nama?: string | null;
+  layanan_status?: string | null;
+  /** Pengganti awalan di layanan tujuan */
+  jalur_tujuan?: string | null;
+  /** token, publik, lewat Contoh: `token` */
+  autentikasi?: string | null;
+  scope?: Array<string | null>;
+  batas_per_menit?: number | null;
+  /** Contoh: `30` */
+  timeout_detik?: number | null;
+  pemeliharaan?: boolean;
+  pesan_pemeliharaan?: string | null;
+  aktif?: boolean;
+  catatan?: string | null;
+  dibuat_at?: string | null;
+  diubah_at?: string | null;
+  [key: string]: any;
+};
+
+export type InfraRuteInput = {
+  /** Contoh: `LMS (microservice)` */
+  nama?: string | null;
+  /** Berawalan /v1/ Contoh: `/v1/lms` */
+  awalan?: string | null;
+  /** GET, POST, ...; kosong = semua */
+  metode?: Array<string | null>;
+  /** monolith (bawaan) atau layanan Contoh: `layanan` */
+  tujuan?: string | null;
+  /** Kode layanan (wajib untuk tujuan layanan) Contoh: `lms` */
+  layanan?: string | null;
+  /** Ganti awalan dengan path ini Contoh: `/api/v1/lms` */
+  jalur_tujuan?: string | null;
+  /** token (bawaan), publik, lewat Contoh: `token` */
+  autentikasi?: string | null;
+  /** Scope wajib (autentikasi token) */
+  scope?: Array<string | null>;
+  /** Per klien/IP; null = tanpa batas rute Contoh: `600` */
+  batas_per_menit?: number | null;
+  /** 1-300 Contoh: `30` */
+  timeout_detik?: number | null;
+  pemeliharaan?: boolean;
+  /** Contoh: `LMS sedang dipindahkan, kembali pukul 22.00 WITA` */
+  pesan_pemeliharaan?: string | null;
+  aktif?: boolean;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type InfraRahasia = {
+  /** UUID */
+  id?: string | null;
+  /** Contoh: `pmb` */
+  ruang?: string | null;
+  /** produksi atau development */
+  lingkungan?: string | null;
+  /** Contoh: `XENDIT_SECRET_KEY` */
+  nama?: string | null;
+  /** teks atau berkas */
+  jenis?: string | null;
+  mime?: string | null;
+  keterangan?: string | null;
+  /** Contoh: `1` */
+  versi_aktif?: number | null;
+  rotasi_hari?: number | null;
+  dirotasi_at?: string | null;
+  perlu_rotasi?: boolean;
+  kedaluwarsa_at?: string | null;
+  /** Kurang dari 30 hari */
+  kedaluwarsa_segera?: boolean;
+  terakhir_dibaca_at?: string | null;
+  dibuat_oleh?: string | null;
+  diubah_oleh?: string | null;
+  dibuat_at?: string | null;
+  diubah_at?: string | null;
+  /** Hanya di detail */
+  versi?: Array<{
+    versi?: number | null;
+    /** Sidik jari 16 hex */
+    sidik?: string | null;
+    ukuran?: number | null;
+    aktif?: boolean;
+    dibuat_oleh?: string | null;
+    dibuat_at?: string | null;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
+export type InfraRahasiaInput = {
+  /** Wajib saat buat Contoh: `pmb` */
+  ruang?: string | null;
+  /** produksi (bawaan) atau development */
+  lingkungan?: string | null;
+  /** Teks: NAMA_VARIABEL; berkas: nama file Contoh: `XENDIT_SECRET_KEY` */
+  nama?: string | null;
+  /** teks (bawaan) atau berkas */
+  jenis?: string | null;
+  /** Isi rahasia teks (maks. 64 KB) */
+  nilai?: string | null;
+  /** Isi berkas base64 (maks. 1 MB) */
+  berkas_base64?: string | null;
+  /** Contoh: `application/json` */
+  mime?: string | null;
+  keterangan?: string | null;
+  /** Pengingat rotasi Contoh: `90` */
+  rotasi_hari?: number | null;
+  /** YYYY-MM-DD */
+  kedaluwarsa_at?: string | null;
+  [key: string]: any;
+};
+
+export type InfraAntrean = {
+  /** UUID */
+  id?: string | null;
+  /** Contoh: `lms.nilai-masuk` */
+  kode?: string | null;
+  nama?: string | null;
+  klien_id?: string | null;
+  /** Pola jenis event */
+  jenis_event?: Array<string | null>;
+  /** Contoh: `60` */
+  visibilitas_detik?: number | null;
+  /** Contoh: `5` */
+  maks_percobaan?: number | null;
+  /** Contoh: `7` */
+  retensi_hari?: number | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  statistik?: {
+    siap?: number | null;
+    diproses?: number | null;
+    selesai?: number | null;
+    /** Dead letter */
+    mati?: number | null;
+    tertua_menunggu_detik?: number | null;
+    [key: string]: any;
+  };
+  dibuat_at?: string | null;
+  diubah_at?: string | null;
+  [key: string]: any;
+};
+
+export type InfraAntreanInput = {
+  /** Wajib saat buat Contoh: `lms.nilai-masuk` */
+  kode?: string | null;
+  nama?: string | null;
+  /** mis. ["akademik.*", "admisi.nim_diterbitkan"] */
+  jenis_event?: Array<string | null>;
+  /** 5-43200 Contoh: `60` */
+  visibilitas_detik?: number | null;
+  /** 1-100 Contoh: `5` */
+  maks_percobaan?: number | null;
+  /** 1-30 Contoh: `7` */
+  retensi_hari?: number | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  /** Admin: buat antrean untuk klien lain */
+  klien_id?: string | null;
+  [key: string]: any;
+};
 
 export type IntegrasiDriver = {
   /** Contoh: `xendit` */
@@ -8812,6 +9537,7 @@ export type PmbGelombangDetail = {
     nama_prodi?: string | null;
     jenjang?: string | null;
     kode_fakultas?: string | null;
+    nama_fakultas?: string | null;
     kuota?: number | null;
     jumlah_peminat?: number | null;
     [key: string]: any;
@@ -10083,6 +10809,9 @@ export type RbacAplikasi = {
   keterangan?: string;
   jenis?: "web" | "mobile" | "layanan" | "api";
   url?: string;
+  visibilitas?: "publik" | "privat";
+  url_android?: string;
+  url_ios?: string;
   client_id_api?: string;
   client_id_sso?: string;
   /** (hanya baca) Hanya dibaca. */
@@ -10101,6 +10830,9 @@ export type RbacAplikasiInput = {
   keterangan?: string;
   jenis?: "web" | "mobile" | "layanan" | "api";
   url?: string;
+  visibilitas?: "publik" | "privat";
+  url_android?: string;
+  url_ios?: string;
   client_id_api?: string;
   client_id_sso?: string;
   aktif?: boolean;

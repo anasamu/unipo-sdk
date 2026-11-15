@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Berkas, Berkas: Unggah bertahap
+ * Berkas, Berkas: Unggah bertahap, Berkas: Folder
  */
 final class Berkas extends Resource
 {
@@ -35,13 +35,13 @@ final class Berkas extends Resource
     /**
      * Daftar berkas saya
      *
-     * Token pengguna: berkas milik pengguna itu. Token aplikasi: berkas yang diunggah aplikasi itu. berkas:admin: semua (filter `pemilik`, `klien_id`).
+     * Token pengguna: berkas milik pengguna itu. Token aplikasi: berkas yang diunggah aplikasi itu. berkas:admin: semua (filter `pemilik`, `klien_id`), dan `?terhapus=1` untuk sampah.
      *
      * `GET /v1/berkas`
      *
      * scope: `berkas:read` · berhalaman
      *
-     * @param array{kategori?: string, modul?: string, status?: string, folder?: string, q?: string, pemilik?: string, klien_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{kategori?: string, modul?: string, status?: string, folder?: string, dalam?: string, jenis?: string, ekstensi?: string, urut?: string, q?: string, pemilik?: string, klien_id?: string, terhapus?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -129,6 +129,120 @@ final class Berkas extends Resource
     }
 
     /**
+     * Daftar folder saya
+     *
+     * Semua folder pemanggil (pohon datar: `path`, `induk`, `nama`) dengan jumlah dan ukuran isi langsung maupun total termasuk subfolder, plus ringkasan `akar`. Folder berasal dari kolom `folder` berkas dan folder kosong yang dibuat lewat POST /v1/berkas/folder. Isi folder: GET /v1/berkas?folder=path (atau `folder=/` untuk akar, `dalam=path` termasuk subfolder).
+     *
+     * `GET /v1/berkas/folder`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{modul?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFolder(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/folder', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat folder
+     *
+     * Body: `nama`, opsional `induk` (path folder induk; kosong = akar), `warna`, `modul`. Nama boleh berisi spasi dan huruf apa pun (mis. "Surat Masuk 2026"). 409 folder_sudah_ada.
+     *
+     * `POST /v1/berkas/folder`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{nama: string|null, induk?: string|null, warna?: string|null, modul?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFolder(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/folder', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ganti nama, pindah, atau ganti warna folder
+     *
+     * Body: `path` (folder yang diubah), opsional `nama` (nama baru), `induk_baru` (null = akar), `warna`, `modul`. Subfolder dan berkas di dalamnya ikut; isi file di penyimpanan tidak dipindah.
+     *
+     * `POST /v1/berkas/folder/ubah`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{path: string|null, nama?: string|null, induk_baru?: string|null, warna?: string|null, modul?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFolderUbah(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/folder/ubah', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus folder
+     *
+     * Body: `path`, opsional `isi` (true = berkas di dalamnya ikut pindah ke sampah), `modul`. Folder berisi tanpa `isi` ditolak 409 folder_berisi; berkas yang masih dipakai data modul membatalkan seluruhnya (409 berkas_dipakai). Hapus permanen tetap hanya admin.
+     *
+     * `POST /v1/berkas/folder/hapus`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{path: string|null, isi?: bool, modul?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFolderHapus(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/folder/hapus', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pindahkan banyak berkas
+     *
+     * Body: `id` (1-100 UUID), `folder` (path tujuan; null/"" = akar). Hasil: `dipindah` dan `gagal` per berkas.
+     *
+     * `POST /v1/berkas/pindah`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{id: list<mixed>, folder: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPindah(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/pindah', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus banyak berkas
+     *
+     * Body: `id` (1-100 UUID). Soft delete seperti /v1/berkas/{id}/hapus; berkas yang masih dipakai dilaporkan di `gagal`.
+     *
+     * `POST /v1/berkas/hapus-banyak`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{id: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postHapusBanyak(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/hapus-banyak', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Detail berkas
      *
      * Termasuk `url` sementara, status sesi unggah bertahap (`sesi.diterima` untuk melanjutkan unggahan yang terputus), dan `dipakai` (data modul yang memakai berkas ini).
@@ -151,7 +265,7 @@ final class Berkas extends Resource
     /**
      * Hapus berkas
      *
-     * Sama dengan POST /v1/berkas/{id}/hapus.
+     * Sama dengan POST /v1/berkas/{id}/hapus (soft delete).
      *
      * `DELETE /v1/berkas/{id}`
      *
@@ -209,16 +323,16 @@ final class Berkas extends Resource
     }
 
     /**
-     * Ubah nama/kategori/keterangan
+     * Ubah nama/kategori/keterangan/folder
      *
-     * Body: `nama` (ekstensi tetap), `kategori`, `keterangan`. Isi file tidak bisa diganti; unggah berkas baru.
+     * Body: `nama` (ekstensi tetap), `kategori`, `keterangan`, `folder` (pindah; null/"" = akar). Isi file tidak bisa diganti; unggah berkas baru.
      *
      * `POST /v1/berkas/{id}/ubah`
      *
      * scope: `berkas:write`
      *
      * @param int|string $id UUID berkas
-     * @param array{nama?: string|null, kategori?: string|null, keterangan?: string|null, ...} $body
+     * @param array{nama?: string|null, kategori?: string|null, keterangan?: string|null, folder?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -231,7 +345,7 @@ final class Berkas extends Resource
     /**
      * Hapus berkas (POST)
      *
-     * Ditolak (409 berkas_dipakai) bila masih dipakai data modul; berkas:admin bisa `?paksa=1`.
+     * Soft delete: berkas pindah ke sampah dan tidak tampil lagi, isinya tetap di penyimpanan. Hapus permanen hanya admin lewat /hapus-permanen. Ditolak (409 berkas_dipakai) bila masih dipakai data modul; berkas:admin bisa `?paksa=1`.
      *
      * `POST /v1/berkas/{id}/hapus`
      *
@@ -246,6 +360,46 @@ final class Berkas extends Resource
     public function postByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/berkas/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pulihkan dari sampah (admin)
+     *
+     * Mengembalikan berkas yang dihapus pengguna atau yang lampirannya dihapus.
+     *
+     * `POST /v1/berkas/{id}/pulihkan`
+     *
+     * scope: `berkas:admin`
+     *
+     * @param int|string $id UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdPulihkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/{id}/pulihkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus permanen (admin)
+     *
+     * Isi file ikut dihapus dari penyimpanan (S3/R2/MinIO/Google Drive/disk) dan tidak bisa dipulihkan. Berlaku untuk berkas di sampah maupun yang aktif (`?paksa=1` bila masih dipakai).
+     *
+     * `POST /v1/berkas/{id}/hapus-permanen`
+     *
+     * scope: `berkas:admin`
+     *
+     * @param int|string $id UUID berkas
+     * @param array{paksa?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdHapusPermanen(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/{id}/hapus-permanen', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

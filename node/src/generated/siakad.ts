@@ -47,7 +47,12 @@ export class Siakad extends SiakadCore {
     return this.resource('arsip', () => new R.ArsipResource(this));
   }
 
-  /** Berkas, Berkas: Unggah bertahap (16 endpoint) */
+  /** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian (22 endpoint) */
+  get aturan(): R.AturanResource {
+    return this.resource('aturan', () => new R.AturanResource(this));
+  }
+
+  /** Berkas, Berkas: Unggah bertahap, Berkas: Folder (24 endpoint) */
   get berkas(): R.BerkasResource {
     return this.resource('berkas', () => new R.BerkasResource(this));
   }
@@ -100,6 +105,11 @@ export class Siakad extends SiakadCore {
   /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit (38 endpoint) */
   get induk(): R.IndukResource {
     return this.resource('induk', () => new R.IndukResource(this));
+  }
+
+  /** Infra: Layanan, Infra: Gerbang API, Infra: Rahasia, Infra: Antrean (48 endpoint) */
+  get infra(): R.InfraResource {
+    return this.resource('infra', () => new R.InfraResource(this));
   }
 
   /** Integrasi: Status, Integrasi: Pengaturan, Integrasi: Captcha, Integrasi: Pembayaran, Integrasi: Berkas, Integrasi: Cache, Integrasi: Email & WhatsApp, Integrasi: Webhook keluar, Integrasi: Rapat daring, Integrasi: Tanda tangan elektronik, Integrasi: AI (66 endpoint) */
@@ -217,6 +227,11 @@ export class Siakad extends SiakadCore {
     return this.resource('notif', () => new R.NotifResource(this));
   }
 
+  /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (29 endpoint) */
+  get obrolan(): R.ObrolanResource {
+    return this.resource('obrolan', () => new R.ObrolanResource(this));
+  }
+
   /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data (25 endpoint) */
   get pddikti(): R.PddiktiResource {
     return this.resource('pddikti', () => new R.PddiktiResource(this));
@@ -242,12 +257,12 @@ export class Siakad extends SiakadCore {
     return this.resource('portal', () => new R.PortalResource(this));
   }
 
-  /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (86 endpoint) */
+  /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (87 endpoint) */
   get profil(): R.ProfilResource {
     return this.resource('profil', () => new R.ProfilResource(this));
   }
 
-  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (61 endpoint) */
+  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
   get rbac(): R.RbacResource {
     return this.resource('rbac', () => new R.RbacResource(this));
   }

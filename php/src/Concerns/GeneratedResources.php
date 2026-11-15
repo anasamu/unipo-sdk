@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (2805 endpoint).
+ * Akses ke semua modul API (2914 endpoint).
  */
 trait GeneratedResources
 {
@@ -43,7 +43,13 @@ trait GeneratedResources
         return $this->resource(Resources\Arsip::class);
     }
 
-    /** Berkas, Berkas: Unggah bertahap (16 endpoint) */
+    /** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian (22 endpoint) */
+    public function aturan(): Resources\Aturan
+    {
+        return $this->resource(Resources\Aturan::class);
+    }
+
+    /** Berkas, Berkas: Unggah bertahap, Berkas: Folder (24 endpoint) */
     public function berkas(): Resources\Berkas
     {
         return $this->resource(Resources\Berkas::class);
@@ -107,6 +113,12 @@ trait GeneratedResources
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
+    }
+
+    /** Infra: Layanan, Infra: Gerbang API, Infra: Rahasia, Infra: Antrean (48 endpoint) */
+    public function infra(): Resources\Infra
+    {
+        return $this->resource(Resources\Infra::class);
     }
 
     /** Integrasi: Status, Integrasi: Pengaturan, Integrasi: Captcha, Integrasi: Pembayaran, Integrasi: Berkas, Integrasi: Cache, Integrasi: Email & WhatsApp, Integrasi: Webhook keluar, Integrasi: Rapat daring, Integrasi: Tanda tangan elektronik, Integrasi: AI (66 endpoint) */
@@ -247,6 +259,12 @@ trait GeneratedResources
         return $this->resource(Resources\Notif::class);
     }
 
+    /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (29 endpoint) */
+    public function obrolan(): Resources\Obrolan
+    {
+        return $this->resource(Resources\Obrolan::class);
+    }
+
     /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data (25 endpoint) */
     public function pddikti(): Resources\Pddikti
     {
@@ -277,13 +295,13 @@ trait GeneratedResources
         return $this->resource(Resources\Portal::class);
     }
 
-    /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (86 endpoint) */
+    /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (87 endpoint) */
     public function profil(): Resources\Profil
     {
         return $this->resource(Resources\Profil::class);
     }
 
-    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (61 endpoint) */
+    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
     public function rbac(): Resources\Rbac
     {
         return $this->resource(Resources\Rbac::class);

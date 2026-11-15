@@ -74,6 +74,25 @@ final class Profil extends Resource
     }
 
     /**
+     * Orang tua dan wali saya
+     *
+     * Mahasiswa/alumni: `anggota[]` ayah, ibu, wali dari data orang tua SIAKAD (nama, tanggal lahir, agama, pendidikan, pekerjaan, penghasilan, status hidup dengan label, alamat, kontak). Hanya baca; peran lain mendapat `berlaku: false`.
+     *
+     * `GET /v1/profil/saya/keluarga`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaKeluarga(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/keluarga', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Pas foto saya
      *
      * Respons gambar (bukan JSON).

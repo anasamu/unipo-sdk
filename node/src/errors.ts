@@ -71,6 +71,50 @@ export class MethodNotAllowedError extends SiakadError {}
 /** 409: tidak bisa diproses pada kondisi sekarang (mis. masa KRS tutup). */
 export class ConflictError extends SiakadError {}
 
+/** Satu aturan dinamis yang tidak terpenuhi (dari `/v1/aturan`). */
+export interface PelanggaranAturan {
+  /** UUID aturan. */
+  id: string;
+  nama: string;
+  /** Pesan siap tampil, mis. "SKS lulus minimal 100 (sekarang 92)." */
+  pesan: string;
+  [k: string]: unknown;
+}
+
+/**
+ * 409 `aturan_dilanggar`: langkah ditolak aturan dinamis SIAKAD (mis. batas SKS, syarat KKN, batas input nilai,
+ * syarat bayar). `message` sudah berisi semua pesan pelanggaran; `pelanggaran` merinci per aturan.
+ *
+ * ```ts
+ * try { await siakad.mahasiswa.postKrs(...) } catch (e) {
+ *   if (e instanceof AturanDilanggarError) tampilkan(e.pelanggaran.map((p) => p.pesan));
+ * }
+ * ```
+ */
+export class AturanDilanggarError extends ConflictError {
+  /** Hasil pemeriksaan aturan: `titik`, `boleh`, `pelanggaran`, `peringatan`, `batas`. */
+  get aturan(): Record<string, unknown> {
+    const a = this.details['aturan'];
+    return a && typeof a === 'object' ? (a as Record<string, unknown>) : {};
+  }
+
+  /** Titik penerapan, mis. `krs.ambil`, `kkn.daftar`. */
+  get titik(): string | null {
+    return typeof this.aturan['titik'] === 'string' ? (this.aturan['titik'] as string) : null;
+  }
+
+  get pelanggaran(): PelanggaranAturan[] {
+    const p = this.aturan['pelanggaran'];
+    return Array.isArray(p) ? (p as PelanggaranAturan[]) : [];
+  }
+
+  /** Batas yang berlaku, mis. `{ sks_diambil: { op: '<=', nilai: 21 } }`. */
+  get batas(): Record<string, unknown> {
+    const b = this.aturan['batas'];
+    return b && typeof b === 'object' ? (b as Record<string, unknown>) : {};
+  }
+}
+
 /** 413/415: body terlalu besar atau jenisnya tidak didukung. */
 export class PayloadError extends SiakadError {}
 
@@ -106,7 +150,7 @@ export function errorFromStatus(
   if (status === 403) return new PermissionError(message, args);
   if (status === 404) return new NotFoundError(message, args);
   if (status === 405) return new MethodNotAllowedError(message, args);
-  if (status === 409) return new ConflictError(message, args);
+  if (status === 409) return args.code === 'aturan_dilanggar' ? new AturanDilanggarError(message, args) : new ConflictError(message, args);
   if (status === 413 || status === 415) return new PayloadError(message, args);
   if (status === 422) return new ValidationError(message, args);
   if (status === 429) return new RateLimitError(message, args);

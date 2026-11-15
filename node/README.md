@@ -211,6 +211,7 @@ try {
 | `NotFoundError` | 404 |
 | `MethodNotAllowedError` | 405 |
 | `ConflictError` | 409 |
+| `AturanDilanggarError` | 409 `aturan_dilanggar`: ditolak aturan dinamis SIAKAD (`/v1/aturan`). `e.pelanggaran` berisi `{ id, nama, pesan }` per aturan, `e.titik`, `e.batas` |
 | `PayloadError` | 413, 415 |
 | `ValidationError` | 422 |
 | `RateLimitError` | 429 (`retryAfter`) |
