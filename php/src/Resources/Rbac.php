@@ -97,6 +97,28 @@ final class Rbac extends Resource
     }
 
     /**
+     * Aplikasi publik
+     *
+     * Tanpa token. Aplikasi aktif dengan `visibilitas` publik dan jenis web atau mobile, urut seperti di Pustikom. Dipakai dasbor
+     * SSO dan daftar aplikasi kampus. `platform` merangkum yang tersedia: `web` (tombol Buka ke `url`), `android` (`url_android`),
+     * `ios` (`url_ios`). Logo diambil dari klien SSO `client_id_sso` (`https://sso.unipo.ac.id/logos/<client_id>.png`).
+     * `?jenis=web|mobile` menyaring.
+     *
+     * `GET /v1/rbac/aplikasi-publik`
+     *
+     * publik (tanpa token)
+     *
+     * @param array{jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAplikasiPublik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/aplikasi-publik', [], $query, null, $options, false, true);
+    }
+
+    /**
      * Katalog izin per aplikasi
      *
      * Aplikasi aktif beserta izinnya, dan daftar peran aktif. `?aplikasi=` membatasi ke satu aplikasi.
@@ -581,13 +603,13 @@ final class Rbac extends Resource
     /**
      * Aplikasi: daftar
      *
-     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). Semua pemilik token ber-scope rbac:read.
+     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
      *
      * `GET /v1/rbac/aplikasi`
      *
      * scope: `rbac:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, jenis?: string, sistem?: string, aktif?: string, kode?: string, client_id_api?: string, client_id_sso?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, jenis?: string, visibilitas?: string, sistem?: string, aktif?: string, kode?: string, client_id_api?: string, client_id_sso?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -606,7 +628,7 @@ final class Rbac extends Resource
      *
      * scope: `rbac:write`
      *
-     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -619,7 +641,7 @@ final class Rbac extends Resource
     /**
      * Aplikasi: detail
      *
-     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). Semua pemilik token ber-scope rbac:read.
+     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
      *
      * `GET /v1/rbac/aplikasi/{id}`
      *
@@ -646,7 +668,7 @@ final class Rbac extends Resource
      * scope: `rbac:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

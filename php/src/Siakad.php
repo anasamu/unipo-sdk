@@ -40,7 +40,7 @@ class Siakad
 {
     use GeneratedResources;
 
-    public const VERSION = '1.3.1';
+    public const VERSION = '1.4.0';
 
     /** Token dianggap habis bila sisa umurnya kurang dari ini (detik). */
     private const EXPIRY_MARGIN = 60;

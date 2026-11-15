@@ -2,6 +2,12 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
+## 1.4.0 (belum dirilis)
+
+- Modul baru `aturan` (/v1/aturan, 22 operasi): aturan akademik/keuangan dinamis (katalog titik dan indikator, CRUD, aktifkan dengan SK, pengecualian, pengatur, periksa/uji). Butuh SIAKAD yang sudah memuat modul Aturan.
+- Galat baru `AturanDilanggarError` (Node.js) dan `AturanDilanggarException` (PHP) untuk 409 `aturan_dilanggar`: turunan galat 409 yang sudah ada, dengan `titik`, `pelanggaran` (pesan per aturan), dan `batas`.
+- Spesifikasi diperbarui dari SIAKAD terbaru: 57 modul, 2.914 operasi (operasi baru juga di `berkas` folder/pindah/pulihkan, `infra`, dan lainnya). Tidak ada operasi yang dihapus.
+
 ## 1.3.1 (2026-11-15)
 
 - Pembantu microservices: verifikasiGerbang, konsumsiAntrean, muatRahasia, terbitkanEvent (#7)

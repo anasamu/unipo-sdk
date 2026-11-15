@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  AturanDilanggarError,
   AuthenticationError,
+  ConflictError,
   MemoryTokenStore,
   NotFoundError,
   PermissionError,
@@ -77,6 +79,19 @@ test('galat dipetakan ke kelas yang sesuai', async () => {
   await assert.rejects(s.mahasiswa.getByNim('404'), (e) => e instanceof NotFoundError && e.requestId === 'x1' && e.status === 404);
   await assert.rejects(s.mahasiswa.getByNim('403'), (e) => e instanceof PermissionError && e.requiredScopes[0] === 'nilai:read');
   await assert.rejects(s.mahasiswa.getByNim('422'), (e) => e instanceof ValidationError && e.fields.nim === 'Wajib.');
+});
+
+test('409 aturan_dilanggar menjadi AturanDilanggarError dengan rincian aturan', async () => {
+  const aturan = { titik: 'krs.ambil', boleh: false, pelanggaran: [{ id: 'u1', nama: 'Batas SKS', pesan: 'SKS yang diambil maksimal 6 (sekarang 10).' }], peringatan: [], batas: { sks_diambil: { op: '<=', nilai: 6 } } };
+  const fetch = mockFetch((c) => {
+    if (c.path === '/v1/auth/token') return { body: token() };
+    if (c.path.endsWith('/A')) return { status: 409, body: { error: { code: 'aturan_dilanggar', message: aturan.pelanggaran[0].pesan, details: { aturan } } } };
+    return { status: 409, body: { error: { code: 'conflict', message: 'Masa KRS tutup.' } } };
+  });
+  const s = new Siakad(opts(fetch));
+  await assert.rejects(s.mahasiswa.getByNim('A'), (e) =>
+    e instanceof AturanDilanggarError && e instanceof ConflictError && e.titik === 'krs.ambil' && e.pelanggaran[0].nama === 'Batas SKS' && e.batas.sks_diambil.nilai === 6);
+  await assert.rejects(s.mahasiswa.getByNim('B'), (e) => e instanceof ConflictError && !(e instanceof AturanDilanggarError));
 });
 
 test('429 diulang setelah Retry-After', async () => {

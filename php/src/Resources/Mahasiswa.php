@@ -97,7 +97,8 @@ final class Mahasiswa extends Resource
      *
      * Hanya token pengguna mahasiswa itu sendiri, pada periode aktif. Kirim `id` mata kuliah dan `idj` kelas dari
      * `/krs/penawaran`. Server menghitung ulang batas SKS dan menolak mata kuliah/kelas yang tidak ditawarkan,
-     * belum memenuhi prasyarat, atau penuh. Penyimpanan memakai logika yang sama dengan halaman web.
+     * belum memenuhi prasyarat, atau penuh. Aturan dinamis `krs.ambil` diperiksa dengan SKS setelah perubahan
+     * (409 `aturan_dilanggar`). Penyimpanan memakai logika yang sama dengan halaman web.
      *
      * `POST /v1/mahasiswa/{nim}/krs`
      *
@@ -118,7 +119,8 @@ final class Mahasiswa extends Resource
      * Mata kuliah yang bisa diambil (form Ambil KRS)
      *
      * Hanya token pengguna mahasiswa itu sendiri. Menjalankan pemeriksaan yang sama dengan halaman Ambil KRS:
-     * status aktif, kelas, persetujuan PA, masa KRS, administrasi/pembayaran, cuti, batas SKS, dan prasyarat.
+     * status aktif, kelas, persetujuan PA, masa KRS, administrasi/pembayaran, cuti, batas SKS, dan prasyarat,
+     * ditambah aturan dinamis titik `krs.ambil` (`/v1/aturan`, ringkasan di `aturan`).
      * Bila `boleh_ambil` false, `alasan` dan `pesan` menjelaskan sebabnya.
      *
      * `GET /v1/mahasiswa/{nim}/krs/penawaran`

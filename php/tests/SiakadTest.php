@@ -116,6 +116,29 @@ final class SiakadTest extends TestCase
         }
     }
 
+    public function testAturanDilanggarDipetakan(): void
+    {
+        $aturan = ['titik' => 'kkn.daftar', 'boleh' => false, 'pelanggaran' => [['id' => 'u1', 'nama' => 'Syarat KKN', 'pesan' => 'SKS lulus minimal 100 (sekarang 92).']], 'peringatan' => [], 'batas' => []];
+        $s = $this->client([
+            self::token(),
+            self::json(['error' => ['code' => 'aturan_dilanggar', 'message' => 'SKS lulus minimal 100 (sekarang 92).', 'details' => ['aturan' => $aturan]]], 409),
+            self::json(['error' => ['code' => 'conflict', 'message' => 'Kuota penuh.']], 409),
+        ]);
+        try {
+            $s->mahasiswa()->getByNim('A');
+            $this->fail();
+        } catch (\Unipo\Siakad\Exceptions\AturanDilanggarException $e) {
+            $this->assertSame('kkn.daftar', $e->titik());
+            $this->assertSame('Syarat KKN', $e->pelanggaran()[0]['nama']);
+        }
+        try {
+            $s->mahasiswa()->getByNim('B');
+            $this->fail();
+        } catch (\Unipo\Siakad\Exceptions\ConflictException $e) {
+            $this->assertNotInstanceOf(\Unipo\Siakad\Exceptions\AturanDilanggarException::class, $e);
+        }
+    }
+
     public function testRateLimitDiulang(): void
     {
         $s = $this->client([

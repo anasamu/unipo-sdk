@@ -1,7 +1,7 @@
 <!-- Dibuat otomatis oleh generator/generate.mjs. Jangan diubah manual. -->
 # Daftar modul
 
-2805 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
+2914 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
 
 Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/lms/kelas/{id}` (operationId `getLmsKelasById`) menjadi `lms.getKelasById(id)`. Endpoint akar modul menjadi `list`/`create`/`update`/`replace`/`delete`.
 
@@ -12,7 +12,8 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `akademik` | Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status | 51 |
 | `apiPortal` | Portal API: Pengajuan, Portal API: Aplikasi saya, Portal API: Tinjauan Pustikom | 18 |
 | `arsip` | Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan | 123 |
-| `berkas` | Berkas, Berkas: Unggah bertahap | 16 |
+| `aturan` | Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian | 22 |
+| `berkas` | Berkas, Berkas: Unggah bertahap, Berkas: Folder | 24 |
 | `cbt` | CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian | 50 |
 | `crm` | CRM: Prospek, CRM: Skor dan segmen | 35 |
 | `dasbor` | Dasbor: Ringkasan, Dasbor: Perkuliahan, Dasbor: Kehadiran, Dasbor: Outcome, Dasbor: Peringatan dini | 16 |
@@ -23,6 +24,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `humas` | Humas, Humas: redaksi | 53 |
 | `iku` | IKU: Dasbor, IKU: Pengaturan, IKU: Bukti | 27 |
 | `induk` | Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit | 38 |
+| `infra` | Infra: Layanan, Infra: Gerbang API, Infra: Rahasia, Infra: Antrean | 48 |
 | `integrasi` | Integrasi: Status, Integrasi: Pengaturan, Integrasi: Captcha, Integrasi: Pembayaran, Integrasi: Berkas, Integrasi: Cache, Integrasi: Email & WhatsApp, Integrasi: Webhook keluar, Integrasi: Rapat daring, Integrasi: Tanda tangan elektronik, Integrasi: AI | 66 |
 | `jadwal` | Jadwal, Presensi | 4 |
 | `jadwalUjian` | Jadwal | 1 |
@@ -46,13 +48,14 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `mataKuliah` | Akademik | 1 |
 | `mbkm` | MBKM: Laporan, MBKM: Peserta, MBKM: Program, MBKM: Logbook, MBKM: Nilai dan konversi | 58 |
 | `notif` | Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman | 22 |
+| `obrolan` | Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi | 29 |
 | `pddikti` | PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data | 25 |
 | `peristiwa` | Event domain | 7 |
 | `perpustakaan` | Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan | 44 |
 | `pmb` | PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan | 120 |
 | `portal` | Portal, Portal: kelola | 138 |
-| `profil` | Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data | 86 |
-| `rbac` | RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan | 61 |
+| `profil` | Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data | 87 |
+| `rbac` | RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan | 62 |
 | `referensi` | Referensi | 14 |
 | `repositori` | Repositori: OAI-PMH, Repositori: Karya, Repositori: Koleksi | 22 |
 | `rpl` | RPL: Pemohon, RPL: Asesmen, RPL: Pengajuan, RPL: Master | 75 |
