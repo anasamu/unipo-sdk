@@ -77,6 +77,7 @@ class SiakadException extends \RuntimeException
             $status === 413, $status === 415 => PayloadException::class,
             $status === 422 => ValidationException::class,
             $status === 429 => RateLimitException::class,
+            $status === 503 && $code === 'pemeliharaan' => PemeliharaanException::class,
             $status >= 500 => ServerException::class,
             default => self::class,
         };

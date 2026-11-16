@@ -142,7 +142,7 @@ export class SiakadCore {
           await sleep(Math.min(Number.isFinite(wait) ? wait * 1000 : backoff(attempt), 60_000));
           continue;
         }
-        if ([502, 503, 504].includes(res.status) && error.code !== 'api_disabled') {
+        if ([502, 503, 504].includes(res.status) && error.code !== 'api_disabled' && error.code !== 'pemeliharaan') {
           await sleep(backoff(attempt));
           continue;
         }
