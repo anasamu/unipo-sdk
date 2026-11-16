@@ -47627,6 +47627,30 @@ export class SdmResource {
   }
 
   /**
+   * Perkiraan penghasilan setelah kenaikan
+   *
+   * Gaji pokok dan tunjangan sebelum dan sesudah kenaikan pangkat atau jabatan akademik pada TMT, dihitung dengan aturan yang sama dengan penurunan otomatis (skala gaji, aturan tunjangan). Tidak menulis data; hak baru berlaku setelah riwayat ber-SK disetujui SDM. `mulai_payroll` = bulan gaji pertama yang memuatnya. Hanya pegawai itu sendiri, atasan, dan petugas SDM.
+   *
+   * `GET /v1/sdm/pegawai/{id}/perkiraan-penghasilan`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getPegawaiByIdPerkiraanPenghasilan(id: string | number, query: {
+    /** pangkat | jabatan-akademik */
+    jenis: string;
+    /** Golongan atau jabatan akademik tujuan */
+    ke_id: number;
+    /** YYYY-MM-DD (bawaan hari ini) */
+    tmt?: string;
+    /** Masa kerja golongan di SK (khusus pangkat) */
+    masa_kerja_tahun?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/perkiraan-penghasilan', query: { ...query, id } }, options);
+  }
+
+  /**
    * Ringkasan karier
    *
    * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
@@ -47802,6 +47826,21 @@ export class SdmResource {
   }
 
   /**
+   * Jabatan akademik (jabatan fungsional dosen): dampak ke penghasilan
+   *
+   * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+   *
+   * `GET /v1/sdm/riwayat/jabatan-akademik/{id}/dampak`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID atau UUID
+   */
+  getRiwayatJabatanAkademikByIdDampak(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/riwayat/jabatan-akademik/{id}/dampak', query: { ...query, id } }, options);
+  }
+
+  /**
    * Jabatan akademik (jabatan fungsional dosen): verifikasi
    *
    * Setujui atau tolak pengajuan. Data ringkas pegawai (jabatan, pangkat, pendidikan, serdos) diperbarui otomatis.
@@ -47891,6 +47930,21 @@ export class SdmResource {
    */
   deleteRiwayatPangkatById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/sdm/riwayat/pangkat/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pangkat/golongan dan inpassing: dampak ke penghasilan
+   *
+   * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+   *
+   * `GET /v1/sdm/riwayat/pangkat/{id}/dampak`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID atau UUID
+   */
+  getRiwayatPangkatByIdDampak(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/riwayat/pangkat/{id}/dampak', query: { ...query, id } }, options);
   }
 
   /**

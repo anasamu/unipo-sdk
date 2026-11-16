@@ -1127,6 +1127,26 @@ final class Sdm extends Resource
     }
 
     /**
+     * Perkiraan penghasilan setelah kenaikan
+     *
+     * Gaji pokok dan tunjangan sebelum dan sesudah kenaikan pangkat atau jabatan akademik pada TMT, dihitung dengan aturan yang sama dengan penurunan otomatis (skala gaji, aturan tunjangan). Tidak menulis data; hak baru berlaku setelah riwayat ber-SK disetujui SDM. `mulai_payroll` = bulan gaji pertama yang memuatnya. Hanya pegawai itu sendiri, atasan, dan petugas SDM.
+     *
+     * `GET /v1/sdm/pegawai/{id}/perkiraan-penghasilan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array{jenis: string, ke_id: int, tmt?: string, masa_kerja_tahun?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdPerkiraanPenghasilan(int|string $id, array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/perkiraan-penghasilan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ringkasan karier
      *
      * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
@@ -1341,6 +1361,26 @@ final class Sdm extends Resource
     }
 
     /**
+     * Jabatan akademik (jabatan fungsional dosen): dampak ke penghasilan
+     *
+     * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+     *
+     * `GET /v1/sdm/riwayat/jabatan-akademik/{id}/dampak`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRiwayatJabatanAkademikByIdDampak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/riwayat/jabatan-akademik/{id}/dampak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Jabatan akademik (jabatan fungsional dosen): verifikasi
      *
      * Setujui atau tolak pengajuan. Data ringkas pegawai (jabatan, pangkat, pendidikan, serdos) diperbarui otomatis.
@@ -1454,6 +1494,26 @@ final class Sdm extends Resource
     public function deleteRiwayatPangkatById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sdm/riwayat/pangkat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pangkat/golongan dan inpassing: dampak ke penghasilan
+     *
+     * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+     *
+     * `GET /v1/sdm/riwayat/pangkat/{id}/dampak`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRiwayatPangkatByIdDampak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/riwayat/pangkat/{id}/dampak', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
