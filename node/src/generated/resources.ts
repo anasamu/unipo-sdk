@@ -5889,6 +5889,518 @@ export class BerkasResource {
   }
 }
 
+/** Biaya: Aturan, Biaya: Pembagian, Biaya: SK dan riwayat */
+export class BiayaResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Hak saya
+   *
+   * Izin biaya.lihat/susun/setujui/cairkan beserta unitnya, dan menu yang boleh tampil (boleh.susun, boleh.setujui, boleh.cairkan).
+   *
+   * `GET /v1/biaya/saya`
+   *
+   * scope: `biaya:read`
+   */
+  getSaya(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/saya', query }, options);
+  }
+
+  /**
+   * Pilihan form aturan
+   *
+   * Jenis biaya (m_item_biaya + tagihan PMB), unit organisasi, jabatan, akun pendapatan/beban/kewajiban, jenis penerima, dan cara hitung.
+   *
+   * `GET /v1/biaya/referensi`
+   *
+   * scope: `biaya:read`
+   */
+  getReferensi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/referensi', query }, options);
+  }
+
+  /**
+   * Cari pegawai
+   *
+   * Untuk komponen honor pegawai tertentu. q minimal 2 karakter, maks. 20 baris.
+   *
+   * `GET /v1/biaya/pegawai`
+   *
+   * scope: `biaya:read`
+   */
+  getPegawai(query?: {
+    /** Nama/NIP/NIDN */
+    q?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/pegawai', query }, options);
+  }
+
+  /**
+   * Periksa komponen (klop)
+   *
+   * Body: {"tarif"?, "jumlah"?, "komponen": [{"nama", "penerima", "cara", "nilai"}]}. Hasil: klop, pesan, total persen/nominal, contoh pembagian pada tarif, dan simulasi bila jumlah diisi. Tidak menyimpan.
+   *
+   * `POST /v1/biaya/periksa`
+   *
+   * scope: `biaya:read`
+   *
+   * @param body
+   */
+  postPeriksa(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/periksa', body }, options);
+  }
+
+  /**
+   * Simulasi pembagian
+   *
+   * Aturan yang berlaku untuk jenis biaya, prodi, angkatan, tahun, dan tanggal itu (atau aturan_id tertentu), lalu pembagian jumlah (bawaan tarif) ke komponen dengan nama penerima nyatanya (unit prodi/fakultas, pejabat).
+   *
+   * `GET /v1/biaya/simulasi`
+   *
+   * scope: `biaya:read`
+   */
+  getSimulasi(query?: {
+    /** mahasiswa|pmb */
+    sumber?: string;
+    /** Kode biaya */
+    kode_biaya?: string;
+    /** Prodi pembayar */
+    kode_prodi?: string;
+    /** Semester masuk */
+    angkatan?: string;
+    /** Tahun akademik */
+    tahun_id?: string;
+    /** YYYY-MM-DD */
+    tanggal?: string;
+    /** Jumlah bayar */
+    jumlah?: string;
+    /** Dasar nominal */
+    tagihan?: string;
+    /** UUID aturan */
+    aturan_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/simulasi', query }, options);
+  }
+
+  /**
+   * Daftar aturan biaya
+   *
+   * Draf/diajukan/ditolak hanya untuk penyusun (biaya.susun di unit cakupannya) dan penetap (biaya.setujui); aturan berlaku dan riwayatnya untuk pemegang biaya.lihat yang terkait (cakupan unitnya/induknya, atau unitnya menerima bagian).
+   *
+   * `GET /v1/biaya/aturan`
+   *
+   * scope: `biaya:read` · berhalaman
+   */
+  getAturan(query?: {
+    /** draf|diajukan|berlaku|ditolak|nonaktif|diganti */
+    status?: string;
+    /** mahasiswa|pmb */
+    sumber?: string;
+    /** Kode biaya */
+    kode_biaya?: string;
+    /** Aturan yang menyangkut unit ini */
+    unit_id?: string;
+    /** YYYY-MM-DD */
+    berlaku_pada?: string;
+    /** Cari nama/kode */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/aturan', query }, options);
+  }
+
+  /**
+   * Susun aturan biaya (draf)
+   *
+   * Izin `biaya.susun` (berlingkup unit: hanya cakupan unitnya). Body:
+   * `{"nama": "Biaya ujian akhir FIK 2026", "sumber": "mahasiswa", "kode_biaya": "007", "cakupan_unit_id": 2, "penyelenggara_unit_id": 2, "tarif": 300000,
+   * "berlaku_mulai": "2026-08-01", "berlaku_selesai": null, "angkatan": null, "tahun_id": null, "keterangan": "...",
+   * "komponen": [{"nama": "Yayasan", "penerima": "yayasan", "cara": "persen", "nilai": 20}, {"nama": "Rektorat", "penerima": "unit", "unit_id": 1, "cara": "persen", "nilai": 10},
+   * {"nama": "Honor dekan", "penerima": "jabatan", "jabatan_id": 6, "cara": "nominal", "nilai": 10000}, {"nama": "Fakultas", "penerima": "fakultas_mahasiswa", "cara": "sisa"}]}`
+   *
+   * Penerima: `unit` (unit_id), `prodi_mahasiswa`, `fakultas_mahasiswa`, `yayasan`, `jabatan` (jabatan_id; unit_id kosong = unit pembayar menurut kelompok jabatan), `pegawai` (pegawai_id).
+   * Cara: `persen` dari pembayaran, `nominal` per tarif penuh (sebanding bila dicicil), `sisa` (paling banyak satu). Tanpa sisa, total harus tepat 100% tarif.
+   *
+   * `POST /v1/biaya/aturan`
+   *
+   * scope: `biaya:write`
+   *
+   * @param body
+   */
+  postAturan(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan', body }, options);
+  }
+
+  /**
+   * Detail aturan
+   *
+   * Beserta komponen, pemeriksaan klop, lampiran SK, jumlah pembayaran yang sudah dibagi, dan tombol yang boleh (boleh.*).
+   *
+   * `GET /v1/biaya/aturan/{id}`
+   *
+   * scope: `biaya:read`
+   *
+   * @param id UUID aturan
+   */
+  getAturanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/aturan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah aturan draf/ditolak
+   *
+   * Body sama dengan susun (sebagian). Versi naik dan riwayat tercatat; aturan ditolak kembali menjadi draf.
+   *
+   * `POST /v1/biaya/aturan/{id}`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Revisi aturan berlaku
+   *
+   * Body: {"berlaku_mulai"?, "catatan"?}. Membuat draf salinan; saat disetujui, aturan lama berstatus diganti dan berakhir sehari sebelum revisi berlaku.
+   *
+   * `POST /v1/biaya/aturan/{id}/revisi`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdRevisi(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/revisi', query: { id }, body }, options);
+  }
+
+  /**
+   * Ajukan ke pimpinan
+   *
+   * Wajib klop dan sudah ada lampiran SK. Body: {"catatan"?}. Terbit event biaya.aturan_diajukan.
+   *
+   * `POST /v1/biaya/aturan/{id}/ajukan`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdAjukan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/ajukan', query: { id }, body }, options);
+  }
+
+  /**
+   * Setujui dan tetapkan
+   *
+   * Izin biaya.setujui (WR bidang keuangan). Wajib klop, ada SK, tidak bertumpang dengan aturan berlaku lain. Pembayaran sejak tanggal mulai berlaku langsung dibagi (hasil di `pembagian`). Body: {"catatan"?}.
+   *
+   * `POST /v1/biaya/aturan/{id}/setujui`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdSetujui(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/setujui', query: { id }, body }, options);
+  }
+
+  /**
+   * Tolak
+   *
+   * Izin biaya.setujui. Body: {"catatan"} (wajib).
+   *
+   * `POST /v1/biaya/aturan/{id}/tolak`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdTolak(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/tolak', query: { id }, body }, options);
+  }
+
+  /**
+   * Kembalikan untuk diperbaiki
+   *
+   * Izin biaya.setujui. Status kembali draf. Body: {"catatan"} (wajib).
+   *
+   * `POST /v1/biaya/aturan/{id}/kembalikan`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdKembalikan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/kembalikan', query: { id }, body }, options);
+  }
+
+  /**
+   * Nonaktifkan
+   *
+   * Izin biaya.setujui. Body: {"catatan", "berlaku_selesai"?} (bawaan hari ini). Pembayaran sesudah tanggal itu tidak dibagi lagi.
+   *
+   * `POST /v1/biaya/aturan/{id}/nonaktifkan`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdNonaktifkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/nonaktifkan', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus draf
+   *
+   * Hanya draf/ditolak.
+   *
+   * `POST /v1/biaya/aturan/{id}/hapus`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdHapus(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/hapus', query: { id }, body }, options);
+  }
+
+  /**
+   * Riwayat aturan
+   *
+   * Semua perubahan, pengajuan, keputusan, lampiran, termasuk aturan yang direvisinya, dengan potret data tiap versi.
+   *
+   * `GET /v1/biaya/aturan/{id}/riwayat`
+   *
+   * scope: `biaya:read`
+   *
+   * @param id UUID aturan
+   */
+  getAturanByIdRiwayat(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/aturan/{id}/riwayat', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lampirkan SK/dokumen
+   *
+   * Unggah dulu ke storage (POST /v1/berkas), lalu body: {"berkas_id", "jenis": "sk|lampiran", "nomor" (wajib untuk SK), "tanggal"?, "perihal"?}.
+   *
+   * `POST /v1/biaya/aturan/{id}/lampiran`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param body
+   */
+  postAturanByIdLampiran(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/lampiran', query: { id }, body }, options);
+  }
+
+  /**
+   * Lepas lampiran
+   *
+   * SK terakhir aturan diajukan/berlaku tidak bisa dilepas.
+   *
+   * `POST /v1/biaya/aturan/{id}/lampiran/{lampiran}/hapus`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID aturan
+   * @param lampiran UUID lampiran
+   * @param body
+   */
+  postAturanByIdLampiranByLampiranHapus(id: string | number, lampiran: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/aturan/{id}/lampiran/{lampiran}/hapus', query: { id, lampiran }, body }, options);
+  }
+
+  /**
+   * Lihat/unduh lampiran
+   *
+   * ?unduh=1 untuk mengunduh.
+   *
+   * `GET /v1/biaya/aturan/{id}/lampiran/{lampiran}`
+   *
+   * scope: `biaya:read`
+   *
+   * @param id UUID aturan
+   * @param lampiran UUID lampiran
+   */
+  getAturanByIdLampiranByLampiran(id: string | number, lampiran: string | number, query?: {
+    /** 1 */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/aturan/{id}/lampiran/{lampiran}', query: { ...query, id, lampiran } }, options);
+  }
+
+  /**
+   * Rekap pembagian
+   *
+   * Hak tiap penerima (unit, yayasan, pegawai) dengan yang sudah dicairkan dan sisanya, per jenis penerima, per jenis biaya, per komponen, per bulan, per prodi. Pemegang biaya.lihat berlingkup unit hanya melihat bagian yang diterima unitnya atau berasal dari pembayar unitnya (arah=terima|asal).
+   *
+   * `GET /v1/biaya/pembagian`
+   *
+   * scope: `biaya:read`
+   */
+  getPembagian(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: string;
+    /** terima|asal */
+    arah?: string;
+    /** Kode biaya */
+    kode_biaya?: string;
+    /** mahasiswa|pmb */
+    sumber?: string;
+    /** unit|prodi_mahasiswa|fakultas_mahasiswa|yayasan|jabatan|pegawai */
+    penerima?: string;
+    /** UUID aturan */
+    aturan_id?: string;
+    /** Tahun akademik */
+    tahun_id?: string;
+    /** Prodi pembayar */
+    kode_prodi?: string;
+    /** Pegawai */
+    pegawai_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/pembagian', query }, options);
+  }
+
+  /**
+   * Rincian pembagian per pembayaran
+   *
+   * Filter sama dengan rekap.
+   *
+   * `GET /v1/biaya/pembagian/rincian`
+   *
+   * scope: `biaya:read` · berhalaman
+   */
+  getPembagianRincian(query?: {
+    /** YYYY-MM-DD */
+    dari?: string;
+    /** YYYY-MM-DD */
+    sampai?: string;
+    /** Unit */
+    unit_id?: string;
+    /** terima|asal */
+    arah?: string;
+    /** Kode biaya */
+    kode_biaya?: string;
+    /** Jenis penerima */
+    penerima?: string;
+    /** UUID aturan */
+    aturan_id?: string;
+    /** Pegawai */
+    pegawai_id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/pembagian/rincian', query }, options);
+  }
+
+  /**
+   * Ringkasan untuk dasbor
+   *
+   * Jumlah aturan berlaku/menunggu persetujuan/draf, total dibagi tahun dan bulan ini, belum dicairkan, per jenis penerima, penerima teratas, per bulan, dan jenis biaya yang belum punya aturan.
+   *
+   * `GET /v1/biaya/ringkasan`
+   *
+   * scope: `biaya:read`
+   */
+  getRingkasan(query?: {
+    /** YYYY */
+    tahun?: string;
+    /** Unit */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/ringkasan', query }, options);
+  }
+
+  /**
+   * Sinkron pembagian
+   *
+   * Izin biaya.cairkan. Body: {"dari"?, "sampai"?}. Membagi pembayaran yang belum dibagi, membagi ulang yang berubah, membatalkan yang dihapus, memperbarui honor SDM dan jurnal. Cron: php artisan biaya:bagi (juga ikut keu:jurnal).
+   *
+   * `POST /v1/biaya/pembagian/sinkron`
+   *
+   * scope: `biaya:write`
+   *
+   * @param body
+   */
+  postPembagianSinkron(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/pembagian/sinkron', body }, options);
+  }
+
+  /**
+   * Daftar pencairan
+   *
+   * Pencairan bagian ke unit dan yayasan.
+   *
+   * `GET /v1/biaya/pencairan`
+   *
+   * scope: `biaya:read` · berhalaman
+   */
+  getPencairan(query?: {
+    /** Unit */
+    unit_id?: string;
+    /** unit|yayasan */
+    penerima?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/biaya/pencairan', query }, options);
+  }
+
+  /**
+   * Catat pencairan
+   *
+   * Izin biaya.cairkan. Body: {"penerima": "unit|yayasan", "unit_id", "jumlah", "tanggal"?, "rekening_asal_id"? (bawaan rekening utama universitas), "rekening_tujuan_id"? (bawaan rekening utama unit), "dari"?, "sampai"?, "uraian"?, "berkas_id"? (bukti transfer)}. Unit: transfer kas; yayasan: D utang kepada yayasan / K kas. Tidak boleh melebihi sisa bagian.
+   *
+   * `POST /v1/biaya/pencairan`
+   *
+   * scope: `biaya:write`
+   *
+   * @param body
+   */
+  postPencairan(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/pencairan', body }, options);
+  }
+
+  /**
+   * Batalkan pencairan
+   *
+   * Izin biaya.cairkan. Body: {"alasan"}. Jurnalnya dibalik.
+   *
+   * `POST /v1/biaya/pencairan/{id}/batal`
+   *
+   * scope: `biaya:write`
+   *
+   * @param id UUID pencairan
+   * @param body
+   */
+  postPencairanByIdBatal(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/biaya/pencairan/{id}/batal', query: { id }, body }, options);
+  }
+}
+
 /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian */
 export class CbtResource {
   constructor(private readonly client: SiakadCore) {}

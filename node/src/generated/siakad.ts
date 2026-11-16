@@ -57,6 +57,11 @@ export class Siakad extends SiakadCore {
     return this.resource('berkas', () => new R.BerkasResource(this));
   }
 
+  /** Biaya: Aturan, Biaya: Pembagian, Biaya: SK dan riwayat (27 endpoint) */
+  get biaya(): R.BiayaResource {
+    return this.resource('biaya', () => new R.BiayaResource(this));
+  }
+
   /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian (50 endpoint) */
   get cbt(): R.CbtResource {
     return this.resource('cbt', () => new R.CbtResource(this));
