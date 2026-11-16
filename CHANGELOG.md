@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.14.0 (belum dirilis)
+## 1.14.0 (2026-11-16)
 
 - Presensi kerja berbasis lokasi (/v1/sdm/presensi, 17 operasi baru): layar hari-ini untuk web/mobile, catat dengan bukti lokasi (akurasi, lokasi palsu, perangkat, swafoto, kunci idempoten), percobaan + tinjauan, peta kehadiran, area presensi (radius/poligon/jaringan), jadwal kerja dan shift, penugasan, perangkat, dan koreksi. Pembantu Node: `cocokkanArea`, `jarakMeter`, `catatPresensiKerja`, `KODE_GALAT_PRESENSI`, tipe `PresensiHariIni`.
 - Spesifikasi disamakan dengan `main` SIAKAD: modul `panitia` dan tambahan lain dari main ikut masuk.
