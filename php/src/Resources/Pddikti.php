@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data
+ * PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Relay Feeder Desktop, PDDikti: Evaluasi data
  */
 final class Pddikti extends Resource
 {
@@ -283,6 +283,83 @@ final class Pddikti extends Resource
     public function postKoneksiUji(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/pddikti/koneksi/uji', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status relay Feeder Desktop
+     *
+     * Jalur Neo Feeder (FEEDER_TRANSPORT: langsung, relay, otomatis), apakah relay sedang dipakai, permintaan yang menunggu, dan daftar aplikasi Feeder Desktop beserta detak terakhirnya.
+     *
+     * `GET /v1/pddikti/relay`
+     *
+     * scope: `pddikti:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRelay(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pddikti/relay', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detak aplikasi Feeder Desktop
+     *
+     * Body {"agen_id", "nama_komputer"?, "versi"?, "os"?, "neo_url"?, "neo_terhubung"?, "neo_pesan"?, "pt"?}. Hanya pengelola semua prodi. Aplikasi yang berdetak dalam FEEDER_RELAY_AGEN_DETIK membuat mode otomatis memakai relay.
+     *
+     * `POST /v1/pddikti/relay/detak`
+     *
+     * scope: `pddikti:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRelayDetak(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pddikti/relay/detak', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ambil permintaan Neo Feeder
+     *
+     * Long-poll. Body {"agen_id", "tunggu"?: detik (maks. 25, bawaan 20), "maks"?: 1-20}. Mengunci permintaan act Neo Feeder yang menunggu untuk aplikasi ini; payload tanpa token/username/password (aplikasi memakai akun Neo Feeder lokal).
+     *
+     * `POST /v1/pddikti/relay/ambil`
+     *
+     * scope: `pddikti:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRelayAmbil(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pddikti/relay/ambil', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kirim jawaban Neo Feeder
+     *
+     * Body {"agen_id", "respons": {error_code, error_desc, data, ...}} apa adanya dari Neo Feeder lokal, atau {"agen_id", "galat": "pesan"} bila Neo Feeder lokal tidak bisa dihubungi.
+     *
+     * `POST /v1/pddikti/relay/{uuid}/jawab`
+     *
+     * scope: `pddikti:write`
+     *
+     * @param int|string $uuid UUID permintaan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRelayByUuidJawab(int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pddikti/relay/{uuid}/jawab', ['uuid' => $uuid], $query, null, $options, false, false);
     }
 
     /**

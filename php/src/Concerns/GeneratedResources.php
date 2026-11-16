@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3187 endpoint).
+ * Akses ke semua modul API (3236 endpoint).
  */
 trait GeneratedResources
 {
@@ -25,7 +25,7 @@ trait GeneratedResources
         return $this->resource(Resources\Admisi::class);
     }
 
-    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (51 endpoint) */
+    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (55 endpoint) */
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
@@ -91,7 +91,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (48 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (52 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -161,6 +161,12 @@ trait GeneratedResources
     public function karier(): Resources\Karier
     {
         return $this->resource(Resources\Karier::class);
+    }
+
+    /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Migrasi aplikasi lama (27 endpoint) */
+    public function kasir(): Resources\Kasir
+    {
+        return $this->resource(Resources\Kasir::class);
     }
 
     /** Kelengkapan data (7 endpoint) */
@@ -271,13 +277,13 @@ trait GeneratedResources
         return $this->resource(Resources\Notif::class);
     }
 
-    /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (29 endpoint) */
+    /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (31 endpoint) */
     public function obrolan(): Resources\Obrolan
     {
         return $this->resource(Resources\Obrolan::class);
     }
 
-    /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data (25 endpoint) */
+    /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Relay Feeder Desktop, PDDikti: Evaluasi data (29 endpoint) */
     public function pddikti(): Resources\Pddikti
     {
         return $this->resource(Resources\Pddikti::class);
@@ -325,7 +331,7 @@ trait GeneratedResources
         return $this->resource(Resources\Qr::class);
     }
 
-    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
+    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (70 endpoint) */
     public function rbac(): Resources\Rbac
     {
         return $this->resource(Resources\Rbac::class);

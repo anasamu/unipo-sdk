@@ -496,6 +496,86 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Cek jadwal bentrok
+     *
+     * Bentrok jadwal prodi terhadap semua prodi (ruang, dosen, rombongan kelas, mahasiswa KRS) + peringatan pindah kampus/ruang kampus lain. Sama dengan /v1/akademik/jadwal/bentrok. Izin fakultas.jadwal.kelola.
+     *
+     * `GET /v1/fakultas/{kode}/jadwal/bentrok`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{jeda_kampus?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeJadwalBentrok(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/jadwal/bentrok', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cek satu jadwal sebelum disimpan
+     *
+     * Body sama dengan tambah/ubah jadwal (+ "id" saat ubah). Tidak menyimpan.
+     *
+     * `POST /v1/fakultas/{kode}/jadwal/cek`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeJadwalCek(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/jadwal/cek', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pratinjau jadwal otomatis
+     *
+     * Tidak menyimpan. Body sama dengan /v1/akademik/jadwal/otomatis.
+     *
+     * `POST /v1/fakultas/{kode}/jadwal/otomatis`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{sumber?: string, dari_tahun_id?: string, hari?: list<mixed>, kelas?: list<mixed>, jeda_kampus?: int, menit_per_sks?: int, batas_sore?: string, ...} $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeJadwalOtomatis(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/jadwal/otomatis', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Simpan usulan jadwal otomatis
+     *
+     * Body: {"usulan": [...]} dari pratinjau. Diperiksa ulang lalu disimpan lewat JadwalKuliahService.
+     *
+     * `POST /v1/fakultas/{kode}/jadwal/otomatis/simpan`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{usulan: list<mixed>, ...} $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeJadwalOtomatisSimpan(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/jadwal/otomatis/simpan', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Hapus jadwal
      *
      * Body: {"id": [12, 13]}. Jadwal yang sudah dipakai KRS dilewati.
