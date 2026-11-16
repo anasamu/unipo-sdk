@@ -265,6 +265,26 @@ final class Crm extends Resource
     }
 
     /**
+     * Prospek calon mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Database prospek dan kontak (nama, HP, email, sekolah, minat prodi/jalur, sumber, kampanye). Tahap pipeline: baru -> dihubungi -> tertarik -> mendaftar -> diajukan -> diterima -> daftar_ulang (atau tidak_tertarik); tahap mendaftar ke atas diisi otomatis oleh POST /crm/sinkron dari data PMB. Skor dihitung otomatis dari /crm/skor-aturan setiap prospek/interaksi disimpan. Filter tahap, sumber, minat_prodi, petugas; q cari nama/email/HP/sekolah. Hanya pengelola modul.
+     *
+     * `GET /v1/crm/prospek/{id}/riwayat`
+     *
+     * scope: `crm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getProspekByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/crm/prospek/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Riwayat interaksi prospek: daftar
      *
      * Catatan komunikasi petugas dengan prospek (telepon, WhatsApp, email, tatap muka, pameran, chat). Prospek berpindah otomatis dari tahap baru ke dihubungi; hasil tertarik/akan_daftar menaikkan tahap ke tertarik, tidak_tertarik menandai prospek tidak tertarik. Filter prospek_id, kanal, hasil. Hanya pengelola modul.
@@ -363,6 +383,26 @@ final class Crm extends Resource
     }
 
     /**
+     * Riwayat interaksi prospek: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Catatan komunikasi petugas dengan prospek (telepon, WhatsApp, email, tatap muka, pameran, chat). Prospek berpindah otomatis dari tahap baru ke dihubungi; hasil tertarik/akan_daftar menaikkan tahap ke tertarik, tidak_tertarik menandai prospek tidak tertarik. Filter prospek_id, kanal, hasil. Hanya pengelola modul.
+     *
+     * `GET /v1/crm/interaksi/{id}/riwayat`
+     *
+     * scope: `crm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getInteraksiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/crm/interaksi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tindak lanjut prospek: daftar
      *
      * Jadwal follow-up per prospek dan petugas. Aksi selesai mencatat hasil (dan otomatis menjadi interaksi). Jadwal terdekat yang masih terjadwal ditampilkan di prospek (tindak_lanjut_berikut). Filter status, petugas, prospek_id; dari/sampai = tanggal jadwal. Hanya pengelola modul.
@@ -458,6 +498,26 @@ final class Crm extends Resource
     public function deleteTindakLanjutById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/crm/tindak-lanjut/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tindak lanjut prospek: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Jadwal follow-up per prospek dan petugas. Aksi selesai mencatat hasil (dan otomatis menjadi interaksi). Jadwal terdekat yang masih terjadwal ditampilkan di prospek (tindak_lanjut_berikut). Filter status, petugas, prospek_id; dari/sampai = tanggal jadwal. Hanya pengelola modul.
+     *
+     * `GET /v1/crm/tindak-lanjut/{id}/riwayat`
+     *
+     * scope: `crm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTindakLanjutByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/crm/tindak-lanjut/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -599,6 +659,26 @@ final class Crm extends Resource
     }
 
     /**
+     * Aturan lead scoring: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Poin ditambahkan ke skor prospek bila kriteria cocok: sumber/tahap/minat_prodi/minat_jalur/kota/tahun_lulus/label = nilai; ada_email, ada_hp, punya_akun_pmb (nilai kosong); jumlah_interaksi >= nilai; hasil_interaksi = hasil interaksi mana pun. Poin boleh negatif; skor akhir 0..65535. Hitung ulang semua: POST /crm/skor/hitung. Hanya pengelola modul.
+     *
+     * `GET /v1/crm/skor-aturan/{id}/riwayat`
+     *
+     * scope: `crm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkorAturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/crm/skor-aturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Segmen prospek: daftar
      *
      * Kriteria tersimpan untuk mengelompokkan prospek (minat, prodi, sumber, kota, tahun lulus, label, rentang skor, tahap). Anggota: GET /crm/segmen/{id}/anggota. Hanya pengelola modul.
@@ -694,5 +774,25 @@ final class Crm extends Resource
     public function deleteSegmenById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/crm/segmen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Segmen prospek: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kriteria tersimpan untuk mengelompokkan prospek (minat, prodi, sumber, kota, tahun lulus, label, rentang skor, tahap). Anggota: GET /crm/segmen/{id}/anggota. Hanya pengelola modul.
+     *
+     * `GET /v1/crm/segmen/{id}/riwayat`
+     *
+     * scope: `crm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSegmenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/crm/segmen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

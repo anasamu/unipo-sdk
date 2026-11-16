@@ -41,7 +41,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{kode: string, nama: string, jenis: string, penyelenggara?: string, mitra_id?: int, tahun_id: string, kode_prodi?: string, nominal?: float|int, periode_pencairan?: string, kuota?: int, ipk_minimal?: float|int, semester_minimal?: int, semester_maksimal?: int, syarat?: string, daftar_mulai?: string, daftar_selesai?: string, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, penyelenggara?: string, mitra_id?: int, tahun_id: string, kode_prodi?: string, nominal?: float|int, periode_pencairan?: string, kuota?: int, ipk_minimal?: float|int, semester_minimal?: int, semester_maksimal?: int, syarat?: string, lampiran_minimal?: int, daftar_mulai?: string, daftar_selesai?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -81,7 +81,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, jenis: string, penyelenggara?: string, mitra_id?: int, tahun_id: string, kode_prodi?: string, nominal?: float|int, periode_pencairan?: string, kuota?: int, ipk_minimal?: float|int, semester_minimal?: int, semester_maksimal?: int, syarat?: string, daftar_mulai?: string, daftar_selesai?: string, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, penyelenggara?: string, mitra_id?: int, tahun_id: string, kode_prodi?: string, nominal?: float|int, periode_pencairan?: string, kuota?: int, ipk_minimal?: float|int, semester_minimal?: int, semester_maksimal?: int, syarat?: string, lampiran_minimal?: int, daftar_mulai?: string, daftar_selesai?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -109,6 +109,26 @@ final class Kemahasiswaan extends Resource
     public function deleteBeasiswaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/beasiswa/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Program beasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kemahasiswaan:read (selain pengelola hanya melihat status buka/seleksi/berjalan/selesai).
+     *
+     * `GET /v1/kemahasiswaan/beasiswa/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/beasiswa/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -274,7 +294,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Pendaftar beasiswa: daftar
      *
-     * Mahasiswa mendaftar sendiri saat program berstatus buka; dicek prodi, kuota, semester, dan IPK minimal bila ipk diisi pengelola. Lampirkan berkas syarat lewat /berkas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     * Mahasiswa mendaftar sendiri saat program berstatus buka. Prasyarat bawaan (docs/PRASYARAT.md): status aktif, masa pendaftaran, prodi, semester dan IPK minimal program (IPK dan semester dihitung SIAKAD, bukan isian), belum pernah mendaftar program yang sama, dokumen pendukung minimal program (lampiran_minimal; kirim `lampiran` saat mendaftar), lalu aturan dinamis titik beasiswa.daftar. Verifikasi/terima ditolak bila dokumen belum lengkap. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
      *
      * `GET /v1/kemahasiswaan/pendaftar`
      *
@@ -299,7 +319,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{beasiswa_id: int, nim: string, ipk?: float|int, semester?: int, penghasilan_ortu?: float|int, alasan?: string, skor?: float|int, catatan?: string, ...} $body
+     * @param array{beasiswa_id: int, nim: string, ipk?: float|int, semester?: int, penghasilan_ortu?: float|int, alasan?: string, skor?: float|int, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -312,7 +332,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Pendaftar beasiswa: detail
      *
-     * Mahasiswa mendaftar sendiri saat program berstatus buka; dicek prodi, kuota, semester, dan IPK minimal bila ipk diisi pengelola. Lampirkan berkas syarat lewat /berkas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     * Mahasiswa mendaftar sendiri saat program berstatus buka. Prasyarat bawaan (docs/PRASYARAT.md): status aktif, masa pendaftaran, prodi, semester dan IPK minimal program (IPK dan semester dihitung SIAKAD, bukan isian), belum pernah mendaftar program yang sama, dokumen pendukung minimal program (lampiran_minimal; kirim `lampiran` saat mendaftar), lalu aturan dinamis titik beasiswa.daftar. Verifikasi/terima ditolak bila dokumen belum lengkap. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
      *
      * `GET /v1/kemahasiswaan/pendaftar/{id}`
      *
@@ -339,7 +359,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{beasiswa_id: int, nim: string, ipk?: float|int, semester?: int, penghasilan_ortu?: float|int, alasan?: string, skor?: float|int, catatan?: string, ...} $body
+     * @param array{beasiswa_id: int, nim: string, ipk?: float|int, semester?: int, penghasilan_ortu?: float|int, alasan?: string, skor?: float|int, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -367,6 +387,26 @@ final class Kemahasiswaan extends Resource
     public function deletePendaftarById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/pendaftar/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pendaftar beasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mendaftar sendiri saat program berstatus buka. Prasyarat bawaan (docs/PRASYARAT.md): status aktif, masa pendaftaran, prodi, semester dan IPK minimal program (IPK dan semester dihitung SIAKAD, bukan isian), belum pernah mendaftar program yang sama, dokumen pendukung minimal program (lampiran_minimal; kirim `lampiran` saat mendaftar), lalu aturan dinamis titik beasiswa.daftar. Verifikasi/terima ditolak bila dokumen belum lengkap. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kemahasiswaan/pendaftar/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPendaftarByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/pendaftar/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -557,7 +597,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{pendaftar_id: int, tahun_id?: string, tanggal?: string, nominal: float|int, cara?: string, status?: string, keterangan?: string, ...} $body
+     * @param array{pendaftar_id: int, tahun_id?: string, tanggal?: string, nominal: float|int, cara?: string, status?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -597,7 +637,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{pendaftar_id: int, tahun_id?: string, tanggal?: string, nominal: float|int, cara?: string, status?: string, keterangan?: string, ...} $body
+     * @param array{pendaftar_id: int, tahun_id?: string, tanggal?: string, nominal: float|int, cara?: string, status?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -625,6 +665,26 @@ final class Kemahasiswaan extends Resource
     public function deletePencairanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/pencairan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pencairan beasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kemahasiswaan/pencairan/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPencairanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/pencairan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -735,7 +795,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{kode: string, nama: string, jenis: string, bidang?: string, unit_id?: int, kode_prodi?: string, pembina_nidn?: string, deskripsi?: string, email?: string, instagram?: string, nomor_sk?: string, aktif?: bool, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, bidang?: string, unit_id?: int, kode_prodi?: string, pembina_nidn?: string, deskripsi?: string, email?: string, instagram?: string, nomor_sk?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -775,7 +835,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, jenis: string, bidang?: string, unit_id?: int, kode_prodi?: string, pembina_nidn?: string, deskripsi?: string, email?: string, instagram?: string, nomor_sk?: string, aktif?: bool, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, bidang?: string, unit_id?: int, kode_prodi?: string, pembina_nidn?: string, deskripsi?: string, email?: string, instagram?: string, nomor_sk?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -803,6 +863,26 @@ final class Kemahasiswaan extends Resource
     public function deleteOrmawaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/ormawa/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Organisasi mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kemahasiswaan:read.
+     *
+     * `GET /v1/kemahasiswaan/ormawa/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrmawaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/ormawa/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -984,6 +1064,26 @@ final class Kemahasiswaan extends Resource
     }
 
     /**
+     * Pengurus organisasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kemahasiswaan:read.
+     *
+     * `GET /v1/kemahasiswaan/pengurus/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengurusByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/pengurus/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kegiatan ormawa (proposal dan LPJ): daftar
      *
      * Diajukan pengurus inti ormawa (pengaju_nim otomatis), disetujui pengelola atau pembina, lalu LPJ diajukan dan diterima. Selain pengelola melihat kegiatan yang sudah disetujui, kegiatan yang diajukannya, atau ormawa yang dibinanya. Semua pemilik token ber-scope kemahasiswaan:read (selain pengelola hanya melihat status disetujui/lpj_diajukan/selesai atau miliknya sendiri).
@@ -1011,7 +1111,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{ormawa_id: int, pengaju_nim?: string, nama: string, jenis?: string, tingkat?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_peserta?: int, tujuan?: string, anggaran_diajukan?: float|int, anggaran_disetujui?: float|int, realisasi?: float|int, laporan?: string, catatan?: string, ...} $body
+     * @param array{ormawa_id: int, pengaju_nim?: string, nama: string, jenis?: string, tingkat?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_peserta?: int, tujuan?: string, anggaran_diajukan?: float|int, anggaran_disetujui?: float|int, realisasi?: float|int, laporan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1051,7 +1151,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{ormawa_id: int, pengaju_nim?: string, nama: string, jenis?: string, tingkat?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_peserta?: int, tujuan?: string, anggaran_diajukan?: float|int, anggaran_disetujui?: float|int, realisasi?: float|int, laporan?: string, catatan?: string, ...} $body
+     * @param array{ormawa_id: int, pengaju_nim?: string, nama: string, jenis?: string, tingkat?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_peserta?: int, tujuan?: string, anggaran_diajukan?: float|int, anggaran_disetujui?: float|int, realisasi?: float|int, laporan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1079,6 +1179,26 @@ final class Kemahasiswaan extends Resource
     public function deleteKegiatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/kegiatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kegiatan ormawa (proposal dan LPJ): riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Diajukan pengurus inti ormawa (pengaju_nim otomatis), disetujui pengelola atau pembina, lalu LPJ diajukan dan diterima. Selain pengelola melihat kegiatan yang sudah disetujui, kegiatan yang diajukannya, atau ormawa yang dibinanya. Semua pemilik token ber-scope kemahasiswaan:read (selain pengelola hanya melihat status disetujui/lpj_diajukan/selesai atau miliknya sendiri).
+     *
+     * `GET /v1/kemahasiswaan/kegiatan/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKegiatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/kegiatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1309,7 +1429,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{nim: string, nama_kegiatan: string, penyelenggara?: string, tingkat: string, kategori?: string, bidang?: string, jenis?: string, peringkat: string, tanggal?: string, tahun_id?: string, url?: string, pembimbing_nidn?: string, catatan?: string, ...} $body
+     * @param array{nim: string, nama_kegiatan: string, penyelenggara?: string, tingkat: string, kategori?: string, bidang?: string, jenis?: string, peringkat: string, tanggal?: string, tahun_id?: string, url?: string, pembimbing_nidn?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1349,7 +1469,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, nama_kegiatan: string, penyelenggara?: string, tingkat: string, kategori?: string, bidang?: string, jenis?: string, peringkat: string, tanggal?: string, tahun_id?: string, url?: string, pembimbing_nidn?: string, catatan?: string, ...} $body
+     * @param array{nim: string, nama_kegiatan: string, penyelenggara?: string, tingkat: string, kategori?: string, bidang?: string, jenis?: string, peringkat: string, tanggal?: string, tahun_id?: string, url?: string, pembimbing_nidn?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1377,6 +1497,26 @@ final class Kemahasiswaan extends Resource
     public function deletePrestasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/prestasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Prestasi mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dilaporkan mahasiswa (lampirkan sertifikat/bukti), diverifikasi pengelola. Prestasi terverifikasi terlihat semua pengguna. Semua pemilik token ber-scope kemahasiswaan:read (selain pengelola hanya melihat status diverifikasi atau miliknya sendiri).
+     *
+     * `GET /v1/kemahasiswaan/prestasi/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPrestasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/prestasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1598,6 +1738,26 @@ final class Kemahasiswaan extends Resource
     }
 
     /**
+     * Konseling: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mengajukan konseling; pengelola menugaskan konselor (username). catatan_konselor hanya terlihat oleh konselor yang ditugaskan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kemahasiswaan/konseling/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKonselingByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/konseling/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Konseling: Jadwalkan
      *
      * Pengelola modul. Status harus diajukan/dijadwalkan, menjadi dijadwalkan.
@@ -1685,7 +1845,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{nim: string, tanggal: string, jenis: string, tingkat?: string, uraian?: string, sanksi?: string, sanksi_mulai?: string, sanksi_selesai?: string, nomor_sk?: string, status?: string, ...} $body
+     * @param array{nim: string, tanggal: string, jenis: string, tingkat?: string, uraian?: string, sanksi?: string, sanksi_mulai?: string, sanksi_selesai?: string, nomor_sk?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1725,7 +1885,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, tanggal: string, jenis: string, tingkat?: string, uraian?: string, sanksi?: string, sanksi_mulai?: string, sanksi_selesai?: string, nomor_sk?: string, status?: string, ...} $body
+     * @param array{nim: string, tanggal: string, jenis: string, tingkat?: string, uraian?: string, sanksi?: string, sanksi_mulai?: string, sanksi_selesai?: string, nomor_sk?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1753,6 +1913,26 @@ final class Kemahasiswaan extends Resource
     public function deletePelanggaranById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kemahasiswaan/pelanggaran/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pelanggaran dan sanksi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kemahasiswaan/pelanggaran/{id}/riwayat`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPelanggaranByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/pelanggaran/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -234,7 +234,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, ...} $body
+     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -295,7 +295,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, ...} $body
+     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -356,7 +356,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -417,7 +417,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, ...} $body
+     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -478,7 +478,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -539,7 +539,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, ...} $body
+     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -598,7 +598,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, ...} $body
+     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -638,7 +638,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, ...} $body
+     * @param array{username: string, instansi: string, jabatan: string, unit_kerja?: string, jenis?: string, sektor?: string, lokasi?: string, mulai: string, selesai?: string, masih_bekerja?: bool, deskripsi?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -666,6 +666,26 @@ final class Profil extends Resource
     public function deletePekerjaanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/profil/pekerjaan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat pekerjaan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Riwayat pekerjaan yang diisi pengguna sendiri (username otomatis). Bukti (SK/kontrak) dilampirkan lewat /berkas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/pekerjaan/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPekerjaanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pekerjaan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -776,7 +796,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, ...} $body
+     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -816,7 +836,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, ...} $body
+     * @param array{username: string, jenjang: string, institusi: string, program_studi?: string, gelar?: string, negara?: string, tahun_masuk?: int, tahun_lulus?: int, masih_studi?: bool, ipk?: float|int, nomor_ijazah?: string, judul_tugas_akhir?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -844,6 +864,26 @@ final class Profil extends Resource
     public function deletePendidikanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/profil/pendidikan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat pendidikan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Riwayat pendidikan formal dan nonformal yang diisi pengguna sendiri. Ijazah/transkrip dilampirkan lewat /berkas atau sebagai dokumen pribadi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/pendidikan/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPendidikanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pendidikan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -954,7 +994,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -994,7 +1034,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul: string, penyelenggara?: string, tingkat?: string, peringkat?: string, tanggal?: string, berlaku_sampai?: string, nomor_sertifikat?: string, tautan?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1022,6 +1062,26 @@ final class Profil extends Resource
     public function deletePrestasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/profil/prestasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Prestasi dan sertifikasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Penghargaan, sertifikasi, pelatihan, kompetisi, dan publikasi. Piagam/sertifikat dilampirkan lewat /berkas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/prestasi/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPrestasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/prestasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1132,7 +1192,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, ...} $body
+     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1172,7 +1232,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, ...} $body
+     * @param array{username: string, nama_organisasi: string, jabatan?: string, jenis?: string, mulai?: string, selesai?: string, masih_aktif?: bool, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1200,6 +1260,26 @@ final class Profil extends Resource
     public function deleteOrganisasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/profil/organisasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Organisasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Organisasi kemahasiswaan, profesi, kemasyarakatan, kepanitiaan, dan kegiatan relawan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/organisasi/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/organisasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1310,7 +1390,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1350,7 +1430,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, ...} $body
+     * @param array{username: string, jenis: string, judul?: string, nomor?: string, penerbit?: string, tanggal_terbit?: string, berlaku_sampai?: string, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1378,6 +1458,26 @@ final class Profil extends Resource
     public function deleteDokumenById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/profil/dokumen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen pribadi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dokumen pribadi (KTP, KK, NPWP, ijazah, transkrip, piagam, CV, ...). Buat barisnya dulu, lalu unggah file lewat /berkas (PDF/JPG/PNG/WEBP). Jenis yang wajib verifikasi berstatus `diajukan` sampai diperiksa petugas; dokumen terverifikasi terkunci bagi pemilik. Daftar jenis: GET /v1/profil/referensi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/dokumen/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDokumenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/dokumen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1548,7 +1648,7 @@ final class Profil extends Resource
      *
      * scope: `profil:write`
      *
-     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, ...} $body
+     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1588,7 +1688,7 @@ final class Profil extends Resource
      * scope: `profil:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, ...} $body
+     * @param array{username: string, kolom: string, nilai_baru: string, alasan: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1596,6 +1696,26 @@ final class Profil extends Resource
     public function putPermohonanById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/profil/permohonan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Permohonan perubahan data induk: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Data induk (nama, tempat/tanggal lahir, jenis kelamin, agama, ...) tidak bisa diubah sendiri. Pengguna mengajukan nilai baru beserta alasan dan bukti (lampiran /berkas, mis. akta lahir atau KK). Petugas BAK/SDM memeriksa dan memperbarui data di SIAKAD; API ini tidak mengubah tabel lama. Isian yang bisa diajukan ada di GET /v1/profil/saya (`bisa_diajukan`). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/profil/permohonan/{id}/riwayat`
+     *
+     * scope: `profil:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPermohonanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/permohonan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -491,6 +491,26 @@ final class Cbt extends Resource
     }
 
     /**
+     * Ujian: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Ujian berbasis komputer. Soal hanya bisa diubah selama belum ada peserta yang mulai. Aksi `siapkan` memeriksa soal dan sesi sebelum ujian bisa dikerjakan. Pengawas melihat ujian yang sesinya ia awasi. Hanya pengelola modul.
+     *
+     * `GET /v1/cbt/ujian/{id}/riwayat`
+     *
+     * scope: `cbt:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/cbt/ujian/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ujian: Siapkan ujian
      *
      * Memeriksa ujian punya soal (cukup untuk jumlah_soal) dan minimal satu sesi. Pengelola modul. Status harus draf, menjadi siap.
@@ -669,6 +689,26 @@ final class Cbt extends Resource
     }
 
     /**
+     * Soal: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Format sama dengan bank soal LMS: `opsi` [{id, teks}] dan `kunci` "a" / ["a","c"] / true / ["jawaban"] / {"kiri-id": "kanan-id"} (menjodohkan: opsi {kiri: [...], kanan: [...]}). Esai tanpa kunci dan dikoreksi manual. Kunci hanya terlihat oleh pengelola. Soal terkunci setelah ada peserta yang mulai. Hanya pengelola modul.
+     *
+     * `GET /v1/cbt/soal/{id}/riwayat`
+     *
+     * scope: `cbt:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSoalByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/cbt/soal/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Sesi: daftar
      *
      * Sesi per ruang/waktu. Pengawas (username) melihat sesinya, membuka sesi (token dibuat otomatis, dibagikan ke peserta di ruang), mengganti token, menangani peserta, dan menutup sesi dengan berita acara. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengawas).
@@ -764,6 +804,26 @@ final class Cbt extends Resource
     public function deleteSesiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/cbt/sesi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sesi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Sesi per ruang/waktu. Pengawas (username) melihat sesinya, membuka sesi (token dibuat otomatis, dibagikan ke peserta di ruang), mengganti token, menangani peserta, dan menutup sesi dengan berita acara. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengawas).
+     *
+     * `GET /v1/cbt/sesi/{id}/riwayat`
+     *
+     * scope: `cbt:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSesiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/cbt/sesi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -922,6 +982,26 @@ final class Cbt extends Resource
     public function deletePesertaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/cbt/peserta/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peserta: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peserta per ujian (satu baris per username: NIM, nomor PMB, atau username lain). Isi massal dari KRS lewat /cbt/ujian/{id}/isi-peserta. Peserta melihat barisnya sendiri; nilai hanya terlihat bila ujian `tampil_hasil`. Pengawas sesi melihat dan menangani peserta di sesinya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/cbt/peserta/{id}/riwayat`
+     *
+     * scope: `cbt:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPesertaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/cbt/peserta/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

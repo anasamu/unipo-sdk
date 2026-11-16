@@ -169,6 +169,26 @@ final class Repositori extends Resource
     }
 
     /**
+     * Koleksi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope repositori:read.
+     *
+     * `GET /v1/repositori/koleksi/{id}/riwayat`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKoleksiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/repositori/koleksi/{id}/riwayat', ['id' => $id], $query, null, $options, false, true);
+    }
+
+    /**
      * Karya ilmiah: daftar
      *
      * Metadata karya yang diterbitkan terbuka untuk umum (juga tanpa token). Teks lengkap dilampirkan lewat /berkas dan bisa diunduh sesuai `akses` (publik, login, tertutup) dan `embargo_sampai`. Mahasiswa/dosen menyetor karyanya sendiri (penulis_username otomatis), lalu `ajukan`; pustakawan memeriksa (cek plagiasi) dan `terbitkan`, `minta-revisi`, atau `tolak`. Semua pemilik token ber-scope repositori:read (selain pengelola hanya melihat status diterbitkan atau miliknya sendiri).
@@ -196,7 +216,7 @@ final class Repositori extends Resource
      *
      * scope: `repositori:write`
      *
-     * @param array{koleksi_id?: int, jenis: string, judul: string, judul_en?: string, abstrak?: string, abstrak_en?: string, kata_kunci?: string, penulis_username: string, penulis_nama?: string, penulis_lain?: array<string, mixed>, pembimbing?: array<string, mixed>, kode_prodi?: string, tahun: int, tanggal?: string, bahasa?: string, halaman?: int, penerbit?: string, doi?: string, isbn_issn?: string, url?: string, lisensi?: string, akses?: string, embargo_sampai?: string, skor_plagiasi?: float|int, alat_plagiasi?: string, ta_id?: int, lppm_luaran_id?: int, ...} $body
+     * @param array{koleksi_id?: int, jenis: string, judul: string, judul_en?: string, abstrak?: string, abstrak_en?: string, kata_kunci?: string, penulis_username: string, penulis_nama?: string, penulis_lain?: array<string, mixed>, pembimbing?: array<string, mixed>, kode_prodi?: string, tahun: int, tanggal?: string, bahasa?: string, halaman?: int, penerbit?: string, doi?: string, isbn_issn?: string, url?: string, lisensi?: string, akses?: string, embargo_sampai?: string, skor_plagiasi?: float|int, alat_plagiasi?: string, ta_id?: int, lppm_luaran_id?: int, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -236,7 +256,7 @@ final class Repositori extends Resource
      * scope: `repositori:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{koleksi_id?: int, jenis: string, judul: string, judul_en?: string, abstrak?: string, abstrak_en?: string, kata_kunci?: string, penulis_username: string, penulis_nama?: string, penulis_lain?: array<string, mixed>, pembimbing?: array<string, mixed>, kode_prodi?: string, tahun: int, tanggal?: string, bahasa?: string, halaman?: int, penerbit?: string, doi?: string, isbn_issn?: string, url?: string, lisensi?: string, akses?: string, embargo_sampai?: string, skor_plagiasi?: float|int, alat_plagiasi?: string, ta_id?: int, lppm_luaran_id?: int, ...} $body
+     * @param array{koleksi_id?: int, jenis: string, judul: string, judul_en?: string, abstrak?: string, abstrak_en?: string, kata_kunci?: string, penulis_username: string, penulis_nama?: string, penulis_lain?: array<string, mixed>, pembimbing?: array<string, mixed>, kode_prodi?: string, tahun: int, tanggal?: string, bahasa?: string, halaman?: int, penerbit?: string, doi?: string, isbn_issn?: string, url?: string, lisensi?: string, akses?: string, embargo_sampai?: string, skor_plagiasi?: float|int, alat_plagiasi?: string, ta_id?: int, lppm_luaran_id?: int, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -264,6 +284,26 @@ final class Repositori extends Resource
     public function deleteKaryaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/repositori/karya/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Karya ilmiah: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Metadata karya yang diterbitkan terbuka untuk umum (juga tanpa token). Teks lengkap dilampirkan lewat /berkas dan bisa diunduh sesuai `akses` (publik, login, tertutup) dan `embargo_sampai`. Mahasiswa/dosen menyetor karyanya sendiri (penulis_username otomatis), lalu `ajukan`; pustakawan memeriksa (cek plagiasi) dan `terbitkan`, `minta-revisi`, atau `tolak`. Semua pemilik token ber-scope repositori:read (selain pengelola hanya melihat status diterbitkan atau miliknya sendiri).
+     *
+     * `GET /v1/repositori/karya/{id}/riwayat`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKaryaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/repositori/karya/{id}/riwayat', ['id' => $id], $query, null, $options, false, true);
     }
 
     /**

@@ -583,6 +583,26 @@ final class Admisi extends Resource
     }
 
     /**
+     * Persyaratan penerimaan prodi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Persyaratan per prodi (dan jalur): jurusan SMA/SMK yang diterima, nilai rapor minimal, tes kesehatan/buta warna, uraian lain. Bisa dibaca tanpa token untuk landing PMB. Kuota dan nilai minimal seleksi tetap di /v1/pmb/admin/gelombang/{id}/prodi, profil prodi di /v1/pmb/admin/prodi-info. Semua pemilik token ber-scope admisi:read (selain pengelola hanya melihat aktif 1).
+     *
+     * `GET /v1/admisi/prodi-syarat/{id}/riwayat`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getProdiSyaratByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/prodi-syarat/{id}/riwayat', ['id' => $id], $query, null, $options, false, true);
+    }
+
+    /**
      * Petugas sesi tes: daftar
      *
      * Pengawas, penguji, pewawancara, dan operator per sesi tes PMB (/v1/pmb/admin/sesi-tes). Peserta dan nomor kursi tetap di sesi tes. Petugas melihat jadwal tugasnya di GET /admisi/petugas/saya. Hanya pengelola modul.
@@ -681,6 +701,26 @@ final class Admisi extends Resource
     }
 
     /**
+     * Petugas sesi tes: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengawas, penguji, pewawancara, dan operator per sesi tes PMB (/v1/pmb/admin/sesi-tes). Peserta dan nomor kursi tetap di sesi tes. Petugas melihat jadwal tugasnya di GET /admisi/petugas/saya. Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/petugas-sesi/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPetugasSesiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/petugas-sesi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Letter of Acceptance: daftar
      *
      * Surat penerimaan untuk pendaftar yang lulus seleksi. Terbitkan dengan POST /admisi/loa/terbitkan (nomor, data surat, kode verifikasi); detail berisi data cetak. Verifikasi publik: GET /admisi/loa/verifikasi/{kode}. Hanya pengelola modul.
@@ -740,6 +780,26 @@ final class Admisi extends Resource
     }
 
     /**
+     * Letter of Acceptance: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Surat penerimaan untuk pendaftar yang lulus seleksi. Terbitkan dengan POST /admisi/loa/terbitkan (nomor, data surat, kode verifikasi); detail berisi data cetak. Verifikasi publik: GET /admisi/loa/verifikasi/{kode}. Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/loa/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLoaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/loa/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Letter of Acceptance: Batalkan LoA
      *
      * Pengelola modul. Status harus terbit, menjadi batal.
@@ -787,7 +847,7 @@ final class Admisi extends Resource
      *
      * scope: `admisi:write`
      *
-     * @param array{pmb_pendaftaran_id?: int, nim?: string, kode_prodi?: string, nama: string, nik?: string, nisn?: string, no_pendaftaran_kip?: string, nomor_kip?: string, punya_kks_pkh?: bool, penghasilan_ortu?: float|int, jumlah_tanggungan?: int, skema?: string, angkatan?: string, catatan?: string, ...} $body
+     * @param array{pmb_pendaftaran_id?: int, nim?: string, kode_prodi?: string, nama: string, nik?: string, nisn?: string, no_pendaftaran_kip?: string, nomor_kip?: string, punya_kks_pkh?: bool, penghasilan_ortu?: float|int, jumlah_tanggungan?: int, skema?: string, angkatan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -827,7 +887,7 @@ final class Admisi extends Resource
      * scope: `admisi:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{pmb_pendaftaran_id?: int, nim?: string, kode_prodi?: string, nama: string, nik?: string, nisn?: string, no_pendaftaran_kip?: string, nomor_kip?: string, punya_kks_pkh?: bool, penghasilan_ortu?: float|int, jumlah_tanggungan?: int, skema?: string, angkatan?: string, catatan?: string, ...} $body
+     * @param array{pmb_pendaftaran_id?: int, nim?: string, kode_prodi?: string, nama: string, nik?: string, nisn?: string, no_pendaftaran_kip?: string, nomor_kip?: string, punya_kks_pkh?: bool, penghasilan_ortu?: float|int, jumlah_tanggungan?: int, skema?: string, angkatan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -855,6 +915,26 @@ final class Admisi extends Resource
     public function deleteKipById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/admisi/kip/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * KIP Kuliah: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengajuan dan penerima KIP Kuliah (calon mahasiswa dari PMB atau mahasiswa). Alur: diajukan -> diverifikasi -> diusulkan (ke SIM KIP Kuliah) -> ditetapkan (nomor SK) / ditolak; penerima bisa dicabut. Pendaftar mengisi lewat POST /admisi/saya/pendaftaran/{uuid}/kip. Berkas (KIP/KKS/SKTM, foto rumah) lewat /berkas. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/admisi/kip/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKipByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/kip/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1065,7 +1145,7 @@ final class Admisi extends Resource
      *
      * scope: `admisi:write`
      *
-     * @param array{pmb_pendaftaran_id: int, kode_prodi?: string, penghasilan_ayah?: float|int, penghasilan_ibu?: float|int, penghasilan_wali?: float|int, jumlah_tanggungan?: int, pekerjaan_ayah?: string, pekerjaan_ibu?: string, daya_listrik?: int, kepemilikan_rumah?: string, catatan?: string, ...} $body
+     * @param array{pmb_pendaftaran_id: int, kode_prodi?: string, penghasilan_ayah?: float|int, penghasilan_ibu?: float|int, penghasilan_wali?: float|int, jumlah_tanggungan?: int, pekerjaan_ayah?: string, pekerjaan_ibu?: string, daya_listrik?: int, kepemilikan_rumah?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1105,7 +1185,7 @@ final class Admisi extends Resource
      * scope: `admisi:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{pmb_pendaftaran_id: int, kode_prodi?: string, penghasilan_ayah?: float|int, penghasilan_ibu?: float|int, penghasilan_wali?: float|int, jumlah_tanggungan?: int, pekerjaan_ayah?: string, pekerjaan_ibu?: string, daya_listrik?: int, kepemilikan_rumah?: string, catatan?: string, ...} $body
+     * @param array{pmb_pendaftaran_id: int, kode_prodi?: string, penghasilan_ayah?: float|int, penghasilan_ibu?: float|int, penghasilan_wali?: float|int, jumlah_tanggungan?: int, pekerjaan_ayah?: string, pekerjaan_ibu?: string, daya_listrik?: int, kepemilikan_rumah?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1133,6 +1213,26 @@ final class Admisi extends Resource
     public function deleteUktById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/admisi/ukt/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * UKT pendaftar: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Data ekonomi pendaftar untuk penetapan kelompok UKT. Penghasilan per kapita dan kelompok usulan dihitung otomatis dari /admisi/ukt-aturan. Aksi tetapkan (kelompok keu_mhs_ukt_kelompok prodi), banding; setelah daftar ulang POST /admisi/ukt/{id}/terapkan menulis penetapan UKT mahasiswa di /v1/keuangan/ukt/mahasiswa (dipakai generate tagihan). Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/ukt/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUktByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/ukt/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1354,6 +1454,26 @@ final class Admisi extends Resource
     }
 
     /**
+     * Aturan usulan kelompok UKT: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Rentang penghasilan per kapita (penghasilan ayah+ibu+wali dibagi jumlah tanggungan) untuk usulan kelompok UKT per prodi (kosong = semua prodi; aturan prodi didahulukan). Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/ukt-aturan/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUktAturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/ukt-aturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Format NIM: daftar
      *
      * Pola NIM otomatis per prodi. Token: {YYYY} tahun masuk, {YY} dua digit tahun, {S} digit semester (1 ganjil, 2 genap), {PRODI} kode prodi, {NNN} nomor urut (panjang = jumlah N). Tanpa pola, NIM ditebak dari NIM angkatan terakhir prodi (bagian dua digit tahun diganti, nomor urut dilanjutkan). Hanya pengelola modul.
@@ -1452,6 +1572,26 @@ final class Admisi extends Resource
     }
 
     /**
+     * Format NIM: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pola NIM otomatis per prodi. Token: {YYYY} tahun masuk, {YY} dua digit tahun, {S} digit semester (1 ganjil, 2 genap), {PRODI} kode prodi, {NNN} nomor urut (panjang = jumlah N). Tanpa pola, NIM ditebak dari NIM angkatan terakhir prodi (bagian dua digit tahun diganti, nomor urut dilanjutkan). Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/format-nim/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFormatNimByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/format-nim/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Aturan NIM otomatis: daftar
      *
      * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
@@ -1547,5 +1687,25 @@ final class Admisi extends Resource
     public function deleteAturanNimById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/admisi/aturan-nim/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan NIM otomatis: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     *
+     * `GET /v1/admisi/aturan-nim/{id}/riwayat`
+     *
+     * scope: `admisi:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanNimByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/admisi/aturan-nim/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

@@ -882,6 +882,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Periode pembayaran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Jatuh tempo pembayaran per periode akademik (opsional per prodi dan jenis biaya) beserta aturan denda keterlambatan. Dipakai /keuangan/denda/hitung dan status jatuh tempo tagihan. Semua pemilik token ber-scope keuangan:read.
+     *
+     * `GET /v1/keuangan/periode/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeriodeByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/periode/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kelompok UKT: daftar
      *
      * Kelompok UKT per prodi (opsional per angkatan) dengan nominal untuk satu jenis biaya (m_item_biaya). Mahasiswa yang ditetapkan ke kelompok ditagih dengan nominal ini saat generate tagihan. Semua pemilik token ber-scope keuangan:read.
@@ -977,6 +997,26 @@ final class Keuangan extends Resource
     public function deleteUktKelompokById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/ukt/kelompok/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kelompok UKT: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kelompok UKT per prodi (opsional per angkatan) dengan nominal untuk satu jenis biaya (m_item_biaya). Mahasiswa yang ditetapkan ke kelompok ditagih dengan nominal ini saat generate tagihan. Semua pemilik token ber-scope keuangan:read.
+     *
+     * `GET /v1/keuangan/ukt/kelompok/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUktKelompokByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/ukt/kelompok/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1078,6 +1118,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Penetapan UKT mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kelompok UKT tiap mahasiswa. Satu penetapan aktif (ditetapkan) per mahasiswa per jenis biaya; penetapan baru otomatis membatalkan yang lama. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/ukt/mahasiswa/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUktMahasiswaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/ukt/mahasiswa/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tarif per mata kuliah: daftar
      *
      * Tarif per SKS atau per mata kuliah (kode_mk kosong = berlaku untuk semua mata kuliah yang tidak punya tarif khusus). Dipakai POST /keuangan/tagihan/generate-mk untuk menagih dari KRS. Semua pemilik token ber-scope keuangan:read.
@@ -1173,6 +1233,26 @@ final class Keuangan extends Resource
     public function deleteTarifMkById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/tarif-mk/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tarif per mata kuliah: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Tarif per SKS atau per mata kuliah (kode_mk kosong = berlaku untuk semua mata kuliah yang tidak punya tarif khusus). Dipakai POST /keuangan/tagihan/generate-mk untuk menagih dari KRS. Semua pemilik token ber-scope keuangan:read.
+     *
+     * `GET /v1/keuangan/tarif-mk/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTarifMkByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/tarif-mk/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1274,6 +1354,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Voucher: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kode voucher potongan. Mahasiswa memakainya lewat POST /keuangan/voucher/pakai; potongan langsung mengurangi tagihan. Hanya pengelola modul.
+     *
+     * `GET /v1/keuangan/voucher/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getVoucherByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/voucher/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Potongan tagihan: daftar
      *
      * Potongan, beasiswa, atau keringanan atas satu tagihan. Saat diterapkan, nominal tagihan di t_mahasiswa_bayar_tagihan dikurangi (query ubah tagihan menu Keuangan, tercatat di m_log); dibatalkan = dikembalikan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
@@ -1372,6 +1472,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Potongan tagihan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Potongan, beasiswa, atau keringanan atas satu tagihan. Saat diterapkan, nominal tagihan di t_mahasiswa_bayar_tagihan dikurangi (query ubah tagihan menu Keuangan, tercatat di m_log); dibatalkan = dikembalikan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/potongan/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPotonganByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/potongan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Potongan tagihan: Terapkan potongan ke tagihan SIAKAD
      *
      * Pengelola modul. Status harus diajukan, menjadi diterapkan.
@@ -1459,7 +1579,7 @@ final class Keuangan extends Resource
      *
      * scope: `keuangan:write`
      *
-     * @param array{nim: string, tahun_id?: string, untuk?: string, janji_bayar?: string, jumlah_janji?: float|int, alasan: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, untuk?: string, janji_bayar?: string, jumlah_janji?: float|int, alasan: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1499,7 +1619,7 @@ final class Keuangan extends Resource
      * scope: `keuangan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, tahun_id?: string, untuk?: string, janji_bayar?: string, jumlah_janji?: float|int, alasan: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, untuk?: string, janji_bayar?: string, jumlah_janji?: float|int, alasan: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1527,6 +1647,26 @@ final class Keuangan extends Resource
     public function deleteDispensasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/dispensasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dispensasi pembayaran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mengajukan dispensasi (tetap boleh KRS/ujian dengan janji bayar); pengelola keuangan memutuskan. Dispensasi yang disetujui tampil di GET /keuangan/mahasiswa/{nim}/syarat dan otomatis mengecualikan aturan dinamis kategori keuangan (/v1/aturan) di KRS/ujian. Syarat pengajuan diatur aturan titik keuangan.dispensasi.ajukan. Aturan syarat bayar di halaman SIAKAD lama tidak diubah. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/dispensasi/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDispensasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/dispensasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1697,7 +1837,7 @@ final class Keuangan extends Resource
      *
      * scope: `keuangan:write`
      *
-     * @param array{nim: string, tahun_id?: string, kode_biaya: string, jumlah_angsuran: int, mulai?: string, alasan?: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, kode_biaya: string, jumlah_angsuran: int, mulai?: string, alasan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1737,7 +1877,7 @@ final class Keuangan extends Resource
      * scope: `keuangan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, tahun_id?: string, kode_biaya: string, jumlah_angsuran: int, mulai?: string, alasan?: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, kode_biaya: string, jumlah_angsuran: int, mulai?: string, alasan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1765,6 +1905,26 @@ final class Keuangan extends Resource
     public function deleteCicilanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/cicilan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cicilan pembayaran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mengajukan cicilan untuk satu tagihan; saat disetujui angsuran bulanan dibuat dari sisa tagihan. Pembayaran tagihan yang sama (lewat API) otomatis mengisi angsuran berurutan; semua lunas = status lunas. Syarat pengajuan (mis. jumlah angsuran maksimal) diatur aturan titik keuangan.cicilan.ajukan (/v1/aturan). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/cicilan/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getCicilanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/cicilan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1935,7 +2095,7 @@ final class Keuangan extends Resource
      *
      * scope: `keuangan:write`
      *
-     * @param array{nim: string, transaksi_id?: int, jumlah: float|int, alasan: string, tujuan?: string, bank?: string, no_rekening?: string, atas_nama?: string, catatan?: string, ...} $body
+     * @param array{nim: string, transaksi_id?: int, jumlah: float|int, alasan: string, tujuan?: string, bank?: string, no_rekening?: string, atas_nama?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1975,7 +2135,7 @@ final class Keuangan extends Resource
      * scope: `keuangan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, transaksi_id?: int, jumlah: float|int, alasan: string, tujuan?: string, bank?: string, no_rekening?: string, atas_nama?: string, catatan?: string, ...} $body
+     * @param array{nim: string, transaksi_id?: int, jumlah: float|int, alasan: string, tujuan?: string, bank?: string, no_rekening?: string, atas_nama?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2003,6 +2163,26 @@ final class Keuangan extends Resource
     public function deleteRefundById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/refund/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Refund: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengembalian dana (kelebihan bayar, batal studi). Tujuan deposit: saat disetujui saldo deposit langsung bertambah (status dibayar). Tujuan rekening: disetujui lalu ditandai dibayar setelah transfer. Pembayaran di t_mahasiswa_bayar tidak dihapus; untuk membatalkan pembayaran yang salah pakai POST /keuangan/transaksi/{id}/batal. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/refund/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRefundByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/refund/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -2205,6 +2385,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Denda keterlambatan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Denda yang dihitung POST /keuangan/denda/hitung dari periode pembayaran. Nominal ditagihkan sebagai tagihan kode_biaya_denda di tabel lama. Dihapuskan = tagihan denda dinolkan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keuangan/denda/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDendaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/denda/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Denda keterlambatan: Hapuskan denda (tagihan denda dinolkan)
      *
      * Pengelola modul. Status harus aktif, menjadi dihapuskan.
@@ -2261,6 +2461,26 @@ final class Keuangan extends Resource
     public function getKasirById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/keuangan/kasir/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sesi kasir: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Sesi loket kasir. Buka dengan POST /keuangan/kasir/buka, tutup dengan POST /keuangan/kasir/{id}/tutup. Pembayaran oleh kasir yang sesinya terbuka otomatis masuk ke sesi itu. Hanya pengelola modul.
+     *
+     * `GET /v1/keuangan/kasir/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKasirByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/kasir/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -2440,6 +2660,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Skema potongan, keringanan, dan beasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+     *
+     * `GET /v1/keuangan/skema-potongan/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkemaPotonganByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/skema-potongan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Skema potongan, keringanan, dan beasiswa: Buka pengajuan
      *
      * Pengelola modul. Status harus draf/tutup, menjadi buka.
@@ -2507,7 +2747,7 @@ final class Keuangan extends Resource
      *
      * scope: `keuangan:write`
      *
-     * @param array{skema_id: int, nim?: string, tahun_id?: string, alasan?: string, nomor_sk?: string, tanggal_sk?: string, catatan?: string, ...} $body
+     * @param array{skema_id: int, nim?: string, tahun_id?: string, alasan?: string, nomor_sk?: string, tanggal_sk?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2547,7 +2787,7 @@ final class Keuangan extends Resource
      * scope: `keuangan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{skema_id: int, nim?: string, tahun_id?: string, alasan?: string, nomor_sk?: string, tanggal_sk?: string, catatan?: string, ...} $body
+     * @param array{skema_id: int, nim?: string, tahun_id?: string, alasan?: string, nomor_sk?: string, tanggal_sk?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2575,6 +2815,26 @@ final class Keuangan extends Resource
     public function deletePengajuanPotonganById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/pengajuan-potongan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan potongan/keringanan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Alur: draf (mahasiswa mengisi dan mengunggah berkas syarat lewat /berkas dengan jenis = kode syarat) -> ajukan -> verifikasi (unit/fakultas, bila skema perlu_verifikasi) -> setujui (admin keuangan; wajib nomor SK dan lampiran berjenis "sk" bila skema wajib_sk; kuota dicek) -> potongan otomatis dipasang ke tagihan periode berjalan (dan periode berikutnya sampai lama_semester lewat cron keu:keringanan). Bisa juga ditolak, dikembalikan untuk diperbaiki, atau dicabut (opsional mengembalikan potongan pada tagihan yang belum lunas). Petugas boleh membuatkan pengajuan untuk mahasiswa (isi nim). Pengajuan maba dibuat dari aplikasi PMB dan ditautkan ke NIM setelah daftar ulang. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+     *
+     * `GET /v1/keuangan/pengajuan-potongan/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanPotonganByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/pengajuan-potongan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -2876,6 +3136,26 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Pemetaan biaya PMB ke jenis biaya: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Jenis rincian biaya PMB (pmb_biaya.jenis: daftar_ulang, ukt, spp, pengembangan, almamater, lainnya) -> kode biaya SIAKAD. Dipakai untuk mengakui pembayaran daftar ulang PMB sebagai pembayaran tagihan semester pertama dan untuk memotong tagihan PMB maba yang keringanannya disetujui. kode_prodi kosong = semua prodi. Hanya pengelola modul.
+     *
+     * `GET /v1/keuangan/pemetaan-pmb/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemetaanPmbByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/pemetaan-pmb/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pengaturan keuangan mahasiswa: daftar
      *
      * Kunci yang dikenal: daftar_ulang_otomatis (bawaan 0): Tagihan daftar ulang PMB lunas = daftar ulang otomatis (NIM dari aturan NIM); kredit_daftar_ulang (bawaan 1): Pembayaran daftar ulang PMB diakui sebagai pembayaran tagihan semester pertama; tagihan_maba_otomatis (bawaan 1): Tagihan semester pertama dibuat otomatis setelah daftar ulang; potong_tagihan_pmb (bawaan 1): Potongan maba yang disetujui mengurangi tagihan daftar ulang PMB yang belum dibayar. Hanya pengelola modul.
@@ -2971,5 +3251,25 @@ final class Keuangan extends Resource
     public function deletePengaturanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keuangan/pengaturan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan keuangan mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kunci yang dikenal: daftar_ulang_otomatis (bawaan 0): Tagihan daftar ulang PMB lunas = daftar ulang otomatis (NIM dari aturan NIM); kredit_daftar_ulang (bawaan 1): Pembayaran daftar ulang PMB diakui sebagai pembayaran tagihan semester pertama; tagihan_maba_otomatis (bawaan 1): Tagihan semester pertama dibuat otomatis setelah daftar ulang; potong_tagihan_pmb (bawaan 1): Potongan maba yang disetujui mengurangi tagihan daftar ulang PMB yang belum dibayar. Hanya pengelola modul.
+     *
+     * `GET /v1/keuangan/pengaturan/{id}/riwayat`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengaturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/pengaturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

@@ -3059,6 +3059,181 @@ final class Lppm extends Resource
     }
 
     /**
+     * Daftar proposal KKN
+     *
+     * Pengelola: semua (dibatasi prodi klien); mahasiswa: miliknya dan kelompoknya; DPL: kelompok bimbingannya. Urutan: menunggu verifikasi lebih dulu.
+     *
+     * `GET /v1/lppm/kkn/proposal`
+     *
+     * scope: `lppm:read` · berhalaman
+     *
+     * @param array{periode_id?: string, status?: string, kelompok_id?: string, q?: string, saya?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKknProposal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kkn/proposal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat proposal KKN
+     *
+     * Mahasiswa peserta KKN (status mendaftar s.d. aktif) pada periode berstatus pendaftaran/penempatan/berjalan; satu proposal aktif per kepesertaan. Status draf. Pengelola boleh membuatkan dengan peserta_id.
+     *
+     * `POST /v1/lppm/kkn/proposal`
+     *
+     * scope: `lppm:write`
+     *
+     * @param array{periode_id: int, peserta_id?: int|null, jenis?: string, judul: string, ringkasan?: string|null, lokasi?: string|null, mitra?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKknProposal(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kkn/proposal', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rekap proposal KKN per status
+     *
+     * `GET /v1/lppm/kkn/proposal/rekap`
+     *
+     * scope: `lppm:read`
+     *
+     * @param array{periode_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKknProposalRekap(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kkn/proposal/rekap', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail proposal KKN
+     *
+     * Termasuk berkas, riwayat proses (dengan catatan LP2M), dan `hak`.
+     *
+     * `GET /v1/lppm/kkn/proposal/{id}`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKknProposalById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kkn/proposal/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah proposal KKN
+     *
+     * Pengusul saat draf/revisi, atau pengelola. Kirim hanya kolom yang berubah. POST karena hosting menolak PUT.
+     *
+     * `POST /v1/lppm/kkn/proposal/{id}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{periode_id: int, peserta_id?: int|null, jenis?: string, judul: string, ringkasan?: string|null, lokasi?: string|null, mitra?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKknProposalById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kkn/proposal/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cek kelengkapan proposal KKN
+     *
+     * Ringkasan ≥ 50 karakter, berkas peran=proposal, periode menerima proposal.
+     *
+     * `GET /v1/lppm/kkn/proposal/{id}/cek`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKknProposalByIdCek(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kkn/proposal/{id}/cek', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan proposal KKN
+     *
+     * Pengusul. Draf/revisi → diajukan; nomor KKN-tahun-urut terbit saat pertama diajukan; tim LP2M dikabari.
+     *
+     * `POST /v1/lppm/kkn/proposal/{id}/ajukan`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKknProposalByIdAjukan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kkn/proposal/{id}/ajukan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Verifikasi proposal KKN (LP2M)
+     *
+     * Admin/operator LP2M. keputusan: diterima | revisi | ditolak; catatan wajib untuk revisi/ditolak dan terlihat mahasiswa. Admin bisa mengubah proposal yang sudah diterima.
+     *
+     * `POST /v1/lppm/kkn/proposal/{id}/verifikasi`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{keputusan: string, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKknProposalByIdVerifikasi(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kkn/proposal/{id}/verifikasi', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Batalkan proposal KKN
+     *
+     * Pengusul sebelum diputuskan, atau pengelola. Body {"alasan": "..."}.
+     *
+     * `POST /v1/lppm/kkn/proposal/{id}/batal`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKknProposalByIdBatal(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kkn/proposal/{id}/batal', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Unduh file
      *
      * Hak akses mengikuti entitas pemilik. inline=1 untuk PDF/gambar/video.
@@ -3105,7 +3280,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param int|string $entitas usulan | laporan | logbook | luaran | mitra | pencairan | kkn_peserta | kkn_kelompok
+     * @param int|string $entitas usulan | laporan | logbook | luaran | mitra | pencairan | kkn_peserta | kkn_kelompok | kkn_proposal
      * @param int|string $id ID entitas
      * @param array<string, mixed> $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options

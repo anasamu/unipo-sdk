@@ -578,6 +578,26 @@ final class Kelulusan extends Resource
     }
 
     /**
+     * Syarat kelulusan tambahan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Syarat yudisium/wisuda tambahan per prodi (kosong = semua prodi) di luar aturan akademik SIAKAD: diverifikasi pengelola (manual/unggah), poin kemahasiswaan minimal, bebas tunggakan (dihitung dari tagihan SIAKAD), atau bebas pustaka (pinjaman perpustakaan SIAKAD dan SLiMS). Hasilnya ikut di GET /kelulusan/syarat/{nim}. Semua pemilik token ber-scope kelulusan:read.
+     *
+     * `GET /v1/kelulusan/syarat/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSyaratByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/syarat/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pemenuhan syarat mahasiswa: daftar
      *
      * Mahasiswa mengajukan bukti pemenuhan syarat manual/unggah (lampiran lewat /berkas); pengelola menyatakan terpenuhi atau menolak. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
@@ -605,7 +625,7 @@ final class Kelulusan extends Resource
      *
      * scope: `kelulusan:write`
      *
-     * @param array{syarat_id: int, nim: string, keterangan?: string, catatan?: string, ...} $body
+     * @param array{syarat_id: int, nim: string, keterangan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -645,7 +665,7 @@ final class Kelulusan extends Resource
      * scope: `kelulusan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{syarat_id: int, nim: string, keterangan?: string, catatan?: string, ...} $body
+     * @param array{syarat_id: int, nim: string, keterangan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -673,6 +693,26 @@ final class Kelulusan extends Resource
     public function deleteSyaratMahasiswaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kelulusan/syarat-mahasiswa/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemenuhan syarat mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mengajukan bukti pemenuhan syarat manual/unggah (lampiran lewat /berkas); pengelola menyatakan terpenuhi atau menolak. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kelulusan/syarat-mahasiswa/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSyaratMahasiswaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/syarat-mahasiswa/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -894,6 +934,26 @@ final class Kelulusan extends Resource
     }
 
     /**
+     * Aturan poin kemahasiswaan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Poin per kategori kegiatan, tingkat, dan peran (peran kosong = semua peran). Dipakai untuk kegiatan kls_poin yang diverifikasi, prestasi kemahasiswaan (kategori prestasi, peran = peringkat), dan pengurus ormawa (kategori organisasi, tingkat internal, peran = jabatan). Semua pemilik token ber-scope kelulusan:read.
+     *
+     * `GET /v1/kelulusan/poin/aturan/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPoinAturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/poin/aturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kegiatan dan poin mahasiswa: daftar
      *
      * Kegiatan mahasiswa (organisasi, kepanitiaan, seminar, pengabdian, sertifikasi, dll.) yang diajukan mahasiswa dan diverifikasi pengelola. Saat diverifikasi poin diisi dari aturan (atau isian poin). Kegiatan tampil_skpi masuk ke SKPI. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
@@ -921,7 +981,7 @@ final class Kelulusan extends Resource
      *
      * scope: `kelulusan:write`
      *
-     * @param array{nim: string, tahun_id?: string, kategori: string, tingkat?: string, peran?: string, nama_kegiatan: string, nama_kegiatan_en?: string, penyelenggara?: string, tanggal?: string, poin?: float|int, tampil_skpi?: bool, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, kategori: string, tingkat?: string, peran?: string, nama_kegiatan: string, nama_kegiatan_en?: string, penyelenggara?: string, tanggal?: string, poin?: float|int, tampil_skpi?: bool, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -961,7 +1021,7 @@ final class Kelulusan extends Resource
      * scope: `kelulusan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, tahun_id?: string, kategori: string, tingkat?: string, peran?: string, nama_kegiatan: string, nama_kegiatan_en?: string, penyelenggara?: string, tanggal?: string, poin?: float|int, tampil_skpi?: bool, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, kategori: string, tingkat?: string, peran?: string, nama_kegiatan: string, nama_kegiatan_en?: string, penyelenggara?: string, tanggal?: string, poin?: float|int, tampil_skpi?: bool, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -989,6 +1049,26 @@ final class Kelulusan extends Resource
     public function deletePoinKegiatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kelulusan/poin/kegiatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kegiatan dan poin mahasiswa: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kegiatan mahasiswa (organisasi, kepanitiaan, seminar, pengabdian, sertifikasi, dll.) yang diajukan mahasiswa dan diverifikasi pengelola. Saat diverifikasi poin diisi dari aturan (atau isian poin). Kegiatan tampil_skpi masuk ke SKPI. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kelulusan/poin/kegiatan/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPoinKegiatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/poin/kegiatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1210,6 +1290,26 @@ final class Kelulusan extends Resource
     }
 
     /**
+     * SKPI: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Surat Keterangan Pendamping Ijazah satu per mahasiswa: draf (mahasiswa/pengelola) -> diajukan -> disetujui -> terbit (nomor + kode verifikasi). Detail berisi isi lengkap SKPI: identitas & ijazah, profil prodi (template SKPI m_template), capaian, kegiatan/prestasi terverifikasi, dan sertifikat. Verifikasi publik: GET /kelulusan/skpi/verifikasi/{kode}. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kelulusan/skpi/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/skpi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * SKPI: Ajukan untuk diperiksa
      *
      * Pemilik data atau pengelola. Status harus draf/ditolak, menjadi diajukan.
@@ -1317,7 +1417,7 @@ final class Kelulusan extends Resource
      *
      * scope: `kelulusan:write`
      *
-     * @param array{nim: string, jenis?: string, nama: string, nomor?: string, nomor_pisn?: string, penerbit?: string, skema?: string, tanggal_terbit?: string, berlaku_sampai?: string, tampil_skpi?: bool, catatan?: string, ...} $body
+     * @param array{nim: string, jenis?: string, nama: string, nomor?: string, nomor_pisn?: string, penerbit?: string, skema?: string, tanggal_terbit?: string, berlaku_sampai?: string, tampil_skpi?: bool, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1357,7 +1457,7 @@ final class Kelulusan extends Resource
      * scope: `kelulusan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, jenis?: string, nama: string, nomor?: string, nomor_pisn?: string, penerbit?: string, skema?: string, tanggal_terbit?: string, berlaku_sampai?: string, tampil_skpi?: bool, catatan?: string, ...} $body
+     * @param array{nim: string, jenis?: string, nama: string, nomor?: string, nomor_pisn?: string, penerbit?: string, skema?: string, tanggal_terbit?: string, berlaku_sampai?: string, tampil_skpi?: bool, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1385,6 +1485,26 @@ final class Kelulusan extends Resource
     public function deleteSertifikatById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kelulusan/sertifikat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sertifikat profesi dan kompetensi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Sertifikat profesi (dengan nomor PISN bila ada), kompetensi, dan keahlian lulusan. Mahasiswa mengunggah, pengelola memverifikasi; yang terverifikasi dan tampil_skpi masuk ke SKPI. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/kelulusan/sertifikat/{id}/riwayat`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSertifikatByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/sertifikat/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

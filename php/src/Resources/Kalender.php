@@ -136,7 +136,7 @@ final class Kalender extends Resource
      *
      * scope: `kalender:write`
      *
-     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, ...} $body
+     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -176,7 +176,7 @@ final class Kalender extends Resource
      * scope: `kalender:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, ...} $body
+     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -204,6 +204,26 @@ final class Kalender extends Resource
     public function deleteKegiatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kalender/kegiatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kegiatan kalender: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
+     *
+     * `GET /v1/kalender/kegiatan/{id}/riwayat`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKegiatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kegiatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, true);
     }
 
     /**

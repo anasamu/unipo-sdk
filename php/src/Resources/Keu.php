@@ -554,6 +554,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Akun: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Bagan akun (pendapatan, belanja, aset, kewajiban, ekuitas), bertingkat lewat induk_id. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/akun/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkunByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/akun/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Periode anggaran: daftar
      *
      * Hanya pengelola modul.
@@ -652,6 +672,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Periode anggaran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/periode/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeriodeByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/periode/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * RKA unit: daftar
      *
      * Rencana kegiatan dan anggaran per unit per periode. Disusun pengelola unit (rincian di /keu/rka-item), diajukan, lalu disetujui/diminta revisi/ditolak admin keuangan. `total` dihitung dari rincian. Hanya pengelola modul.
@@ -679,7 +719,7 @@ final class Keu extends Resource
      *
      * scope: `keu:write`
      *
-     * @param array{periode_id: int, unit_id: int, kode_prodi?: string, judul: string, ...} $body
+     * @param array{periode_id: int, unit_id: int, kode_prodi?: string, judul: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -719,7 +759,7 @@ final class Keu extends Resource
      * scope: `keu:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{periode_id: int, unit_id: int, kode_prodi?: string, judul: string, ...} $body
+     * @param array{periode_id: int, unit_id: int, kode_prodi?: string, judul: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -747,6 +787,26 @@ final class Keu extends Resource
     public function deleteRkaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keu/rka/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * RKA unit: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Rencana kegiatan dan anggaran per unit per periode. Disusun pengelola unit (rincian di /keu/rka-item), diajukan, lalu disetujui/diminta revisi/ditolak admin keuangan. `total` dihitung dari rincian. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/rka/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRkaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/rka/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1008,6 +1068,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Rincian RKA: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Rincian anggaran. `jumlah` = volume x harga_satuan. Hanya bisa diubah saat RKA draf/revisi. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/rka-item/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRkaItemByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/rka-item/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pengajuan dana/realisasi: daftar
      *
      * Pengajuan dana atas rincian RKA yang disetujui (dicek sisa anggaran). Alur: diajukan → verifikasi → setujui → bayar → spj (selesai); atau tolak/batalkan. Bukti/SPJ dilampirkan lewat /berkas. Pengaju mendapat notifikasi dan bisa melihat pengajuannya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
@@ -1035,7 +1115,7 @@ final class Keu extends Resource
      *
      * scope: `keu:write`
      *
-     * @param array{rka_item_id: int, pengaju?: string, jenis?: string, tanggal: string, uraian: string, jumlah: float|int, penerima?: string, rekening_penerima?: string, ...} $body
+     * @param array{rka_item_id: int, pengaju?: string, jenis?: string, tanggal: string, uraian: string, jumlah: float|int, penerima?: string, rekening_penerima?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1075,7 +1155,7 @@ final class Keu extends Resource
      * scope: `keu:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{rka_item_id: int, pengaju?: string, jenis?: string, tanggal: string, uraian: string, jumlah: float|int, penerima?: string, rekening_penerima?: string, ...} $body
+     * @param array{rka_item_id: int, pengaju?: string, jenis?: string, tanggal: string, uraian: string, jumlah: float|int, penerima?: string, rekening_penerima?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1103,6 +1183,26 @@ final class Keu extends Resource
     public function deleteRealisasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keu/realisasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan dana/realisasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengajuan dana atas rincian RKA yang disetujui (dicek sisa anggaran). Alur: diajukan → verifikasi → setujui → bayar → spj (selesai); atau tolak/batalkan. Bukti/SPJ dilampirkan lewat /berkas. Pengaju mendapat notifikasi dan bisa melihat pengajuannya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+     *
+     * `GET /v1/keu/realisasi/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRealisasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/realisasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1333,7 +1433,7 @@ final class Keu extends Resource
      *
      * scope: `keu:write`
      *
-     * @param array{periode_id?: int, akun_id?: int, unit_id?: int, mitra_id?: int, tanggal: string, sumber?: string, uraian: string, jumlah: float|int, nomor_bukti?: string, ...} $body
+     * @param array{periode_id?: int, akun_id?: int, unit_id?: int, mitra_id?: int, tanggal: string, sumber?: string, uraian: string, jumlah: float|int, nomor_bukti?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1373,7 +1473,7 @@ final class Keu extends Resource
      * scope: `keu:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{periode_id?: int, akun_id?: int, unit_id?: int, mitra_id?: int, tanggal: string, sumber?: string, uraian: string, jumlah: float|int, nomor_bukti?: string, ...} $body
+     * @param array{periode_id?: int, akun_id?: int, unit_id?: int, mitra_id?: int, tanggal: string, sumber?: string, uraian: string, jumlah: float|int, nomor_bukti?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1401,6 +1501,26 @@ final class Keu extends Resource
     public function deletePenerimaanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keu/penerimaan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penerimaan lain: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Penerimaan selain pembayaran mahasiswa (hibah, kerja sama, sewa, donasi, jasa layanan, bunga bank). Bukti lewat /berkas. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/penerimaan/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenerimaanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/penerimaan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1562,6 +1682,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Virtual account: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Virtual account tagihan mahasiswa dan status pembayarannya dari bank. Notifikasi bank masuk lewat POST /keu/va/notifikasi. Modul ini tidak menulis ke tabel pembayaran lama; petugas membukukan lewat menu lama lalu menandai `tandai-dibukukan`. Mahasiswa melihat VA miliknya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/keu/va/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getVaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/va/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Virtual account: Batalkan
      *
      * Pengelola modul. Status harus aktif, menjadi batal.
@@ -1700,6 +1840,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Rekening kas/bank: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Rekening kas, kas kecil, bank, atau virtual per unit (kosongkan unit_id untuk rekening universitas). `akun_id` = akun aset kas/bank di bagan akun. Satu rekening `utama` per unit dipakai jurnal otomatis; unit tanpa rekening utama memakai rekening utama unit induknya, lalu rekening utama universitas. Saldo awal dijurnal otomatis saat sinkron. Saldo terkini di GET /keu/kas-unit. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/rekening/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRekeningByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/rekening/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pos laporan akun: daftar
      *
      * Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
@@ -1798,6 +1958,26 @@ final class Keu extends Resource
     }
 
     /**
+     * Pos laporan akun: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Menempatkan akun di laporan keuangan (posisi keuangan, aktivitas) dan kelompok arus kas. Akun tanpa baris ini memakai pos bawaan dari jenisnya: aset → aset lancar lain, kewajiban → kewajiban jangka pendek, ekuitas → aset neto tanpa pembatasan, pendapatan → pendapatan, belanja → beban; akun yang dipakai rekening → kas. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/akun-pos/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkunPosByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/akun-pos/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pemetaan jurnal otomatis: daftar
      *
      * Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
@@ -1893,5 +2073,25 @@ final class Keu extends Resource
     public function deletePemetaanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/keu/pemetaan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jurnal otomatis: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Akun lawan dan rekening bawaan untuk jurnal otomatis. jenis `biaya_mahasiswa` (kunci = kode_biaya), `penerimaan` (kunci = sumber penerimaan), `belanja` (rincian RKA tanpa akun), `saldo_awal` (lawan saldo awal rekening), `gaji` (payroll: kunci dosen, tendik, honor, perusahaan, thr = akun beban; utang_gaji, pph21, bpjs, potongan, pinjaman = akun lawan; komponen gaji yang punya akun_id sendiri mengalahkan pemetaan). Kunci `*` berlaku untuk semua yang belum dipetakan. Hanya pengelola modul.
+     *
+     * `GET /v1/keu/pemetaan/{id}/riwayat`
+     *
+     * scope: `keu:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemetaanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/pemetaan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

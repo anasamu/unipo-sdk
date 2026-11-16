@@ -760,6 +760,148 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Referensi form mata kuliah
+     *
+     * Kelompok, kurikulum, status, jenis, jenis substansi (r_kode), dosen aktif, konsentrasi prodi, semester (batas sesi prodi), periode beserta jumlah MK.
+     *
+     * `GET /v1/fakultas/{kode}/matakuliah/referensi`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeMatakuliahReferensi(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/matakuliah/referensi', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mata kuliah prodi per periode
+     *
+     * m_mata_kuliah satu prodi dan periode (?tahun_id=, bawaan tahun aktif) lengkap dengan prasyarat, pemakaian (jadwal, KRS, bernilai), terkunci (periode|bernilai|obe), bisa_dihapus, padanan kurikulum OBE, kode yang juga dipakai prodi lain. Izin fakultas.kurikulum (lihat) atau fakultas.matakuliah.kelola.
+     *
+     * `GET /v1/fakultas/{kode}/matakuliah`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeMatakuliah(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/matakuliah', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah mata kuliah
+     *
+     * Body: {"kode_mk", "nama_mk", "nama_en", "semester", "sks_teori", "sks_praktek", "sks_lapangan", "sks_simulasi", "jenis", "kelompok", "kurikulum", "status", "jenis_substansi", "substansi", "metode", "nidn", "pertemuan", "silabus", "sap", "bahan_ajar", "diktat", "acara_praktik" (Y/N), "konsentrasi", "no_urut"}. Lewat KurikulumService (halaman Master Mata Kuliah).
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliah(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus mata kuliah
+     *
+     * Body: {"id": [1, 2]}. Hanya MK yang belum dipakai jadwal/KRS/nilai/presensi, bukan prasyarat MK lain, dan bukan hasil terbit kurikulum OBE; sisanya dikembalikan di "ditolak". Periode lalu ditolak.
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah/hapus`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliahHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Salin mata kuliah dari periode lain
+     *
+     * Body: {"sumber": "20241", "kode_mk": ["MK01"] (opsional)}. Hanya menambah MK yang belum ada beserta prasyaratnya; MK yang sudah ada tidak diubah.
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah/salin`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliahSalin(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/salin', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah mata kuliah
+     *
+     * Body sama dengan tambah; kolom yang tidak dikirim tetap. Kode/SKS/semester terkunci bila sudah bernilai atau berasal dari terbit kurikulum OBE; bila sudah dipakai jadwal/KRS, perubahan ikut diterapkan ke jadwal dan KRS periode itu.
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah/{id}`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID mata kuliah
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliahById(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/{id}', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur prasyarat mata kuliah
+     *
+     * Body: {"syarat": [id, ...]} (kosong = tanpa prasyarat). Hanya MK prodi dan periode yang sama, tidak melingkar; max_sks dihitung ulang.
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah/{id}/prasyarat`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID mata kuliah
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliahByIdPrasyarat(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/{id}/prasyarat', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Antrian persetujuan KRS
      *
      * Mahasiswa aktif dengan status KRS (belum isi, menunggu, disetujui) + ringkasan. Izin fakultas.krs.kelola; dosen (pribadi) = mahasiswa bimbingan PA.

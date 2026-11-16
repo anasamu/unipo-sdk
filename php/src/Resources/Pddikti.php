@@ -572,4 +572,24 @@ final class Pddikti extends Resource
     {
         return $this->send('DELETE', '/v1/pddikti/jadwal/{id}', ['id' => $id], $query, null, $options, false, false);
     }
+
+    /**
+     * Jadwal sinkronisasi otomatis: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pada waktunya (cron `php artisan pddikti:kirim --cron`), baris yang cocok dimasukkan ke antrean kirim lalu dikirim bila kirim_mode otomatis. cakupan gagal = hanya baris yang tercatat gagal di tabel lama (kirim ulang), semua = semua baris filter. tahun_id kosong/"aktif" = tahun akademik aktif. Hanya pengelola modul.
+     *
+     * `GET /v1/pddikti/jadwal/{id}/riwayat`
+     *
+     * scope: `pddikti:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pddikti/jadwal/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
 }

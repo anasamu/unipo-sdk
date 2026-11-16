@@ -225,6 +225,26 @@ final class Dasbor extends Resource
     }
 
     /**
+     * Aturan EWS: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Indikator mahasiswa berisiko: ambang dan bobot skor. Skor >= 5 = tinggi, >= 3 = sedang. Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
+     *
+     * `GET /v1/dasbor/ews-aturan/{id}/riwayat`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEwsAturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/ews-aturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Mahasiswa berisiko: daftar
      *
      * Hasil hitung EWS per semester (POST /dasbor/ews/hitung atau perintah `php artisan ews:hitung`). Dosen PA melihat mahasiswa bimbingannya dan mencatat tindak lanjut; pengelola melihat semua (PROGDI terbatas prodinya). Hanya pengelola modul.
@@ -261,6 +281,26 @@ final class Dasbor extends Resource
     public function getEwsById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/dasbor/ews/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa berisiko: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hasil hitung EWS per semester (POST /dasbor/ews/hitung atau perintah `php artisan ews:hitung`). Dosen PA melihat mahasiswa bimbingannya dan mencatat tindak lanjut; pengelola melihat semua (PROGDI terbatas prodinya). Hanya pengelola modul.
+     *
+     * `GET /v1/dasbor/ews/{id}/riwayat`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEwsByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/ews/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

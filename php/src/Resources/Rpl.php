@@ -411,6 +411,26 @@ final class Rpl extends Resource
     }
 
     /**
+     * Skema RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Skema RPL per prodi: transfer_kredit (A1, dari pendidikan formal/perguruan tinggi lain) atau perolehan_kredit (A2, dari pengalaman kerja/pelatihan/nonformal). sks_maks = batas SKS yang diakui, nilai_lulus = nilai akhir minimal (0-100) agar mata kuliah diakui. Semua pemilik token ber-scope rpl:read.
+     *
+     * `GET /v1/rpl/skema/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkemaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/skema/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Komposisi penilaian RPL: daftar
      *
      * Komponen penilaian per skema (portofolio, wawancara, uji praktik, ujian tulis, ...) dengan bobot persen. Bila jumlah bobot bukan 100, nilai akhir tetap dihitung proporsional terhadap total bobot komponen yang dinilai. Semua pemilik token ber-scope rpl:read.
@@ -506,6 +526,26 @@ final class Rpl extends Resource
     public function deleteKomponenById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rpl/komponen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Komposisi penilaian RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Komponen penilaian per skema (portofolio, wawancara, uji praktik, ujian tulis, ...) dengan bobot persen. Bila jumlah bobot bukan 100, nilai akhir tetap dihitung proporsional terhadap total bobot komponen yang dinilai. Semua pemilik token ber-scope rpl:read.
+     *
+     * `GET /v1/rpl/komponen/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKomponenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/komponen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -607,6 +647,26 @@ final class Rpl extends Resource
     }
 
     /**
+     * Asesor RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dosen (NIDN; akun SIAKAD-nya otomatis dipakai) atau asesor luar (isi username akun SIAKAD bila asesor perlu masuk untuk menilai). Prodi kosong = lintas prodi. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/asesor/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAsesorByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/asesor/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Pengajuan RPL: daftar
      *
      * Pengajuan RPL calon mahasiswa (dibuat pemohon lewat /v1/rpl/saya atau oleh panitia). Alur: draf -> diajukan -> asesmen (asesor ditugaskan) -> ditetapkan (POST /rpl/pengajuan/{id}/tetapkan) atau ditolak. Setelah daftar ulang, nilai mata kuliah yang diakui ditulis ke KRS SIAKAD dengan POST /rpl/pengajuan/{id}/integrasi. Detail memuat pengalaman, dokumen, klaim, asesor, dan rekap nilai. Hanya pengelola modul.
@@ -702,6 +762,26 @@ final class Rpl extends Resource
     public function deletePengajuanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rpl/pengajuan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengajuan RPL calon mahasiswa (dibuat pemohon lewat /v1/rpl/saya atau oleh panitia). Alur: draf -> diajukan -> asesmen (asesor ditugaskan) -> ditetapkan (POST /rpl/pengajuan/{id}/tetapkan) atau ditolak. Setelah daftar ulang, nilai mata kuliah yang diakui ditulis ke KRS SIAKAD dengan POST /rpl/pengajuan/{id}/integrasi. Detail memuat pengalaman, dokumen, klaim, asesor, dan rekap nilai. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/pengajuan/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/pengajuan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -832,7 +912,7 @@ final class Rpl extends Resource
      *
      * scope: `rpl:write`
      *
-     * @param array{pengajuan_id: int, jenis: string, judul: string, instansi?: string, mulai?: string, selesai?: string, durasi_jam?: int, uraian?: string, ...} $body
+     * @param array{pengajuan_id: int, jenis: string, judul: string, instansi?: string, mulai?: string, selesai?: string, durasi_jam?: int, uraian?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -872,7 +952,7 @@ final class Rpl extends Resource
      * scope: `rpl:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{pengajuan_id: int, jenis: string, judul: string, instansi?: string, mulai?: string, selesai?: string, durasi_jam?: int, uraian?: string, ...} $body
+     * @param array{pengajuan_id: int, jenis: string, judul: string, instansi?: string, mulai?: string, selesai?: string, durasi_jam?: int, uraian?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -900,6 +980,26 @@ final class Rpl extends Resource
     public function deletePengalamanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rpl/pengalaman/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengalaman pemohon RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Riwayat kerja, pelatihan, sertifikasi, pendidikan formal/nonformal, organisasi, dan karya pemohon. Lampiran bukti lewat /berkas atau /rpl/dokumen. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/pengalaman/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengalamanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/pengalaman/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1010,7 +1110,7 @@ final class Rpl extends Resource
      *
      * scope: `rpl:write`
      *
-     * @param array{pengajuan_id: int, pengalaman_id?: int, jenis: string, judul: string, catatan?: string, ...} $body
+     * @param array{pengajuan_id: int, pengalaman_id?: int, jenis: string, judul: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1050,7 +1150,7 @@ final class Rpl extends Resource
      * scope: `rpl:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{pengajuan_id: int, pengalaman_id?: int, jenis: string, judul: string, catatan?: string, ...} $body
+     * @param array{pengajuan_id: int, pengalaman_id?: int, jenis: string, judul: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1078,6 +1178,26 @@ final class Rpl extends Resource
     public function deleteDokumenById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rpl/dokumen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen bukti RPL: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dokumen bukti (CV, ijazah, transkrip, sertifikat, surat keterangan kerja, portofolio, silabus). File diunggah ke /rpl/dokumen/{id}/berkas. Pengelola memvalidasi (aksi valid/tidak-valid). Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/dokumen/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDokumenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/dokumen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1299,6 +1419,26 @@ final class Rpl extends Resource
     }
 
     /**
+     * Mata kuliah yang diklaim: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mata kuliah prodi tujuan (m_mata_kuliah.id) yang diklaim pemohon, dengan padanan mata kuliah asal (transfer kredit) atau asesmen mandiri dan uraian bukti (perolehan kredit). nilai_akhir, nilai_huruf, dan status diisi oleh POST /rpl/pengajuan/{id}/hitung dan /tetapkan. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/klaim/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKlaimByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/klaim/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Penugasan asesor: daftar
      *
      * Asesor yang menilai satu pengajuan (ketua/anggota). Asesor diberi kabar di SIAKAD. Hanya pengelola modul.
@@ -1397,6 +1537,26 @@ final class Rpl extends Resource
     }
 
     /**
+     * Penugasan asesor: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Asesor yang menilai satu pengajuan (ketua/anggota). Asesor diberi kabar di SIAKAD. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/penugasan/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenugasanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/penugasan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Nilai asesor: daftar
      *
      * Nilai 0-100 per mata kuliah klaim, asesor, dan komponen penilaian. Asesor hanya mengisi nilainya sendiri (asesor_id otomatis) selama pengajuan berstatus asesmen. Isi banyak sekaligus: POST /rpl/pengajuan/{id}/nilai. Hanya pengelola modul.
@@ -1492,5 +1652,25 @@ final class Rpl extends Resource
     public function deleteNilaiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rpl/nilai/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai asesor: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Nilai 0-100 per mata kuliah klaim, asesor, dan komponen penilaian. Asesor hanya mengisi nilainya sendiri (asesor_id otomatis) selama pengajuan berstatus asesmen. Isi banyak sekaligus: POST /rpl/pengajuan/{id}/nilai. Hanya pengelola modul.
+     *
+     * `GET /v1/rpl/nilai/{id}/riwayat`
+     *
+     * scope: `rpl:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rpl/nilai/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

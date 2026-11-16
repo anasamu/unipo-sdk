@@ -820,6 +820,8 @@ export type AdmisiKipInput = {
   angkatan?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -903,6 +905,8 @@ export type AdmisiUktInput = {
   kepemilikan_rumah?: "milik_sendiri" | "sewa" | "menumpang" | "dinas" | "lainnya";
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -1035,6 +1039,9 @@ export type AkademikPengajuan = {
   diputus_oleh?: string;
   /** (hanya baca) Hanya dibaca. */
   diputus_at?: string;
+  /** Jumlah dokumen pendukung minimal (detail) */
+  lampiran_wajib?: number;
+  jumlah_lampiran?: number;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -1052,6 +1059,8 @@ export type AkademikPengajuanInput = {
   alasan?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan; ada jumlah minimal wajib (lihat lampiran_wajib di detail) */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -4078,6 +4087,8 @@ export type HelpdeskTiketInput = {
   judul: string;
   isi: string;
   prioritas?: "rendah" | "sedang" | "tinggi" | "darurat";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -4206,6 +4217,8 @@ export type IkuBuktiInput = {
   tautan?: string;
   status?: "diajukan" | "disetujui" | "ditolak";
   catatan_verifikasi?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5417,6 +5430,8 @@ export type KalenderKegiatanInput = {
   tautan?: string;
   warna?: string;
   status?: "draf" | "terbit" | "batal";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5455,6 +5470,8 @@ export type KarierProfilInput = {
   linkedin?: string;
   portofolio?: string;
   tampil_ke_mitra?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5487,6 +5504,8 @@ export type KarierPengalamanInput = {
   uraian?: string;
   nomor_kredensial?: string;
   tautan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5513,6 +5532,8 @@ export type KarierLamaranInput = {
   /** m_mahasiswa.NIM */
   nim: string;
   surat_lamaran?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5580,6 +5601,8 @@ export type KarierAcaraInput = {
   kuota?: number;
   sasaran?: "mahasiswa" | "alumni" | "semua";
   status?: "draf" | "terbit" | "selesai" | "batal";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5711,6 +5734,8 @@ export type KarierArtikelInput = {
   penulis?: string;
   tag?: string;
   status?: "draf" | "terbit";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5831,6 +5856,8 @@ export type KelulusanSyaratMahasiswaInput = {
   keterangan?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -5917,6 +5944,8 @@ export type KelulusanPoinInput = {
   tampil_skpi?: boolean;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6030,6 +6059,8 @@ export type KelulusanSertifikatInput = {
   tampil_skpi?: boolean;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6064,6 +6095,7 @@ export type KemahasiswaanBeasiswa = {
   semester_minimal?: number;
   semester_maksimal?: number;
   syarat?: string;
+  lampiran_minimal?: number;
   daftar_mulai?: string;
   daftar_selesai?: string;
   /** (hanya baca) Hanya dibaca. */
@@ -6092,8 +6124,11 @@ export type KemahasiswaanBeasiswaInput = {
   semester_minimal?: number;
   semester_maksimal?: number;
   syarat?: string;
+  lampiran_minimal?: number;
   daftar_mulai?: string;
   daftar_selesai?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6117,6 +6152,9 @@ export type KemahasiswaanPendaftar = {
   status?: "diajukan" | "diverifikasi" | "diterima" | "ditolak" | "dicabut";
   /** (hanya pengelola) */
   catatan?: string;
+  /** Jumlah dokumen pendukung minimal (detail) */
+  lampiran_wajib?: number;
+  jumlah_lampiran?: number;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -6136,6 +6174,8 @@ export type KemahasiswaanPendaftarInput = {
   skor?: number;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan; ada jumlah minimal wajib (lihat lampiran_wajib di detail) */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6184,6 +6224,8 @@ export type KemahasiswaanPencairanInput = {
   cara?: "transfer" | "potong_ukt" | "tunai" | "lainnya";
   status?: "rencana" | "dicairkan" | "gagal";
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6228,6 +6270,8 @@ export type KemahasiswaanOrmawaInput = {
   instagram?: string;
   nomor_sk?: string;
   aktif?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6310,6 +6354,8 @@ export type KemahasiswaanKegiatanInput = {
   laporan?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6380,6 +6426,8 @@ export type KemahasiswaanPrestasiInput = {
   pembimbing_nidn?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6468,6 +6516,8 @@ export type KemahasiswaanPelanggaranInput = {
   sanksi_selesai?: string;
   nomor_sk?: string;
   status?: "proses" | "ditetapkan" | "selesai" | "dibatalkan";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6514,6 +6564,8 @@ export type KerjasamaMitraInput = {
   kontak_hp?: string;
   keterangan?: string;
   aktif?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6582,6 +6634,8 @@ export type KerjasamaDokumenInput = {
   penandatangan_mitra?: string;
   arsip_dokumen_id?: number;
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6666,6 +6720,8 @@ export type KerjasamaKegiatanInput = {
   luaran?: string;
   nilai?: number;
   status?: "rencana" | "berjalan" | "selesai" | "batal";
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6780,6 +6836,8 @@ export type KeuRkaInput = {
   /** m_program_studi.kode_prodi */
   kode_prodi?: string;
   judul: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6887,6 +6945,8 @@ export type KeuRealisasiInput = {
   jumlah: number;
   penerima?: string;
   rekening_penerima?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -6952,6 +7012,8 @@ export type KeuPenerimaanInput = {
   uraian: string;
   jumlah: number;
   nomor_bukti?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -7363,6 +7425,8 @@ export type KeuanganDispensasiInput = {
   alasan: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -7415,6 +7479,8 @@ export type KeuanganCicilanInput = {
   alasan?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -7473,6 +7539,8 @@ export type KeuanganRefundInput = {
   atas_nama?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -7698,6 +7766,8 @@ export type KeuanganPengajuanPotonganInput = {
   tanggal_sk?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -8473,6 +8543,9 @@ export type LayananPermohonan = {
   selesai_pada?: string;
   /** (hanya baca) Hanya dibaca. */
   dokumen_id?: number;
+  /** Jumlah dokumen pendukung minimal (detail) */
+  lampiran_wajib?: number;
+  jumlah_lampiran?: number;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -8487,6 +8560,8 @@ export type LayananPermohonanInput = {
   data?: JsonObject;
   /** user.username (hanya pengelola) */
   petugas?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan; ada jumlah minimal wajib (lihat lampiran_wajib di detail) */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -8560,6 +8635,8 @@ export type LayananDokumenInput = {
   unit_id?: number;
   penandatangan?: string;
   sha256?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -9547,7 +9624,7 @@ export type LppmKegiatan = {
   pencairan?: Array<JsonObject>;
   file?: Array<{
     id?: string;
-    entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok";
+    entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok" | "kkn_proposal";
     entitas_id?: number;
     /** proposal, kontrak, laporan, bukti, sertifikat, lampiran, ... */
     peran?: string;
@@ -9789,7 +9866,7 @@ export type LppmLuaran = {
   }>;
   file?: Array<{
     id?: string;
-    entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok";
+    entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok" | "kkn_proposal";
     entitas_id?: number;
     /** proposal, kontrak, laporan, bukti, sertifikat, lampiran, ... */
     peran?: string;
@@ -9851,9 +9928,81 @@ export type LppmKknKelompok = {
   [key: string]: any;
 };
 
+/** Berkas proposal diunggah ke POST /v1/lppm/file/kkn_proposal/{id} dengan peran=proposal (atau berkas_id dari /v1/berkas). */
+export type LppmKknProposalInput = {
+  /** Periode KKN (wajib saat membuat) */
+  periode_id: number;
+  /** Hanya pengelola: membuatkan untuk peserta */
+  peserta_id?: number | null;
+  jenis?: "penelitian" | "pengabdian" | "program_kerja";
+  judul: string;
+  /** Minimal 50 karakter sebelum diajukan */
+  ringkasan?: string | null;
+  /** Desa/lokasi penelitian */
+  lokasi?: string | null;
+  /** Mitra/desa sasaran */
+  mitra?: string | null;
+  [key: string]: any;
+};
+
+export type LppmKknProposal = {
+  id?: number;
+  uuid?: string;
+  /** KKN-2026-0001, terbit saat pertama diajukan */
+  nomor?: string | null;
+  periode_id?: number;
+  periode_nama?: string | null;
+  peserta_id?: number;
+  kelompok_id?: number | null;
+  kelompok_nama?: string | null;
+  nim?: string;
+  nama?: string | null;
+  kode_prodi?: string | null;
+  jenis?: "penelitian" | "pengabdian" | "program_kerja";
+  judul?: string;
+  ringkasan?: string | null;
+  lokasi?: string | null;
+  mitra?: string | null;
+  status?: "draf" | "diajukan" | "revisi" | "diterima" | "ditolak" | "dibatalkan";
+  diajukan_pada?: string | null;
+  diverifikasi_oleh?: string | null;
+  diverifikasi_pada?: string | null;
+  /** Catatan LP2M terakhir */
+  catatan_verifikasi?: string | null;
+  file?: Array<{
+    id?: string;
+    entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok" | "kkn_proposal";
+    entitas_id?: number;
+    /** proposal, kontrak, laporan, bukti, sertifikat, lampiran, ... */
+    peran?: string;
+    nama?: string;
+    mime?: string;
+    ukuran?: number;
+    sha256?: string;
+    keterangan?: string | null;
+    diunggah_oleh?: string | null;
+    diunggah_pada?: string;
+    /** Path unduh (GET, dengan token; ?inline=1 untuk PDF/gambar) */
+    unduh?: string;
+    [key: string]: any;
+  }>;
+  /** aksi, oleh, nama_oleh, detail (catatan/alasan), created_at */
+  riwayat?: Array<JsonObject>;
+  /** ubah, unggah, ajukan, batal, verifikasi */
+  hak?: Record<string, boolean>;
+  [key: string]: any;
+};
+
+export type LppmKknProposalVerifikasi = {
+  keputusan: "diterima" | "revisi" | "ditolak";
+  /** Wajib untuk revisi/ditolak; terlihat pengusul */
+  catatan?: string | null;
+  [key: string]: any;
+};
+
 export type LppmFile = {
   id?: string;
-  entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok";
+  entitas?: "usulan" | "laporan" | "logbook" | "luaran" | "mitra" | "pencairan" | "kkn_peserta" | "kkn_kelompok" | "kkn_proposal";
   entitas_id?: number;
   /** proposal, kontrak, laporan, bukti, sertifikat, lampiran, ... */
   peran?: string;
@@ -10153,6 +10302,7 @@ export type MbkmProgram = {
   kode_prodi?: string;
   deskripsi?: string;
   syarat?: string;
+  lampiran_minimal?: number;
   lokasi?: string;
   daftar_mulai?: string;
   daftar_selesai?: string;
@@ -10187,6 +10337,7 @@ export type MbkmProgramInput = {
   kode_prodi?: string;
   deskripsi?: string;
   syarat?: string;
+  lampiran_minimal?: number;
   lokasi?: string;
   daftar_mulai?: string;
   daftar_selesai?: string;
@@ -10195,6 +10346,8 @@ export type MbkmProgramInput = {
   kuota?: number;
   sks_maks?: number;
   daftar_mandiri?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -10228,6 +10381,9 @@ export type MbkmPeserta = {
   status?: "diajukan" | "disetujui" | "ditolak" | "berjalan" | "selesai" | "mengundurkan_diri";
   /** (hanya pengelola) */
   catatan?: string;
+  /** Jumlah dokumen pendukung minimal (detail) */
+  lampiran_wajib?: number;
+  jumlah_lampiran?: number;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -10255,6 +10411,8 @@ export type MbkmPesertaInput = {
   nilai_huruf?: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan; ada jumlah minimal wajib (lihat lampiran_wajib di detail) */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -10341,6 +10499,8 @@ export type MbkmLogbookInput = {
   jam?: number;
   kegiatan: string;
   hasil?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -10851,6 +11011,8 @@ export type PimpinanArahanInput = {
   penanggung_jawab?: string;
   tenggat?: string;
   rujukan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12323,6 +12485,8 @@ export type ProfilPekerjaanInput = {
   selesai?: string;
   masih_bekerja?: boolean;
   deskripsi?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12361,6 +12525,8 @@ export type ProfilPendidikanInput = {
   ipk?: number;
   nomor_ijazah?: string;
   judul_tugas_akhir?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12397,6 +12563,8 @@ export type ProfilPrestasiInput = {
   nomor_sertifikat?: string;
   tautan?: string;
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12427,6 +12595,8 @@ export type ProfilOrganisasiInput = {
   selesai?: string;
   masih_aktif?: boolean;
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12469,6 +12639,8 @@ export type ProfilDokumenInput = {
   tanggal_terbit?: string;
   berlaku_sampai?: string;
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12515,6 +12687,8 @@ export type ProfilPermohonanInput = {
   kolom: string;
   nilai_baru: string;
   alasan: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -12847,6 +13021,8 @@ export type RbacPenugasanInput = {
   sumber?: "manual" | "impor" | "aplikasi";
   nomor_sk?: string;
   alasan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13030,6 +13206,10 @@ export type RbacKlienApi = {
   active?: boolean;
   created_at?: string;
   logo_uri?: string | null;
+  /** Kode aplikasi bawaan pemilik klien (null = klien biasa) */
+  aplikasi_bawaan?: string | null;
+  /** Scope wajib aplikasi bawaan; selalu ada dan tidak bisa dicabut */
+  scopes_wajib?: Array<string>;
   /** Hanya saat dibuat */
   client_secret?: string;
   [key: string]: any;
@@ -13170,6 +13350,8 @@ export type RepositoriKaryaInput = {
   ta_id?: number;
   /** (hanya pengelola) */
   lppm_luaran_id?: number;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13386,6 +13568,8 @@ export type RplPengalamanInput = {
   selesai?: string;
   durasi_jam?: number;
   uraian?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13416,6 +13600,8 @@ export type RplDokumenInput = {
   judul: string;
   /** (hanya pengelola) */
   catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13566,6 +13752,8 @@ export type SarprasGedungInput = {
   bujur?: number;
   keterangan?: string;
   aktif?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13616,6 +13804,8 @@ export type SarprasRuangInput = {
   bisa_dipinjam?: boolean;
   kondisi?: "baik" | "rusak_ringan" | "rusak_berat" | "hilang";
   aktif?: boolean;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13704,6 +13894,8 @@ export type SarprasAsetInput = {
   kondisi?: "baik" | "rusak_ringan" | "rusak_berat" | "hilang";
   bisa_dipinjam?: boolean;
   keterangan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13767,6 +13959,8 @@ export type SarprasPeminjamanInput = {
   selesai: string;
   jumlah_peserta?: number;
   kontak?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -13841,6 +14035,8 @@ export type SarprasPemeliharaanInput = {
   biaya?: number;
   /** (hanya pengelola) */
   tindakan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
   [key: string]: any;
 };
 
@@ -14056,8 +14252,32 @@ export type SdmPengaturanInput = {
   toleransi_terlambat_menit?: string;
   /** Hari kerja (1 = Senin ... 7 = Minggu) (bawaan 1,2,3,4,5) */
   hari_kerja?: string;
-  /** Titik presensi mandiri "lat,long,radius_meter" dipisah titik koma; kosong = tanpa batas lokasi (bawaan ) */
+  /** Cara lama: titik presensi "lat,long,radius_meter" dipisah titik koma. Dipakai hanya bila belum ada Area presensi (menu Presensi » Area); kosong = tanpa batas lokasi (bawaan ) */
   presensi_lokasi?: string;
+  /** Presensi: masuk dibuka sekian menit sebelum jam masuk (untuk jadwal bawaan; jadwal kerja punya isian sendiri) (bawaan 120) */
+  presensi_buka_masuk_menit?: string;
+  /** Presensi: pulang ditutup sekian menit setelah jam pulang (untuk jadwal bawaan) (bawaan 360) */
+  presensi_batas_pulang_menit?: string;
+  /** Presensi: akurasi GPS terburuk yang diterima (meter); lebih buruk dari ini ditolak (bawaan 100) */
+  presensi_akurasi_maks_m?: string;
+  /** Presensi di luar area: tolak, atau tinjau (tercatat setelah disetujui atasan/SDM, pegawai wajib menulis alasan) (bawaan tolak) */
+  presensi_luar_area?: string;
+  /** Presensi dengan lokasi palsu (dilaporkan aplikasi mobile): tolak atau tinjau (bawaan tolak) */
+  presensi_lokasi_palsu?: string;
+  /** Presensi di hari libur/bukan hari kerja: tolak, tinjau (lembur disetujui atasan), atau izinkan (bawaan tinjau) */
+  presensi_hari_libur?: string;
+  /** Presensi wajib swafoto untuk semua jadwal: 1 = ya, 0 = mengikuti jadwal kerja (bawaan 0) */
+  presensi_wajib_foto?: string;
+  /** Presensi: jumlah perangkat aktif per pegawai; 0 = tanpa batas (bawaan 2) */
+  presensi_batas_perangkat?: string;
+  /** Perangkat presensi baru: otomatis (aktif selama di bawah batas) atau persetujuan (perangkat kedua dan seterusnya menunggu petugas SDM) (bawaan otomatis) */
+  presensi_perangkat_baru?: string;
+  /** Presensi: selisih jam perangkat dengan server yang ditandai mencurigakan (detik) (bawaan 300) */
+  presensi_selisih_waktu_detik?: string;
+  /** Presensi: skor risiko (0-100) yang membuat presensi masuk antrean tinjauan (bawaan 60) */
+  presensi_skor_tinjau?: string;
+  /** Koreksi presensi paling lambat sekian hari setelah tanggalnya; 0 = tanpa batas (bawaan 7) */
+  presensi_koreksi_maks_hari?: string;
   /** Rentang hari ke depan untuk laporan pengingat (bawaan 90) */
   pengingat_hari?: string;
   /** Ukuran maksimal file unggahan (MB) (bawaan 10) */
@@ -14109,10 +14329,140 @@ export type SdmCutiProses = {
 };
 
 export type SdmPresensiCatat = {
-  aksi: "masuk" | "pulang";
-  /** "lat,long"; wajib bila pengaturan presensi_lokasi diisi */
+  /** Kosong = otomatis (masuk bila belum masuk, selain itu pulang) */
+  aksi?: "masuk" | "pulang";
+  /** Lintang WGS84 dari GPS */
+  lat?: number | null;
+  /** Bujur WGS84 */
+  lng?: number | null;
+  /** Akurasi lokasi (meter), wajib bila presensi dibatasi area */
+  akurasi?: number | null;
+  /** Cara lama: "lat,long" (dipakai bila lat/lng kosong) */
   lokasi?: string | null;
+  /** true bila sistem operasi melaporkan lokasi tiruan (Android Location.isMock) */
+  lokasi_palsu?: boolean;
+  perangkat?: {
+    /** ID instalasi aplikasi/peramban, stabil per perangkat */
+    id: string | null;
+    /** Mis. Samsung A54 */
+    nama?: string | null;
+    platform?: "android" | "ios" | "web" | "desktop";
+    versi_app?: string | null;
+    [key: string]: any;
+  };
+  /** Jam perangkat (ISO 8601), hanya untuk mendeteksi selisih; waktu presensi selalu jam server */
+  waktu_perangkat?: string | null;
+  /** Swafoto sebagai data URI JPEG/PNG/WebP (maks. ~1 MB) */
+  foto?: string | null;
+  /** Atau UUID swafoto yang sudah diunggah ke /v1/berkas */
+  foto_berkas_id?: string | null;
+  /** Kunci idempoten 8-64 karakter (mis. UUID per ketukan); kirim ulang dengan kunci sama mengembalikan hasil pertama */
+  kunci?: string | null;
+  /** Alasan bila di luar area (wajib bila pengaturan presensi_luar_area = tinjau) */
+  catatan?: string | null;
   keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiTinjau = {
+  keputusan: "terima" | "tolak";
+  /** Wajib bila ditolak */
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiLokasi = {
+  /** Unik, huruf/angka/titik/garis */
+  kode: string | null;
+  nama: string | null;
+  jenis?: "kampus" | "gedung" | "kantor" | "lapangan" | "lainnya";
+  /** Mis. Kampus 1 */
+  kampus?: string | null;
+  /** sdm_unit.id pemilik; kosong = untuk semua unit (admin) */
+  unit_id?: number | null;
+  alamat?: string | null;
+  lat: number | null;
+  lng: number | null;
+  /** 10-20000 meter */
+  radius_m?: number | null;
+  /** [[lat,lng], ...] minimal 3 titik; bila diisi menggantikan radius */
+  poligon?: Array<Array<number>> | null;
+  /** IP publik/CIDR jaringan kampus dipisah koma; presensi dari jaringan ini dianggap di area */
+  jaringan?: string | null;
+  aktif?: boolean;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiJadwal = {
+  kode: string | null;
+  nama: string | null;
+  jenis?: "tetap" | "shift" | "fleksibel";
+  /** {"1": {"masuk": "07:30", "pulang": "16:00"}, ...}; 1 = Senin ... 7 = Minggu; hari yang tidak ada = libur */
+  hari: Record<string, {
+    /** HH:MM */
+    masuk?: string | null;
+    /** HH:MM */
+    pulang?: string | null;
+    [key: string]: any;
+  }>;
+  toleransi_terlambat_menit?: number | null;
+  /** Masuk dibuka sekian menit sebelum jam masuk */
+  buka_masuk_menit?: number | null;
+  /** Pulang ditutup sekian menit setelah jam pulang */
+  batas_pulang_menit?: number | null;
+  /** Wajib untuk fleksibel */
+  min_kerja_menit?: number | null;
+  lintas_hari?: boolean;
+  ikut_libur?: boolean;
+  wajib_lokasi?: boolean;
+  wajib_foto?: boolean;
+  aktif?: boolean;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiPenugasan = {
+  sasaran: "semua" | "jenis" | "unit" | "pegawai";
+  jenis_pegawai?: "dosen" | "tendik";
+  unit_id?: number | null;
+  pegawai_id?: number | null;
+  /** UUID, ID, atau kode jadwal */
+  jadwal_id: string | null;
+  /** bebas = kerja jarak jauh, lokasi dicatat tanpa batas area */
+  mode_lokasi?: "area" | "bebas";
+  /** UUID/ID/kode area; null = area unit pegawai + area untuk semua */
+  lokasi_ids?: Array<string> | null;
+  mulai: string | null;
+  selesai?: string | null;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiPerangkatUbah = {
+  /** lepas = hapus perangkat (pegawai sendiri atau petugas) */
+  status: "aktif" | "diblokir" | "lepas";
+  [key: string]: any;
+};
+
+export type SdmPresensiKoreksi = {
+  tanggal: string | null;
+  jenis: "lupa_masuk" | "lupa_pulang" | "salah_jam" | "luar_area" | "gangguan" | "lainnya";
+  /** YYYY-MM-DD HH:MM */
+  jam_masuk?: string | null;
+  /** YYYY-MM-DD HH:MM (boleh esok hari untuk shift malam) */
+  jam_pulang?: string | null;
+  alasan: string | null;
+  /** Lampiran dari /v1/berkas */
+  berkas_id?: string | null;
+  /** UUID percobaan presensi yang ditolak/ditinjau, bila ada */
+  kejadian_id?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPresensiKoreksiProses = {
+  /** Wajib bila ditolak */
+  catatan?: string | null;
   [key: string]: any;
 };
 

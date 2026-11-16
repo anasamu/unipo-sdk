@@ -605,6 +605,26 @@ final class Gaji extends Resource
     }
 
     /**
+     * Komponen gaji: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Komponen pendapatan, potongan, dan iuran pemberi kerja. perhitungan: tetap (rupiah), persen (nilai% x dasar gaji_pokok/tetap/bruto, dibatasi batas_bawah/batas_atas), sdm_gaji_pokok, sdm_tunjangan (parameter = jenis tunjangan SDM), sdm_honor (parameter = kelompok honor), per_hadir / per_tidak_hadir / per_menit_terlambat (dari presensi SDM), manual (hanya dari tetapan pegawai). parameter bpjs_kes/bpjs_tk mengikuti kepesertaan di profil gaji. sasaran {jenis:[dosen|tendik], kategori:[tetap|tidak_tetap], status_kepegawaian:[...], golongan_id:[...], jabatan_akademik_id:[...], jabatan_id:[...], unit_id:[...]} membatasi penerima. jenis_periode: ["reguler"], ["thr"], ["gaji13"], ["susulan"]. Komponen bawaan: POST /v1/gaji/komponen/bawaan. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/komponen/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKomponenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/komponen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Profil gaji pegawai: daftar
      *
      * Data pembayaran per pegawai: rekening bank, status PTKP (kosong = otomatis dari status nikah dan tanggungan di SDM), jenis/metode pajak, kepesertaan BPJS, unit pembebanan. Pegawai tanpa profil aktif tidak ikut payroll. Buat massal: POST /v1/gaji/profil/buat-massal. Gaji pokok dan tunjangan TIDAK di sini: diatur SDM berdasarkan SK. Hanya pengelola modul.
@@ -700,6 +720,26 @@ final class Gaji extends Resource
     public function deleteProfilById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/gaji/profil/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Profil gaji pegawai: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Data pembayaran per pegawai: rekening bank, status PTKP (kosong = otomatis dari status nikah dan tanggungan di SDM), jenis/metode pajak, kepesertaan BPJS, unit pembebanan. Pegawai tanpa profil aktif tidak ikut payroll. Buat massal: POST /v1/gaji/profil/buat-massal. Gaji pokok dan tunjangan TIDAK di sini: diatur SDM berdasarkan SK. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/profil/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getProfilByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/profil/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -801,6 +841,26 @@ final class Gaji extends Resource
     }
 
     /**
+     * Tetapan komponen per pegawai: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Nilai komponen khusus untuk satu pegawai, mengalahkan cara hitung komponen: potongan koperasi, cicilan pinjaman pegawai (jumlah_kali = tenor, terpakai maju tiap payroll dibayar), zakat, tunjangan khusus. mulai/selesai format YYYY-MM. Wajib nomor dokumen (surat kuasa potong gaji/perjanjian) untuk potongan. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/tetapan/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTetapanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/tetapan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tarif efektif PPh 21 (TER): daftar
      *
      * TER bulanan PP 58/2023 kategori A (TK/0, TK/1, K/0), B (TK/2, TK/3, K/1, K/2), C (K/3). Sudah terisi oleh migration; ubah hanya bila ada peraturan baru. Hanya pengelola modul.
@@ -896,6 +956,26 @@ final class Gaji extends Resource
     public function deleteTerById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/gaji/ter/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tarif efektif PPh 21 (TER): riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. TER bulanan PP 58/2023 kategori A (TK/0, TK/1, K/0), B (TK/2, TK/3, K/1, K/2), C (K/3). Sudah terisi oleh migration; ubah hanya bila ada peraturan baru. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/ter/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTerByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/ter/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -997,6 +1077,26 @@ final class Gaji extends Resource
     }
 
     /**
+     * Penghasilan dan PPh sebelum payroll: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Penghasilan bruto, iuran JHT/JP, dan PPh 21 yang sudah dipotong di luar payroll ini pada tahun berjalan (mis. bulan-bulan dari sistem lama, atau dari pemberi kerja sebelumnya). Dipakai saat PPh masa Desember disetahunkan dan untuk ringkasan bukti potong A1. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/pajak-awal/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPajakAwalByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/pajak-awal/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Periode payroll: daftar
      *
      * Satu proses payroll: reguler bulanan, THR, gaji ke-13, atau susulan (koreksi). Alur: buat -> POST {id}/hitung -> {id}/ajukan -> {id}/setujui (admin, berbeda dari pengaju; jurnal beban) -> {id}/bayar (jurnal pembayaran, honor SDM dibayar) -> {id}/tutup. {id}/batal sebelum dibayar. sasaran {jenis:[dosen|tendik], unit_id:[...], pegawai_id:[...]} membatasi pegawai (kosong = semua berprofil aktif). Hanya pengelola modul.
@@ -1095,6 +1195,26 @@ final class Gaji extends Resource
     }
 
     /**
+     * Periode payroll: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Satu proses payroll: reguler bulanan, THR, gaji ke-13, atau susulan (koreksi). Alur: buat -> POST {id}/hitung -> {id}/ajukan -> {id}/setujui (admin, berbeda dari pengaju; jurnal beban) -> {id}/bayar (jurnal pembayaran, honor SDM dibayar) -> {id}/tutup. {id}/batal sebelum dibayar. sasaran {jenis:[dosen|tendik], unit_id:[...], pegawai_id:[...]} membatasi pegawai (kosong = semua berprofil aktif). Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/periode/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeriodeByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/periode/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Slip gaji: daftar
      *
      * Slip per pegawai per periode (dibuat oleh hitung). Rincian lengkap: GET /v1/gaji/slip/{id}/lengkap. Penyesuaian manual: POST /v1/gaji/slip/{id}/rinci. Tahan/lepas dari transfer: POST {id}/tahan, {id}/lepas. Pengelola berlingkup unit hanya melihat slip unitnya. Hanya pengelola modul.
@@ -1131,5 +1251,25 @@ final class Gaji extends Resource
     public function getSlipById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/gaji/slip/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Slip gaji: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Slip per pegawai per periode (dibuat oleh hitung). Rincian lengkap: GET /v1/gaji/slip/{id}/lengkap. Penyesuaian manual: POST /v1/gaji/slip/{id}/rinci. Tahan/lepas dari transfer: POST {id}/tahan, {id}/lepas. Pengelola berlingkup unit hanya melihat slip unitnya. Hanya pengelola modul.
+     *
+     * `GET /v1/gaji/slip/{id}/riwayat`
+     *
+     * scope: `gaji:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSlipByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/slip/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

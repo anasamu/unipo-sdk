@@ -132,9 +132,29 @@ final class Layanan extends Resource
     }
 
     /**
+     * Jenis layanan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Katalog layanan. `isian` = JSON daftar isian formulir, mis. [{"nama":"semester","label":"Semester","wajib":true}]. Semua pemilik token ber-scope layanan:read.
+     *
+     * `GET /v1/layanan/jenis/{id}/riwayat`
+     *
+     * scope: `layanan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJenisByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/layanan/jenis/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Permohonan layanan: daftar
      *
-     * Diajukan pengguna (pemohon = username otomatis, dicek level yang boleh dan isian wajib). Pengelola unit pelaksana memproses. Setiap perubahan status dicatat di riwayat dan dikirim sebagai notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemohon).
+     * Diajukan pengguna (pemohon = username otomatis, dicek level yang boleh dan isian wajib). Prasyarat bawaan (docs/PRASYARAT.md): layanan aktif, satu permohonan berjalan per layanan, dokumen persyaratan wajib bila katalog wajib_berkas (kirim `lampiran` saat mengajukan; proses/selesai ditolak bila belum ada), mahasiswa DO/keluar tidak bisa memohon, lalu aturan dinamis titik layanan.permohonan.ajukan. Pengelola unit pelaksana memproses. Setiap perubahan status dicatat di riwayat dan dikirim sebagai notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemohon).
      *
      * `GET /v1/layanan/permohonan`
      *
@@ -159,7 +179,7 @@ final class Layanan extends Resource
      *
      * scope: `layanan:write`
      *
-     * @param array{jenis_id: int, pemohon: string, keperluan?: string, data?: array<string, mixed>, petugas?: string, ...} $body
+     * @param array{jenis_id: int, pemohon: string, keperluan?: string, data?: array<string, mixed>, petugas?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -172,7 +192,7 @@ final class Layanan extends Resource
     /**
      * Permohonan layanan: detail
      *
-     * Diajukan pengguna (pemohon = username otomatis, dicek level yang boleh dan isian wajib). Pengelola unit pelaksana memproses. Setiap perubahan status dicatat di riwayat dan dikirim sebagai notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemohon).
+     * Diajukan pengguna (pemohon = username otomatis, dicek level yang boleh dan isian wajib). Prasyarat bawaan (docs/PRASYARAT.md): layanan aktif, satu permohonan berjalan per layanan, dokumen persyaratan wajib bila katalog wajib_berkas (kirim `lampiran` saat mengajukan; proses/selesai ditolak bila belum ada), mahasiswa DO/keluar tidak bisa memohon, lalu aturan dinamis titik layanan.permohonan.ajukan. Pengelola unit pelaksana memproses. Setiap perubahan status dicatat di riwayat dan dikirim sebagai notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemohon).
      *
      * `GET /v1/layanan/permohonan/{id}`
      *
@@ -199,7 +219,7 @@ final class Layanan extends Resource
      * scope: `layanan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{jenis_id: int, pemohon: string, keperluan?: string, data?: array<string, mixed>, petugas?: string, ...} $body
+     * @param array{jenis_id: int, pemohon: string, keperluan?: string, data?: array<string, mixed>, petugas?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -227,6 +247,26 @@ final class Layanan extends Resource
     public function deletePermohonanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/layanan/permohonan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Permohonan layanan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Diajukan pengguna (pemohon = username otomatis, dicek level yang boleh dan isian wajib). Prasyarat bawaan (docs/PRASYARAT.md): layanan aktif, satu permohonan berjalan per layanan, dokumen persyaratan wajib bila katalog wajib_berkas (kirim `lampiran` saat mengajukan; proses/selesai ditolak bila belum ada), mahasiswa DO/keluar tidak bisa memohon, lalu aturan dinamis titik layanan.permohonan.ajukan. Pengelola unit pelaksana memproses. Setiap perubahan status dicatat di riwayat dan dikirim sebagai notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemohon).
+     *
+     * `GET /v1/layanan/permohonan/{id}/riwayat`
+     *
+     * scope: `layanan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPermohonanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/layanan/permohonan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -457,7 +497,7 @@ final class Layanan extends Resource
      *
      * scope: `layanan:write`
      *
-     * @param array{jenis: string, nomor?: string, judul: string, pemilik_nama?: string, pemilik_username?: string, tanggal_terbit: string, berlaku_sampai?: string, unit_id?: int, penandatangan?: string, sha256?: string, ...} $body
+     * @param array{jenis: string, nomor?: string, judul: string, pemilik_nama?: string, pemilik_username?: string, tanggal_terbit: string, berlaku_sampai?: string, unit_id?: int, penandatangan?: string, sha256?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -497,7 +537,7 @@ final class Layanan extends Resource
      * scope: `layanan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{jenis: string, nomor?: string, judul: string, pemilik_nama?: string, pemilik_username?: string, tanggal_terbit: string, berlaku_sampai?: string, unit_id?: int, penandatangan?: string, sha256?: string, ...} $body
+     * @param array{jenis: string, nomor?: string, judul: string, pemilik_nama?: string, pemilik_username?: string, tanggal_terbit: string, berlaku_sampai?: string, unit_id?: int, penandatangan?: string, sha256?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -505,6 +545,26 @@ final class Layanan extends Resource
     public function putDokumenById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/layanan/dokumen/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen terverifikasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Registri dokumen resmi (surat, transkrip, ijazah, SKPI, sertifikat) dengan kode verifikasi untuk QR. Bisa juga didaftarkan aplikasi/modul lain. Pemilik dokumen melihat dokumennya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pemilik_username).
+     *
+     * `GET /v1/layanan/dokumen/{id}/riwayat`
+     *
+     * scope: `layanan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDokumenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/layanan/dokumen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

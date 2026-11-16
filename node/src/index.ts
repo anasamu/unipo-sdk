@@ -34,3 +34,8 @@ export {
   type OpsiKonsumsiAntrean, type HasilKonsumsiAntrean, type Rahasia, type OpsiMuatRahasia, type OpsiTerbitkanEvent,
 } from './infra.js';
 export { kodeDariQr, formatKode, qrSvg, qrPng, cocokkanPdf, type OpsiQr } from './dokumen.js';
+export {
+  jarakMeter, dalamPoligon, cocokkanArea, buatKunciPresensi, catatPresensiKerja, KODE_GALAT_PRESENSI,
+  type AreaPresensi, type JadwalPresensiHari, type PresensiHarian, type KejadianPresensi, type PresensiHariIni,
+  type CatatPresensiInput, type HasilCatatPresensi, type StatusKejadianPresensi, type KodeGalatPresensi,
+} from './presensi-kerja.js';

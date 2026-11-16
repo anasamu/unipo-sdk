@@ -865,7 +865,7 @@ final class Akademik extends Resource
     /**
      * Pengajuan status akademik: daftar
      *
-     * Mahasiswa mengajukan cuti, aktif kembali, non-aktif, mengundurkan diri, atau pindah kelas/kampus/prodi; pengelola akademik (ADMIN, BAK, PROGDI, OPERATOR) memutuskan. Persetujuan cuti, non-aktif, dan mengundurkan diri langsung dicatat ke status SIAKAD lewat service halaman web (sama dengan menu Mahasiswa Cuti, Non Aktif, dan Keluar); jenis lain ditandai disetujui untuk ditindaklanjuti operator. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     * Mahasiswa mengajukan cuti, aktif kembali, non-aktif, mengundurkan diri, atau pindah kelas/kampus/prodi; pengelola akademik (ADMIN, BAK, PROGDI, OPERATOR) memutuskan. Prasyarat bawaan (docs/PRASYARAT.md): status mahasiswa sesuai jenis, tujuan pindah valid, satu pengajuan perubahan status menunggu dalam satu waktu, dokumen pendukung wajib per jenis (config prasyarat.akademik_lampiran, kirim `lampiran` saat mengajukan), lalu aturan dinamis titik cuti.ajukan / akademik.status.ajukan. Linimasa: GET /pengajuan/{id}/riwayat. Persetujuan cuti, non-aktif, dan mengundurkan diri langsung dicatat ke status SIAKAD lewat service halaman web (sama dengan menu Mahasiswa Cuti, Non Aktif, dan Keluar); jenis lain ditandai disetujui untuk ditindaklanjuti operator. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
      *
      * `GET /v1/akademik/pengajuan`
      *
@@ -890,7 +890,7 @@ final class Akademik extends Resource
      *
      * scope: `akademik:write`
      *
-     * @param array{nim: string, tahun_id?: string, jenis: string, tanggal_mulai?: string, tanggal_akhir?: string, tujuan?: string, alasan?: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, jenis: string, tanggal_mulai?: string, tanggal_akhir?: string, tujuan?: string, alasan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -903,7 +903,7 @@ final class Akademik extends Resource
     /**
      * Pengajuan status akademik: detail
      *
-     * Mahasiswa mengajukan cuti, aktif kembali, non-aktif, mengundurkan diri, atau pindah kelas/kampus/prodi; pengelola akademik (ADMIN, BAK, PROGDI, OPERATOR) memutuskan. Persetujuan cuti, non-aktif, dan mengundurkan diri langsung dicatat ke status SIAKAD lewat service halaman web (sama dengan menu Mahasiswa Cuti, Non Aktif, dan Keluar); jenis lain ditandai disetujui untuk ditindaklanjuti operator. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     * Mahasiswa mengajukan cuti, aktif kembali, non-aktif, mengundurkan diri, atau pindah kelas/kampus/prodi; pengelola akademik (ADMIN, BAK, PROGDI, OPERATOR) memutuskan. Prasyarat bawaan (docs/PRASYARAT.md): status mahasiswa sesuai jenis, tujuan pindah valid, satu pengajuan perubahan status menunggu dalam satu waktu, dokumen pendukung wajib per jenis (config prasyarat.akademik_lampiran, kirim `lampiran` saat mengajukan), lalu aturan dinamis titik cuti.ajukan / akademik.status.ajukan. Linimasa: GET /pengajuan/{id}/riwayat. Persetujuan cuti, non-aktif, dan mengundurkan diri langsung dicatat ke status SIAKAD lewat service halaman web (sama dengan menu Mahasiswa Cuti, Non Aktif, dan Keluar); jenis lain ditandai disetujui untuk ditindaklanjuti operator. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
      *
      * `GET /v1/akademik/pengajuan/{id}`
      *
@@ -930,7 +930,7 @@ final class Akademik extends Resource
      * scope: `akademik:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nim: string, tahun_id?: string, jenis: string, tanggal_mulai?: string, tanggal_akhir?: string, tujuan?: string, alasan?: string, catatan?: string, ...} $body
+     * @param array{nim: string, tahun_id?: string, jenis: string, tanggal_mulai?: string, tanggal_akhir?: string, tujuan?: string, alasan?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -958,6 +958,26 @@ final class Akademik extends Resource
     public function deletePengajuanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/akademik/pengajuan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan status akademik: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mengajukan cuti, aktif kembali, non-aktif, mengundurkan diri, atau pindah kelas/kampus/prodi; pengelola akademik (ADMIN, BAK, PROGDI, OPERATOR) memutuskan. Prasyarat bawaan (docs/PRASYARAT.md): status mahasiswa sesuai jenis, tujuan pindah valid, satu pengajuan perubahan status menunggu dalam satu waktu, dokumen pendukung wajib per jenis (config prasyarat.akademik_lampiran, kirim `lampiran` saat mengajukan), lalu aturan dinamis titik cuti.ajukan / akademik.status.ajukan. Linimasa: GET /pengajuan/{id}/riwayat. Persetujuan cuti, non-aktif, dan mengundurkan diri langsung dicatat ke status SIAKAD lewat service halaman web (sama dengan menu Mahasiswa Cuti, Non Aktif, dan Keluar); jenis lain ditandai disetujui untuk ditindaklanjuti operator. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/akademik/pengajuan/{id}/riwayat`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/pengajuan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

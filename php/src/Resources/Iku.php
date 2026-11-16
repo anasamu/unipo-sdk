@@ -264,6 +264,26 @@ final class Iku extends Resource
     }
 
     /**
+     * Indikator IKU: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. IKU 1-8 sudah terisi (Kepmendikbudristek 210/M/2023) beserta penghitungnya. metode: iku1_tracer, iku2_luar_kampus, iku3_dosen_luar, iku4_kualifikasi, iku5_luaran, iku6_kerjasama, iku7_kelas, iku8_internasional, manual. parameter (JSON) mengatur ambang penghitung, mis. IKU2 {"sks_minimal": 20}. Indikator tambahan memakai metode manual. Semua pemilik token ber-scope iku:read.
+     *
+     * `GET /v1/iku/indikator/{id}/riwayat`
+     *
+     * scope: `iku:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getIndikatorByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/iku/indikator/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Target IKU: daftar
      *
      * Target per indikator per tahun. kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. Semua pemilik token ber-scope iku:read.
@@ -362,6 +382,26 @@ final class Iku extends Resource
     }
 
     /**
+     * Target IKU: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Target per indikator per tahun. kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. Semua pemilik token ber-scope iku:read.
+     *
+     * `GET /v1/iku/target/{id}/riwayat`
+     *
+     * scope: `iku:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTargetByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/iku/target/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Bukti capaian IKU: daftar
      *
      * Capaian yang belum tercatat di modul SIAKAD lain, mis. dosen berkegiatan di PT lain/praktisi (IKU3/4, jenis_subjek dosen + NIDN), mahasiswa (IKU2, NIM), luaran (IKU5), prodi (IKU6/8, kode prodi), mata kuliah (IKU7, "<kode_prodi>:<kode_mk>"). Bisa diberi lampiran. Yang berstatus disetujui ikut dihitung saat POST /v1/iku/hitung. Hanya pengelola modul.
@@ -389,7 +429,7 @@ final class Iku extends Resource
      *
      * scope: `iku:write`
      *
-     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, jenis_subjek: string, subjek: string, nama?: string, kategori?: string, keterangan?: string, tautan?: string, status?: string, catatan_verifikasi?: string, ...} $body
+     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, jenis_subjek: string, subjek: string, nama?: string, kategori?: string, keterangan?: string, tautan?: string, status?: string, catatan_verifikasi?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -429,7 +469,7 @@ final class Iku extends Resource
      * scope: `iku:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, jenis_subjek: string, subjek: string, nama?: string, kategori?: string, keterangan?: string, tautan?: string, status?: string, catatan_verifikasi?: string, ...} $body
+     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, jenis_subjek: string, subjek: string, nama?: string, kategori?: string, keterangan?: string, tautan?: string, status?: string, catatan_verifikasi?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -457,6 +497,26 @@ final class Iku extends Resource
     public function deleteBuktiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/iku/bukti/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bukti capaian IKU: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Capaian yang belum tercatat di modul SIAKAD lain, mis. dosen berkegiatan di PT lain/praktisi (IKU3/4, jenis_subjek dosen + NIDN), mahasiswa (IKU2, NIM), luaran (IKU5), prodi (IKU6/8, kode prodi), mata kuliah (IKU7, "<kode_prodi>:<kode_mk>"). Bisa diberi lampiran. Yang berstatus disetujui ikut dihitung saat POST /v1/iku/hitung. Hanya pengelola modul.
+     *
+     * `GET /v1/iku/bukti/{id}/riwayat`
+     *
+     * scope: `iku:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBuktiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/iku/bukti/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
