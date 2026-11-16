@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3268 endpoint).
+ * Akses ke semua modul API (3312 endpoint).
  */
 trait GeneratedResources
 {
@@ -29,6 +29,12 @@ trait GeneratedResources
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
+    }
+
+    /** Akun pengguna (13 endpoint) */
+    public function akun(): Resources\Akun
+    {
+        return $this->resource(Resources\Akun::class);
     }
 
     /** Portal API: Pengajuan, Portal API: Aplikasi saya, Portal API: Tinjauan Pustikom (18 endpoint) */
@@ -217,7 +223,7 @@ trait GeneratedResources
         return $this->resource(Resources\Kurikulum::class);
     }
 
-    /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (67 endpoint) */
+    /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
     public function kurikulumObe(): Resources\KurikulumObe
     {
         return $this->resource(Resources\KurikulumObe::class);
@@ -307,6 +313,12 @@ trait GeneratedResources
         return $this->resource(Resources\Perpustakaan::class);
     }
 
+    /** Pimpinan: Bidang, Pimpinan: Arahan (24 endpoint) */
+    public function pimpinan(): Resources\Pimpinan
+    {
+        return $this->resource(Resources\Pimpinan::class);
+    }
+
     /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
     public function pmb(): Resources\Pmb
     {
@@ -337,7 +349,7 @@ trait GeneratedResources
         return $this->resource(Resources\Qr::class);
     }
 
-    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (70 endpoint) */
+    /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (71 endpoint) */
     public function rbac(): Resources\Rbac
     {
         return $this->resource(Resources\Rbac::class);
