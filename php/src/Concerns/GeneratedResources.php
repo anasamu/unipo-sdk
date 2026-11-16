@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3171 endpoint).
+ * Akses ke semua modul API (3187 endpoint).
  */
 trait GeneratedResources
 {
@@ -37,7 +37,7 @@ trait GeneratedResources
         return $this->resource(Resources\ApiPortal::class);
     }
 
-    /** Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan (123 endpoint) */
+    /** Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan (124 endpoint) */
     public function arsip(): Resources\Arsip
     {
         return $this->resource(Resources\Arsip::class);
@@ -49,7 +49,7 @@ trait GeneratedResources
         return $this->resource(Resources\Aturan::class);
     }
 
-    /** Berkas, Berkas: Unggah bertahap, Berkas: Folder (24 endpoint) */
+    /** Berkas, Berkas: Unggah bertahap, Berkas: Folder, Berkas: Unit dan periode, Berkas: Berbagi, Berkas: Enkripsi (39 endpoint) */
     public function berkas(): Resources\Berkas
     {
         return $this->resource(Resources\Berkas::class);

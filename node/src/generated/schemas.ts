@@ -2290,6 +2290,15 @@ export type Berkas = {
   klien_id?: string | null;
   jumlah_unduh?: number | null;
   dibuat_at?: string | null;
+  diubah_at?: string | null;
+  /** Kode unit bila di ruang bersama unit */
+  unit?: string | null;
+  /** Kode periode akademik Contoh: `20251` */
+  periode?: string | null;
+  /** Isi tersimpan terenkripsi AES-256-GCM */
+  terenkripsi?: boolean;
+  /** Hak pemanggil: lihat, ubah, kelola (hanya di detail) */
+  hak?: string | null;
   /** Hanya untuk berkas di sampah (admin, ?terhapus=1) */
   dihapus_at?: string | null;
   dihapus_oleh?: string | null;
@@ -2364,6 +2373,12 @@ export type BerkasUnggah = {
   visibilitas?: string | null;
   /** Kode penyedia storage; bawaan penyimpanan utama */
   penyimpanan?: string | null;
+  /** Kode unit untuk ruang bersama Contoh: `baak` */
+  unit?: string | null;
+  /** Kode periode akademik; bawaan periode aktif Contoh: `20251` */
+  periode?: string | null;
+  /** Enkripsi isi di server */
+  enkripsi?: boolean;
   [key: string]: any;
 };
 
@@ -2385,6 +2400,12 @@ export type BerkasMulaiBertahap = {
   visibilitas?: string | null;
   /** Kode penyedia storage; bawaan penyimpanan utama */
   penyimpanan?: string | null;
+  /** Kode unit untuk ruang bersama Contoh: `baak` */
+  unit?: string | null;
+  /** Kode periode akademik; bawaan periode aktif Contoh: `20251` */
+  periode?: string | null;
+  /** Enkripsi isi di server */
+  enkripsi?: boolean;
   [key: string]: any;
 };
 
@@ -2406,6 +2427,12 @@ export type BerkasUnggahLangsung = {
   visibilitas?: string | null;
   /** Kode penyedia storage; bawaan penyimpanan utama */
   penyimpanan?: string | null;
+  /** Kode unit untuk ruang bersama Contoh: `baak` */
+  unit?: string | null;
+  /** Kode periode akademik; bawaan periode aktif Contoh: `20251` */
+  periode?: string | null;
+  /** Enkripsi isi di server */
+  enkripsi?: boolean;
   [key: string]: any;
 };
 
@@ -2474,6 +2501,17 @@ export type BerkasFolderDaftar = {
     [key: string]: any;
   };
   folder?: Array<BerkasFolder>;
+  ruang?: {
+    /** u:<username>, k:<klien>, n:<unit> */
+    kode?: string | null;
+    unit?: string | null;
+    /** pemilik, anggota, kelola, bagi, bagi-ubah */
+    akses?: string | null;
+    /** Folder bersama */
+    batas?: string | null;
+    periode?: string | null;
+    [key: string]: any;
+  };
   [key: string]: any;
 };
 
@@ -2486,6 +2524,8 @@ export type BerkasFolderBuat = {
   warna?: string | null;
   /** Contoh: `arsip` */
   modul?: string | null;
+  /** Ruang unit */
+  unit?: string | null;
   [key: string]: any;
 };
 
@@ -2514,11 +2554,116 @@ export type BerkasPindahBanyak = {
   id: Array<string | null>;
   /** null/"" = akar */
   folder: string | null;
+  /** Pindah ke ruang lain: kode unit; null/"" = ruang pribadi */
+  tujuan_unit?: string | null;
   [key: string]: any;
 };
 
 export type BerkasHapusBanyak = {
   id: Array<string | null>;
+  [key: string]: any;
+};
+
+export type BerkasSalinBanyak = {
+  id: Array<string | null>;
+  /** null/"" = akar */
+  folder?: string | null;
+  /** Kode unit tujuan; null/"" = ruang pribadi; tidak dikirim = ruang asal */
+  tujuan_unit?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasFolderSalin = {
+  /** Contoh: `SK` */
+  path: string | null;
+  /** null = akar */
+  induk_baru?: string | null;
+  /** Ruang asal */
+  unit?: string | null;
+  modul?: string | null;
+  /** Ruang tujuan */
+  tujuan_unit?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasBagikan = {
+  /** Folder (hanya POST /folder/bagikan) */
+  path?: string | null;
+  /** Ruang folder */
+  unit?: string | null;
+  /** pengguna, unit, tautan Contoh: `pengguna` */
+  ke_jenis: string | null;
+  /** username atau kode unit Contoh: `0012345678` */
+  ke?: string | null;
+  /** lihat atau ubah Contoh: `lihat` */
+  izin?: string | null;
+  /** ISO 8601 */
+  kedaluwarsa_at?: string | null;
+  /** Kata sandi tautan, 4-100 karakter */
+  sandi?: string | null;
+  pesan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasBagi = {
+  id?: string | null;
+  /** berkas atau folder */
+  jenis?: string | null;
+  folder?: {
+    path?: string | null;
+    nama?: string | null;
+    unit?: string | null;
+    [key: string]: any;
+  };
+  ke_jenis?: string | null;
+  ke?: string | null;
+  ke_nama?: string | null;
+  izin?: string | null;
+  /** Path tautan publik Contoh: `/v1/berkas/tautan/…` */
+  tautan?: string | null;
+  token?: string | null;
+  bersandi?: boolean;
+  kedaluwarsa_at?: string | null;
+  pesan?: string | null;
+  jumlah_akses?: number | null;
+  dibuat_oleh?: string | null;
+  dibuat_at?: string | null;
+  berkas?: Berkas;
+  [key: string]: any;
+};
+
+export type BerkasKebijakan = {
+  /** mati, opsional, wajib */
+  global?: string | null;
+  /** opsional, wajib; null bila bukan ruang unit */
+  unit?: string | null;
+  /** opsional, wajib; null bila bukan ruang pribadi */
+  pengguna?: string | null;
+  /** mati, opsional, wajib */
+  efektif?: string | null;
+  boleh_ubah?: {
+    global?: boolean;
+    unit?: boolean;
+    pengguna?: boolean;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+export type BerkasKebijakanUbah = {
+  /** global, unit, pengguna Contoh: `unit` */
+  lingkup: string | null;
+  /** Contoh: `baak` */
+  unit?: string | null;
+  /** mati, opsional, wajib Contoh: `wajib` */
+  enkripsi: string | null;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type BerkasEnkripsi = {
+  /** true = enkripsi, false = buka enkripsi */
+  aktif: boolean;
   [key: string]: any;
 };
 

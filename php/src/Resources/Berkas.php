@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Berkas, Berkas: Unggah bertahap, Berkas: Folder
+ * Berkas, Berkas: Unggah bertahap, Berkas: Folder, Berkas: Unit dan periode, Berkas: Berbagi, Berkas: Enkripsi
  */
 final class Berkas extends Resource
 {
@@ -41,7 +41,7 @@ final class Berkas extends Resource
      *
      * scope: `berkas:read` · berhalaman
      *
-     * @param array{kategori?: string, modul?: string, status?: string, folder?: string, dalam?: string, jenis?: string, ekstensi?: string, urut?: string, q?: string, pemilik?: string, klien_id?: string, terhapus?: string, page?: int, per_page?: int, ...} $query
+     * @param array{kategori?: string, modul?: string, status?: string, folder?: string, dalam?: string, jenis?: string, ekstensi?: string, urut?: string, unit?: string, bagi?: string, periode?: string, terenkripsi?: string, q?: string, pemilik?: string, klien_id?: string, terhapus?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -54,13 +54,13 @@ final class Berkas extends Resource
     /**
      * Unggah berkas
      *
-     * multipart/form-data field `berkas` (atau JSON `berkas_base64` + `nama_file` untuk file kecil). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Jenis file diperiksa dari isinya. File di atas `batas_sekali_unggah_byte` (lihat /info) pakai unggah bertahap.
+     * multipart/form-data field `berkas` (atau JSON `berkas_base64` + `nama_file` untuk file kecil). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama), `unit` (simpan di ruang bersama unit), `periode` (kode periode akademik; bawaan periode aktif), `enkripsi` (true = enkripsi isi di server; bisa diwajibkan kebijakan). Jenis file diperiksa dari isinya. File di atas `batas_sekali_unggah_byte` (lihat /info) pakai unggah bertahap.
      *
      * `POST /v1/berkas`
      *
      * scope: `berkas:write`
      *
-     * @param array{berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, berkas_base64?: string|null, nama_file?: string|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, berkas_base64?: string|null, nama_file?: string|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, unit?: string|null, periode?: string|null, enkripsi?: bool, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -73,13 +73,13 @@ final class Berkas extends Resource
     /**
      * Mulai unggah bertahap
      *
-     * Untuk file besar atau hosting dengan upload_max_filesize kecil. Body JSON: `nama`, `ukuran` (byte), opsional `ukuran_potongan` (bawaan dari /info). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Lalu kirim setiap potongan ke POST /v1/berkas/{id}/potongan/{ke} (boleh paralel, boleh diulang), dan akhiri dengan POST /v1/berkas/{id}/selesai. Sesi yang tidak selesai dihapus setelah BERKAS_SESI_JAM.
+     * Untuk file besar atau hosting dengan upload_max_filesize kecil. Body JSON: `nama`, `ukuran` (byte), opsional `ukuran_potongan` (bawaan dari /info). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama), `unit` (simpan di ruang bersama unit), `periode` (kode periode akademik; bawaan periode aktif), `enkripsi` (true = enkripsi isi di server; bisa diwajibkan kebijakan). Lalu kirim setiap potongan ke POST /v1/berkas/{id}/potongan/{ke} (boleh paralel, boleh diulang), dan akhiri dengan POST /v1/berkas/{id}/selesai. Sesi yang tidak selesai dihapus setelah BERKAS_SESI_JAM.
      *
      * `POST /v1/berkas/bertahap`
      *
      * scope: `berkas:write`
      *
-     * @param array{nama: string|null, ukuran: int|null, ukuran_potongan?: int|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, ...} $body
+     * @param array{nama: string|null, ukuran: int|null, ukuran_potongan?: int|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, unit?: string|null, periode?: string|null, enkripsi?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -98,7 +98,7 @@ final class Berkas extends Resource
      *
      * scope: `berkas:write`
      *
-     * @param array{nama: string|null, ukuran: int|null, mime: string|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, ...} $body
+     * @param array{nama: string|null, ukuran: int|null, mime: string|null, kategori?: string|null, modul?: string|null, folder?: string|null, keterangan?: string|null, visibilitas?: string|null, penyimpanan?: string|null, unit?: string|null, periode?: string|null, enkripsi?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -137,7 +137,7 @@ final class Berkas extends Resource
      *
      * scope: `berkas:read`
      *
-     * @param array{modul?: string, ...} $query
+     * @param array{modul?: string, unit?: string, bagi?: string, periode?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -156,7 +156,7 @@ final class Berkas extends Resource
      *
      * scope: `berkas:write`
      *
-     * @param array{nama: string|null, induk?: string|null, warna?: string|null, modul?: string|null, ...} $body
+     * @param array{nama: string|null, induk?: string|null, warna?: string|null, modul?: string|null, unit?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -213,7 +213,7 @@ final class Berkas extends Resource
      *
      * scope: `berkas:write`
      *
-     * @param array{id: list<mixed>, folder: string|null, ...} $body
+     * @param array{id: list<mixed>, folder: string|null, tujuan_unit?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -240,6 +240,237 @@ final class Berkas extends Resource
     public function postHapusBanyak(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/berkas/hapus-banyak', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Unit yang bisa saya buka
+     *
+     * Ruang berkas bersama unit (BAAK, BAUK, SDM, LPM, PMB, LPPM, Humas, fakultas, prodi, ...) yang bisa dibuka pemanggil, dengan `akses` (anggota/kelola) dan kebijakan enkripsi efektif. Anggota: izin RBAC <aplikasi>.berkas atau petugas arsip unit; pengelola: <aplikasi>.berkas.kelola atau admin/pimpinan unit. `?semua=1` menambah `semua`: daftar semua unit aktif (kode dan nama saja) untuk tujuan berbagi.
+     *
+     * `GET /v1/berkas/unit`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{semua?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUnit(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/unit', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periode akademik berkas
+     *
+     * Periode akademik (m_tahun) yang dipakai berkas di ruang ini, dengan jumlah dan ukuran berkasnya, ditambah periode aktif. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`. Pakai `periode` di GET /v1/berkas dan /v1/berkas/folder untuk mengelompokkan berkas per periode.
+     *
+     * `GET /v1/berkas/periode`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{unit?: string, modul?: string, bagi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeriode(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/periode', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Salin banyak berkas
+     *
+     * Body: `id` (1-100 UUID), `folder` (tujuan; null = akar), opsional `tujuan_unit` (kode unit; null/"" = ruang pribadi). Isi berkas di penyimpanan dipakai bersama sampai salah satunya diubah. Nama yang bentrok diberi akhiran "(salinan)".
+     *
+     * `POST /v1/berkas/salin`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{id: list<mixed>, folder?: string|null, tujuan_unit?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSalin(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/salin', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Salin folder
+     *
+     * Body: `path`, `induk_baru` (null = akar), opsional `tujuan_unit`. Subfolder dan berkas ikut disalin. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+     *
+     * `POST /v1/berkas/folder/salin`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{path: string|null, induk_baru?: string|null, unit?: string|null, modul?: string|null, tujuan_unit?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFolderSalin(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/folder/salin', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Daftar berbagi folder
+     *
+     * Query `path` + ruang. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+     *
+     * `GET /v1/berkas/folder/bagikan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{path?: string, unit?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFolderBagikan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/folder/bagikan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bagikan folder
+     *
+     * Body: `path`, `ke_jenis` (pengguna, unit, tautan), `ke` (username/kode unit), `izin` (lihat/ubah), opsional `kedaluwarsa_at`, `sandi` (tautan), `pesan`. Subfolder dan berkas di dalamnya ikut terbagi, termasuk yang ditambahkan kemudian. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+     *
+     * `POST /v1/berkas/folder/bagikan`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{path?: string|null, unit?: string|null, ke_jenis: string|null, ke?: string|null, izin?: string|null, kedaluwarsa_at?: string|null, sandi?: string|null, pesan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFolderBagikan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/folder/bagikan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dibagikan ke saya
+     *
+     * Berkas dan folder yang dibagikan ke pemanggil langsung atau lewat unitnya (`arah=keluar`: yang saya bagikan). Buka isi folder bersama dengan GET /v1/berkas?bagi=<id>.
+     *
+     * `GET /v1/berkas/dibagikan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{arah?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDibagikan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/dibagikan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut berbagi
+     *
+     * Menghentikan berbagi (termasuk tautan publik). Oleh yang membagikan, pemilik berkas, atau pengelola unit.
+     *
+     * `POST /v1/berkas/bagikan/{id}/cabut`
+     *
+     * scope: `berkas:write`
+     *
+     * @param int|string $id UUID data berbagi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBagikanByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/bagikan/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buka tautan publik
+     *
+     * Tanpa token akses. Berkas: info dan alamat unduh. Folder: subfolder dan berkas di `folder` (bawaan akar tautan). Tautan bersandi: header `X-Sandi-Tautan` atau `?sandi=`; tanpa sandi 401 sandi_tautan.
+     *
+     * `GET /v1/berkas/tautan/{token}`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $token Token tautan
+     * @param array{folder?: string, sandi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTautanByToken(int|string $token, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/tautan/{token}', ['token' => $token], $query, null, $options, false, true);
+    }
+
+    /**
+     * Unduh dari tautan publik
+     *
+     * Berkas yang dibagikan, atau `id` berkas di dalam folder yang dibagikan. Berkas terenkripsi didekripsi server.
+     *
+     * `GET /v1/berkas/tautan/{token}/unduh`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $token Token tautan
+     * @param array{id?: string, unduh?: string, sandi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTautanByTokenUnduh(int|string $token, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/tautan/{token}/unduh', ['token' => $token], $query, null, $options, false, true);
+    }
+
+    /**
+     * Kebijakan enkripsi
+     *
+     * Kebijakan global (Pustikom), unit, dan pengguna yang berlaku untuk ruang ini serta `efektif` (mati, opsional, wajib). Isi berkas terenkripsi disimpan AES-256-GCM; penyedia storage hanya melihat teks sandi. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+     *
+     * `GET /v1/berkas/kebijakan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{unit?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/kebijakan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah kebijakan enkripsi
+     *
+     * Body: `lingkup` global (berkas:admin; mati/opsional/wajib), unit (pengelola unit + `unit`; opsional/wajib), atau pengguna (diri sendiri; opsional/wajib), `enkripsi`, opsional `catatan`. Berlaku untuk berkas baru; berkas lama dienkripsi lewat POST /v1/berkas/{id}/enkripsi.
+     *
+     * `POST /v1/berkas/kebijakan`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{lingkup: string|null, unit?: string|null, enkripsi: string|null, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKebijakan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/kebijakan', [], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -360,6 +591,66 @@ final class Berkas extends Resource
     public function postByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/berkas/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar berbagi berkas
+     *
+     * Siapa saja yang menerima berkas ini dan tautan publiknya.
+     *
+     * `GET /v1/berkas/{id}/bagikan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param int|string $id UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByIdBagikan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/{id}/bagikan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bagikan berkas
+     *
+     * Body: `ke_jenis` (pengguna, unit, tautan), `ke` (username/kode unit), `izin` (lihat/ubah; tautan hanya lihat), opsional `kedaluwarsa_at`, `sandi` (tautan), `pesan`.
+     *
+     * `POST /v1/berkas/{id}/bagikan`
+     *
+     * scope: `berkas:write`
+     *
+     * @param int|string $id UUID berkas
+     * @param array{path?: string|null, unit?: string|null, ke_jenis: string|null, ke?: string|null, izin?: string|null, kedaluwarsa_at?: string|null, sandi?: string|null, pesan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdBagikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/{id}/bagikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Enkripsi atau buka enkripsi berkas
+     *
+     * Body `aktif` (true/false). Isi ditulis ulang ke objek baru di penyimpanan yang sama. Ditolak bila kebijakan mewajibkan enkripsi (buka) atau mematikannya (aktifkan).
+     *
+     * `POST /v1/berkas/{id}/enkripsi`
+     *
+     * scope: `berkas:write`
+     *
+     * @param int|string $id UUID berkas
+     * @param array{aktif: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdEnkripsi(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/{id}/enkripsi', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
