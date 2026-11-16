@@ -902,6 +902,330 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Referensi dosen PA
+     *
+     * Dosen aktif (prodi ini dulu) beserta beban bimbingan PA (mahasiswa aktif/cuti/non-aktif semua prodi), angkatan, status.
+     *
+     * `GET /v1/fakultas/{kode}/pa/referensi`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodePaReferensi(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/pa/referensi', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa dan dosen PA
+     *
+     * Mahasiswa prodi dengan PA-nya + ringkasan (tanpa PA, PA tidak aktif, beban per dosen). Izin fakultas.mahasiswa atau fakultas.pa.kelola.
+     *
+     * `GET /v1/fakultas/{kode}/pa`
+     *
+     * scope: `fakultas:read` · berhalaman
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{angkatan?: string, status?: string, pa?: string, q?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodePa(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/pa', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tetapkan dosen PA
+     *
+     * Body: {"nim": ["..."], "nidn": "..."} (maks. 500). Hanya dosen aktif; mahasiswa lulus/DO/keluar atau prodi lain ditolak. Lewat PenasehatRepository (halaman Penasehat Akademik).
+     *
+     * `POST /v1/fakultas/{kode}/pa`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodePa(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/pa', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bagi PA merata
+     *
+     * Body: {"nim": [...], "dosen": ["NIDN", ...], "simpan": false}. Tiap mahasiswa diberikan ke dosen terpilih yang bebannya paling sedikit. simpan=false hanya pratinjau.
+     *
+     * `POST /v1/fakultas/{kode}/pa/bagi-rata`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodePaBagiRata(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/pa/bagi-rata', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Referensi jadwal ujian
+     *
+     * Kelas kuliah periode (MK, kelas, pengampu, ruang, peserta), jam, ruang, dosen aktif, rentang UTS/UAS periode, syarat kartu.
+     *
+     * `GET /v1/fakultas/{kode}/ujian/referensi`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeUjianReferensi(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ujian/referensi', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kartu ujian
+     *
+     * Mahasiswa ber-KRS disetujui + jadwal ujian MK-nya + kelayakan (status semester, lulus/DO, batas studi, pembayaran, presensi UAS) dengan alasannya.
+     *
+     * `GET /v1/fakultas/{kode}/ujian/kartu`
+     *
+     * scope: `fakultas:read` · berhalaman
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{ujian?: string, kelas?: string, angkatan?: string, q?: string, nim?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeUjianKartu(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ujian/kartu', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jadwal ujian prodi
+     *
+     * Jadwal UTS/UAS satu periode: MK, kelas, tanggal, jam, ruang, pengawas, kapasitas, peserta + ringkasan kelas belum terjadwal.
+     *
+     * `GET /v1/fakultas/{kode}/ujian`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{ujian?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeUjian(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ujian', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah jadwal ujian
+     *
+     * Body: {"ujian": "uts|uas", "kode_mk", "kelas", "tanggal", "jamke", "ruang", "kapasitas", "nidn1", "nidn2"}. Bentrok pengawas/ruang/kelas/mahasiswa = 409; tanggal wajib di masa UTS/UAS periode bila diatur; kapasitas >= peserta.
+     *
+     * `POST /v1/fakultas/{kode}/ujian`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeUjian(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ujian', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus jadwal ujian
+     *
+     * Body: {"id": [1, 2]}. Periode lalu ditolak.
+     *
+     * `POST /v1/fakultas/{kode}/ujian/hapus`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeUjianHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ujian/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah jadwal ujian
+     *
+     * Body sama dengan tambah; kelas tidak bisa diubah. Bentrok diperiksa ulang (kecuali dirinya).
+     *
+     * `POST /v1/fakultas/{kode}/ujian/{id}`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID jadwal ujian
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeUjianById(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ujian/{id}', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar hadir ujian
+     *
+     * Peserta (KRS disetujui) satu jadwal ujian + ruang/meja + kelayakan + kop dokumen.
+     *
+     * `GET /v1/fakultas/{kode}/ujian/{id}/peserta`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID jadwal ujian
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeUjianByIdPeserta(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ujian/{id}/peserta', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur nomor meja
+     *
+     * Nomor meja 1..n urut NIM untuk peserta jadwal ini (t_mahasiswa_krs uts_/uas_ruang + meja, lewat KartuUjianRepository).
+     *
+     * `POST /v1/fakultas/{kode}/ujian/{id}/meja`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID jadwal ujian
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeUjianByIdMeja(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ujian/{id}/meja', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekap presensi prodi
+     *
+     * Kehadiran per kelas kuliah dan per mahasiswa (jam hadir / jam mengajar dosen pengampu), MK di bawah batas, SP terakhir dan SP berikutnya. Batas dari m_tahun.min_presensi (0 = acuan 75%).
+     *
+     * `GET /v1/fakultas/{kode}/presensi/rekap`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{kode_mk?: string, kelas?: string, q?: string, bawah?: string, batas?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodePresensiRekap(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/presensi/rekap', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat SP kehadiran
+     *
+     * SP prodi satu periode (atau satu mahasiswa lewat ?nim=) + kop surat.
+     *
+     * `GET /v1/fakultas/{kode}/presensi/sp`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{nim?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodePresensiSp(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/presensi/sp', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Terbitkan SP kehadiran
+     *
+     * Body: {"nim": [...], "batas": 75 (opsional), "catatan", "tanggal"}. Tingkat naik otomatis (SP1–SP3) per periode; hanya mahasiswa dengan MK di bawah batas.
+     *
+     * `POST /v1/fakultas/{kode}/presensi/sp`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodePresensiSp(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/presensi/sp', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan SP
+     *
+     * Body: {"alasan": "..."}. Hanya SP tingkat tertinggi yang berlaku.
+     *
+     * `POST /v1/fakultas/{kode}/presensi/sp/{id}/batal`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID SP
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodePresensiSpByIdBatal(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/presensi/sp/{id}/batal', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Antrian persetujuan KRS
      *
      * Mahasiswa aktif dengan status KRS (belum isi, menunggu, disetujui) + ringkasan. Izin fakultas.krs.kelola; dosen (pribadi) = mahasiswa bimbingan PA.

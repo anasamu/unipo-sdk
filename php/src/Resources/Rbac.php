@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
+ * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Penugasan otomatis SDM, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
  */
 final class Rbac extends Resource
 {
@@ -196,6 +196,67 @@ final class Rbac extends Resource
     public function postSinkron(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/rbac/sinkron', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemetaan jabatan SDM ke peran
+     *
+     * Semua jabatan SDM (`sdm_ref_jabatan`) beserta peran yang otomatis diberikan ke pemegangnya, jumlah pemegang aktif, dan jumlah
+     * penugasan per status (`aktif`, `dilewati`, `dicabut`, `berakhir`); `peran_pilihan` = peran yang boleh dipetakan (peran admin
+     * tidak pernah ditawarkan); `dilewati` = 100 penugasan terakhir yang belum bisa dibuat beserta alasannya. Hanya admin.
+     *
+     * `GET /v1/rbac/jabatan-sdm`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJabatanSdm(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/jabatan-sdm', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur peran jabatan SDM
+     *
+     * Mengganti seluruh peran sebuah jabatan SDM: `{"peran_id": [12, 15]}` (`[]` mengosongkan), lalu langsung menyinkronkan semua
+     * pemegang jabatan itu (penugasan baru dibuat, yang tidak dipetakan lagi diakhiri). Peran admin ditolak 422. Hanya admin.
+     *
+     * `POST /v1/rbac/jabatan-sdm/{id}`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID sdm_ref_jabatan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJabatanSdmById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/jabatan-sdm/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Sinkronkan semua data SDM
+     *
+     * Menyinkronkan ulang semua pegawai yang punya jabatan terpetakan atau penugasan otomatis. Sama dengan `php artisan rbac:sinkron-sdm` (jalankan harian lewat cron). Hanya admin.
+     *
+     * `POST /v1/rbac/sinkron-sdm`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSinkronSdm(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/sinkron-sdm', [], $query, null, $options, false, false);
     }
 
     /**
@@ -1179,7 +1240,7 @@ final class Rbac extends Resource
     /**
      * Penugasan peran: daftar
      *
-     * Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Penugasan di unit di luar unit asal pengguna (unit kerja/homebase di SDM, prodi, atau unit jabatannya) wajib mengisi kewajiban (uraian tugas) dan tanggal selesai. Penugasan yang dibuat otomatis dari data SDM (otomatis.dari = sdm) diperbarui sendiri saat data SDM berubah. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/rbac/penugasan`
      *
@@ -1217,7 +1278,7 @@ final class Rbac extends Resource
     /**
      * Penugasan peran: detail
      *
-     * Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Penugasan di unit di luar unit asal pengguna (unit kerja/homebase di SDM, prodi, atau unit jabatannya) wajib mengisi kewajiban (uraian tugas) dan tanggal selesai. Penugasan yang dibuat otomatis dari data SDM (otomatis.dari = sdm) diperbarui sendiri saat data SDM berubah. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/rbac/penugasan/{id}`
      *
@@ -1277,7 +1338,7 @@ final class Rbac extends Resource
     /**
      * Penugasan peran: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Penugasan di unit di luar unit asal pengguna (unit kerja/homebase di SDM, prodi, atau unit jabatannya) wajib mengisi kewajiban (uraian tugas) dan tanggal selesai. Penugasan yang dibuat otomatis dari data SDM (otomatis.dari = sdm) diperbarui sendiri saat data SDM berubah. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/rbac/penugasan/{id}/riwayat`
      *

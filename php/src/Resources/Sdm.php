@@ -1147,6 +1147,46 @@ final class Sdm extends Resource
     }
 
     /**
+     * Peran dan hak akses dari jabatan
+     *
+     * Penugasan peran (RBAC) yang dibuat otomatis dari riwayat jabatan disetujui pegawai ini, sesuai pemetaan jabatan SDM ke peran di Pustikom: peran, unit, masa berlaku, status (`aktif`, `dilewati` beserta alasannya, `dicabut` di Pustikom, `berakhir`). Sinkron berjalan setiap kali pegawai, riwayat jabatan/status, atau akunnya berubah.
+     *
+     * `GET /v1/sdm/pegawai/{id}/peran`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawaiByIdPeran(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/pegawai/{id}/peran', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sinkronkan ulang peran dari jabatan
+     *
+     * Petugas SDM unit itu. Menjalankan ulang sinkron jabatan -> penugasan peran untuk pegawai ini (mis. setelah akun SIAKAD dibuat atau pemetaan unit diperbaiki).
+     *
+     * `POST /v1/sdm/pegawai/{id}/peran/sinkron`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID angka, UUID, atau `saya`
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPegawaiByIdPeranSinkron(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/pegawai/{id}/peran/sinkron', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ringkasan karier
      *
      * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
