@@ -137,7 +137,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{kode: string, nama: string, unit_id?: int, idkp?: string, alamat?: string, jumlah_lantai?: int, luas?: float|int, tahun_bangun?: int, status_milik?: string, kondisi?: string, lintang?: float|int, bujur?: float|int, keterangan?: string, aktif?: bool, ...} $body
+     * @param array{kode: string, nama: string, unit_id?: int, idkp?: string, alamat?: string, jumlah_lantai?: int, luas?: float|int, tahun_bangun?: int, status_milik?: string, kondisi?: string, lintang?: float|int, bujur?: float|int, keterangan?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -177,7 +177,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, unit_id?: int, idkp?: string, alamat?: string, jumlah_lantai?: int, luas?: float|int, tahun_bangun?: int, status_milik?: string, kondisi?: string, lintang?: float|int, bujur?: float|int, keterangan?: string, aktif?: bool, ...} $body
+     * @param array{kode: string, nama: string, unit_id?: int, idkp?: string, alamat?: string, jumlah_lantai?: int, luas?: float|int, tahun_bangun?: int, status_milik?: string, kondisi?: string, lintang?: float|int, bujur?: float|int, keterangan?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -205,6 +205,26 @@ final class Sarpras extends Resource
     public function deleteGedungById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sarpras/gedung/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Gedung: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope sarpras:read.
+     *
+     * `GET /v1/sarpras/gedung/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getGedungByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/gedung/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -315,7 +335,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{gedung_id?: int, kode: string, nama: string, jenis?: string, lantai?: int, kapasitas?: int, luas?: float|int, unit_id?: int, kode_prodi?: string, ruang_lama?: string, m_ruang_id?: int, fasilitas?: string, bisa_dipinjam?: bool, kondisi?: string, aktif?: bool, ...} $body
+     * @param array{gedung_id?: int, kode: string, nama: string, jenis?: string, lantai?: int, kapasitas?: int, luas?: float|int, unit_id?: int, kode_prodi?: string, ruang_lama?: string, m_ruang_id?: int, fasilitas?: string, bisa_dipinjam?: bool, kondisi?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -355,7 +375,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{gedung_id?: int, kode: string, nama: string, jenis?: string, lantai?: int, kapasitas?: int, luas?: float|int, unit_id?: int, kode_prodi?: string, ruang_lama?: string, m_ruang_id?: int, fasilitas?: string, bisa_dipinjam?: bool, kondisi?: string, aktif?: bool, ...} $body
+     * @param array{gedung_id?: int, kode: string, nama: string, jenis?: string, lantai?: int, kapasitas?: int, luas?: float|int, unit_id?: int, kode_prodi?: string, ruang_lama?: string, m_ruang_id?: int, fasilitas?: string, bisa_dipinjam?: bool, kondisi?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -383,6 +403,26 @@ final class Sarpras extends Resource
     public function deleteRuangById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sarpras/ruang/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ruang: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Ruang kuliah, laboratorium, kantor, aula, dll. `ruang_lama` = kode ruang yang dipakai jadwal kuliah lama (t_jadwal.ruang); isi lewat POST /sarpras/sinkron-ruang atau manual. Semua pemilik token ber-scope sarpras:read.
+     *
+     * `GET /v1/sarpras/ruang/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRuangByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/ruang/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -564,6 +604,26 @@ final class Sarpras extends Resource
     }
 
     /**
+     * Kategori aset: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope sarpras:read.
+     *
+     * `GET /v1/sarpras/kategori/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKategoriByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/kategori/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Aset: daftar
      *
      * Inventaris. Penanggung jawab melihat aset yang dipegangnya; aset yang `bisa_dipinjam` dan aktif bisa dilihat semua pengguna (tanpa nilai). `nilai_buku` dihitung garis lurus dari nilai perolehan dan umur ekonomis. Perpindahan ruang, perubahan kondisi, dan penghapusan tercatat di /sarpras/mutasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (penanggung_jawab).
@@ -591,7 +651,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{kode: string, nama: string, kategori_id?: int, merk?: string, tipe?: string, nomor_seri?: string, jumlah?: int, satuan?: string, ruang_id?: int, unit_id?: int, penanggung_jawab?: string, tanggal_perolehan?: string, cara_perolehan?: string, sumber_dana?: string, nilai_perolehan?: float|int, umur_ekonomis?: int, kondisi?: string, bisa_dipinjam?: bool, keterangan?: string, ...} $body
+     * @param array{kode: string, nama: string, kategori_id?: int, merk?: string, tipe?: string, nomor_seri?: string, jumlah?: int, satuan?: string, ruang_id?: int, unit_id?: int, penanggung_jawab?: string, tanggal_perolehan?: string, cara_perolehan?: string, sumber_dana?: string, nilai_perolehan?: float|int, umur_ekonomis?: int, kondisi?: string, bisa_dipinjam?: bool, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -631,7 +691,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, kategori_id?: int, merk?: string, tipe?: string, nomor_seri?: string, jumlah?: int, satuan?: string, ruang_id?: int, unit_id?: int, penanggung_jawab?: string, tanggal_perolehan?: string, cara_perolehan?: string, sumber_dana?: string, nilai_perolehan?: float|int, umur_ekonomis?: int, kondisi?: string, bisa_dipinjam?: bool, keterangan?: string, ...} $body
+     * @param array{kode: string, nama: string, kategori_id?: int, merk?: string, tipe?: string, nomor_seri?: string, jumlah?: int, satuan?: string, ruang_id?: int, unit_id?: int, penanggung_jawab?: string, tanggal_perolehan?: string, cara_perolehan?: string, sumber_dana?: string, nilai_perolehan?: float|int, umur_ekonomis?: int, kondisi?: string, bisa_dipinjam?: bool, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -659,6 +719,26 @@ final class Sarpras extends Resource
     public function deleteAsetById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sarpras/aset/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aset: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Inventaris. Penanggung jawab melihat aset yang dipegangnya; aset yang `bisa_dipinjam` dan aktif bisa dilihat semua pengguna (tanpa nilai). `nilai_buku` dihitung garis lurus dari nilai perolehan dan umur ekonomis. Perpindahan ruang, perubahan kondisi, dan penghapusan tercatat di /sarpras/mutasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (penanggung_jawab).
+     *
+     * `GET /v1/sarpras/aset/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAsetByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/aset/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -789,7 +869,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
+     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -829,7 +909,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
+     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -857,6 +937,26 @@ final class Sarpras extends Resource
     public function deletePeminjamanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sarpras/peminjaman/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peminjaman ruang/aset: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Diajukan pengguna (peminjam = username otomatis) untuk satu ruang atau satu aset. Bentrok dengan peminjaman yang sudah disetujui ditolak (409). Alur: diajukan → setujui → serahkan → kembalikan; atau tolak/batalkan. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (peminjam).
+     *
+     * `GET /v1/sarpras/peminjaman/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeminjamanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/peminjaman/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1067,7 +1167,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{jenis?: string, aset_id?: int, ruang_id?: int, pelapor: string, judul: string, uraian?: string, prioritas?: string, jadwal?: string, petugas?: string, vendor?: string, biaya?: float|int, tindakan?: string, ...} $body
+     * @param array{jenis?: string, aset_id?: int, ruang_id?: int, pelapor: string, judul: string, uraian?: string, prioritas?: string, jadwal?: string, petugas?: string, vendor?: string, biaya?: float|int, tindakan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1107,7 +1207,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{jenis?: string, aset_id?: int, ruang_id?: int, pelapor: string, judul: string, uraian?: string, prioritas?: string, jadwal?: string, petugas?: string, vendor?: string, biaya?: float|int, tindakan?: string, ...} $body
+     * @param array{jenis?: string, aset_id?: int, ruang_id?: int, pelapor: string, judul: string, uraian?: string, prioritas?: string, jadwal?: string, petugas?: string, vendor?: string, biaya?: float|int, tindakan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1135,6 +1235,26 @@ final class Sarpras extends Resource
     public function deletePemeliharaanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/sarpras/pemeliharaan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pemeliharaan dan perbaikan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Siapa pun boleh melaporkan kerusakan (pelapor = username otomatis). Pengelola menjadwalkan, mengerjakan, dan menyelesaikan; petugas yang ditunjuk ikut melihat. Pemeliharaan rutin/kalibrasi dibuat pengelola. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pelapor).
+     *
+     * `GET /v1/sarpras/pemeliharaan/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemeliharaanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/pemeliharaan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1354,5 +1474,25 @@ final class Sarpras extends Resource
     public function getMutasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sarpras/mutasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mutasi aset: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Riwayat otomatis: pindah ruang, perubahan kondisi, ganti penanggung jawab, penghapusan. Hanya pengelola modul.
+     *
+     * `GET /v1/sarpras/mutasi/{id}/riwayat`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMutasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/mutasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

@@ -235,7 +235,7 @@ final class Pimpinan extends Resource
      *
      * scope: `pimpinan:write`
      *
-     * @param array{judul: string, isi: string, bidang?: string, prioritas?: string, unit_id?: int, penanggung_jawab?: string, tenggat?: string, rujukan?: string, ...} $body
+     * @param array{judul: string, isi: string, bidang?: string, prioritas?: string, unit_id?: int, penanggung_jawab?: string, tenggat?: string, rujukan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -275,7 +275,7 @@ final class Pimpinan extends Resource
      * scope: `pimpinan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{judul: string, isi: string, bidang?: string, prioritas?: string, unit_id?: int, penanggung_jawab?: string, tenggat?: string, rujukan?: string, ...} $body
+     * @param array{judul: string, isi: string, bidang?: string, prioritas?: string, unit_id?: int, penanggung_jawab?: string, tenggat?: string, rujukan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -303,6 +303,26 @@ final class Pimpinan extends Resource
     public function deleteArahanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/pimpinan/arahan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Arahan pimpinan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Arahan/instruksi pimpinan ke unit atau penanggung jawab, dengan tenggat dan tindak lanjut. Pimpinan (pemegang bidang di Dasbor Pimpinan) membuat dan menerima laporan; penanggung jawab melihat arahan untuknya, mencatat tindak lanjut, dan melaporkan selesai. Hanya pengelola modul.
+     *
+     * `GET /v1/pimpinan/arahan/{id}/riwayat`
+     *
+     * scope: `pimpinan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getArahanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pimpinan/arahan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -777,6 +777,26 @@ final class Perpustakaan extends Resource
     }
 
     /**
+     * Buku tamu kunjungan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dicatat petugas (atau lewat POST /v1/perpustakaan/saya/kunjungan oleh anggota). Isi username untuk anggota (NIM/NIDN/NIK): nama, jenis, dan prodi diisi otomatis. Tamu luar: kosongkan username, isi nama dan instansi. Hanya pengelola modul.
+     *
+     * `GET /v1/perpustakaan/kunjungan/{id}/riwayat`
+     *
+     * scope: `perpustakaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunjunganByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/perpustakaan/kunjungan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Usulan pengadaan koleksi: daftar
      *
      * Dosen, mahasiswa, dan karyawan mengusulkan judul untuk dibeli; pengusul hanya melihat usulannya sendiri dan bisa mengubah selama status diajukan. Pengelola mengisi status (disetujui, ditolak, dipesan, tersedia), tanggapan, dan idpus koleksi setelah tersedia; pengusul mendapat notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengusul).
@@ -872,5 +892,25 @@ final class Perpustakaan extends Resource
     public function deleteUsulanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/perpustakaan/usulan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Usulan pengadaan koleksi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dosen, mahasiswa, dan karyawan mengusulkan judul untuk dibeli; pengusul hanya melihat usulannya sendiri dan bisa mengubah selama status diajukan. Pengelola mengisi status (disetujui, ditolak, dipesan, tersedia), tanggapan, dan idpus koleksi setelah tersedia; pengusul mendapat notifikasi. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengusul).
+     *
+     * `GET /v1/perpustakaan/usulan/{id}/riwayat`
+     *
+     * scope: `perpustakaan:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUsulanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/perpustakaan/usulan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

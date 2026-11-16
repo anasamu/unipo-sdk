@@ -79,7 +79,7 @@ final class Kerjasama extends Resource
      *
      * scope: `kerjasama:write`
      *
-     * @param array{nama: string, singkatan?: string, jenis?: string, lingkup?: string, negara?: string, kota?: string, alamat?: string, situs?: string, email?: string, telepon?: string, bidang_usaha?: string, kontak_nama?: string, kontak_jabatan?: string, kontak_email?: string, kontak_hp?: string, keterangan?: string, aktif?: bool, ...} $body
+     * @param array{nama: string, singkatan?: string, jenis?: string, lingkup?: string, negara?: string, kota?: string, alamat?: string, situs?: string, email?: string, telepon?: string, bidang_usaha?: string, kontak_nama?: string, kontak_jabatan?: string, kontak_email?: string, kontak_hp?: string, keterangan?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -119,7 +119,7 @@ final class Kerjasama extends Resource
      * scope: `kerjasama:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nama: string, singkatan?: string, jenis?: string, lingkup?: string, negara?: string, kota?: string, alamat?: string, situs?: string, email?: string, telepon?: string, bidang_usaha?: string, kontak_nama?: string, kontak_jabatan?: string, kontak_email?: string, kontak_hp?: string, keterangan?: string, aktif?: bool, ...} $body
+     * @param array{nama: string, singkatan?: string, jenis?: string, lingkup?: string, negara?: string, kota?: string, alamat?: string, situs?: string, email?: string, telepon?: string, bidang_usaha?: string, kontak_nama?: string, kontak_jabatan?: string, kontak_email?: string, kontak_hp?: string, keterangan?: string, aktif?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -147,6 +147,26 @@ final class Kerjasama extends Resource
     public function deleteMitraById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kerjasama/mitra/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mitra: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mitra kerja sama, juga dipakai modul MBKM dan karier. Kontak mitra hanya terlihat oleh pengelola. Semua pemilik token ber-scope kerjasama:read.
+     *
+     * `GET /v1/kerjasama/mitra/{id}/riwayat`
+     *
+     * scope: `kerjasama:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMitraByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kerjasama/mitra/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -257,7 +277,7 @@ final class Kerjasama extends Resource
      *
      * scope: `kerjasama:write`
      *
-     * @param array{induk_id?: int, jenis: string, nomor?: string, nomor_mitra?: string, judul: string, mitra_id: int, unit_id?: int, kode_prodi?: string, tingkat?: string, bidang_pendidikan?: bool, bidang_penelitian?: bool, bidang_pkm?: bool, bidang_lain?: bool, ruang_lingkup?: string, tanggal_ttd?: string, mulai?: string, selesai?: string, nilai?: float|int, sumber_dana?: string, penandatangan?: string, penandatangan_mitra?: string, arsip_dokumen_id?: int, keterangan?: string, ...} $body
+     * @param array{induk_id?: int, jenis: string, nomor?: string, nomor_mitra?: string, judul: string, mitra_id: int, unit_id?: int, kode_prodi?: string, tingkat?: string, bidang_pendidikan?: bool, bidang_penelitian?: bool, bidang_pkm?: bool, bidang_lain?: bool, ruang_lingkup?: string, tanggal_ttd?: string, mulai?: string, selesai?: string, nilai?: float|int, sumber_dana?: string, penandatangan?: string, penandatangan_mitra?: string, arsip_dokumen_id?: int, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -297,7 +317,7 @@ final class Kerjasama extends Resource
      * scope: `kerjasama:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{induk_id?: int, jenis: string, nomor?: string, nomor_mitra?: string, judul: string, mitra_id: int, unit_id?: int, kode_prodi?: string, tingkat?: string, bidang_pendidikan?: bool, bidang_penelitian?: bool, bidang_pkm?: bool, bidang_lain?: bool, ruang_lingkup?: string, tanggal_ttd?: string, mulai?: string, selesai?: string, nilai?: float|int, sumber_dana?: string, penandatangan?: string, penandatangan_mitra?: string, arsip_dokumen_id?: int, keterangan?: string, ...} $body
+     * @param array{induk_id?: int, jenis: string, nomor?: string, nomor_mitra?: string, judul: string, mitra_id: int, unit_id?: int, kode_prodi?: string, tingkat?: string, bidang_pendidikan?: bool, bidang_penelitian?: bool, bidang_pkm?: bool, bidang_lain?: bool, ruang_lingkup?: string, tanggal_ttd?: string, mulai?: string, selesai?: string, nilai?: float|int, sumber_dana?: string, penandatangan?: string, penandatangan_mitra?: string, arsip_dokumen_id?: int, keterangan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -325,6 +345,26 @@ final class Kerjasama extends Resource
     public function deleteDokumenById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kerjasama/dokumen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen kerja sama: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. MoU, MoA/PKS, dan IA. Kolom `berlaku` dan `sisa_hari` dihitung dari tanggal selesai. Status aktif hanya lewat aksi setujui; berakhir otomatis terlihat dari `berlaku=false`. Semua pemilik token ber-scope kerjasama:read (selain pengelola hanya melihat status aktif/berakhir).
+     *
+     * `GET /v1/kerjasama/dokumen/{id}/riwayat`
+     *
+     * scope: `kerjasama:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDokumenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kerjasama/dokumen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -586,6 +626,26 @@ final class Kerjasama extends Resource
     }
 
     /**
+     * Pihak tambahan dokumen: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kerjasama:read.
+     *
+     * `GET /v1/kerjasama/dokumen-mitra/{id}/riwayat`
+     *
+     * scope: `kerjasama:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDokumenMitraByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kerjasama/dokumen-mitra/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kegiatan pelaksanaan: daftar
      *
      * Bukti pelaksanaan dan manfaat kerja sama (bahan tabel kerja sama akreditasi). Lampirkan bukti lewat /berkas. Semua pemilik token ber-scope kerjasama:read.
@@ -613,7 +673,7 @@ final class Kerjasama extends Resource
      *
      * scope: `kerjasama:write`
      *
-     * @param array{dokumen_id: int, judul: string, bidang: string, bentuk?: string, unit_id?: int, kode_prodi?: string, tahun_id?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_mahasiswa?: int, jumlah_dosen?: int, manfaat?: string, luaran?: string, nilai?: float|int, status?: string, ...} $body
+     * @param array{dokumen_id: int, judul: string, bidang: string, bentuk?: string, unit_id?: int, kode_prodi?: string, tahun_id?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_mahasiswa?: int, jumlah_dosen?: int, manfaat?: string, luaran?: string, nilai?: float|int, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -653,7 +713,7 @@ final class Kerjasama extends Resource
      * scope: `kerjasama:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{dokumen_id: int, judul: string, bidang: string, bentuk?: string, unit_id?: int, kode_prodi?: string, tahun_id?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_mahasiswa?: int, jumlah_dosen?: int, manfaat?: string, luaran?: string, nilai?: float|int, status?: string, ...} $body
+     * @param array{dokumen_id: int, judul: string, bidang: string, bentuk?: string, unit_id?: int, kode_prodi?: string, tahun_id?: string, mulai?: string, selesai?: string, lokasi?: string, jumlah_mahasiswa?: int, jumlah_dosen?: int, manfaat?: string, luaran?: string, nilai?: float|int, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -681,6 +741,26 @@ final class Kerjasama extends Resource
     public function deleteKegiatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kerjasama/kegiatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kegiatan pelaksanaan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Bukti pelaksanaan dan manfaat kerja sama (bahan tabel kerja sama akreditasi). Lampirkan bukti lewat /berkas. Semua pemilik token ber-scope kerjasama:read.
+     *
+     * `GET /v1/kerjasama/kegiatan/{id}/riwayat`
+     *
+     * scope: `kerjasama:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKegiatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kerjasama/kegiatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -859,5 +939,25 @@ final class Kerjasama extends Resource
     public function deleteEvaluasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/kerjasama/evaluasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Evaluasi kerja sama: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hanya pengelola modul.
+     *
+     * `GET /v1/kerjasama/evaluasi/{id}/riwayat`
+     *
+     * scope: `kerjasama:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEvaluasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kerjasama/evaluasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

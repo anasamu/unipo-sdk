@@ -210,6 +210,26 @@ final class Helpdesk extends Resource
     }
 
     /**
+     * Kategori: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope helpdesk:read (selain pengelola hanya melihat aktif 1).
+     *
+     * `GET /v1/helpdesk/kategori/{id}/riwayat`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKategoriByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/kategori/{id}/riwayat', ['id' => $id], $query, null, $options, false, true);
+    }
+
+    /**
      * Tiket: daftar
      *
      * Tiket dari pengguna yang login (pelapor = username otomatis) atau dari formulir publik (/helpdesk/publik/tiket, dilacak dengan kode). Unit penanggung jawab mengikuti kategori; petugas yang ditugaskan ikut melihat. Bila `anonim`, identitas pelapor hanya terlihat oleh pelapor dan admin modul. Percakapan lewat aksi `balas`. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pelapor).
@@ -237,7 +257,7 @@ final class Helpdesk extends Resource
      *
      * scope: `helpdesk:write`
      *
-     * @param array{kategori_id: int, pelapor?: string, nama_pelapor?: string, email_pelapor?: string, hp_pelapor?: string, anonim?: bool, kanal?: string, judul: string, isi: string, prioritas?: string, ...} $body
+     * @param array{kategori_id: int, pelapor?: string, nama_pelapor?: string, email_pelapor?: string, hp_pelapor?: string, anonim?: bool, kanal?: string, judul: string, isi: string, prioritas?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -277,7 +297,7 @@ final class Helpdesk extends Resource
      * scope: `helpdesk:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kategori_id: int, pelapor?: string, nama_pelapor?: string, email_pelapor?: string, hp_pelapor?: string, anonim?: bool, kanal?: string, judul: string, isi: string, prioritas?: string, ...} $body
+     * @param array{kategori_id: int, pelapor?: string, nama_pelapor?: string, email_pelapor?: string, hp_pelapor?: string, anonim?: bool, kanal?: string, judul: string, isi: string, prioritas?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -305,6 +325,26 @@ final class Helpdesk extends Resource
     public function deleteTiketById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/helpdesk/tiket/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tiket: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Tiket dari pengguna yang login (pelapor = username otomatis) atau dari formulir publik (/helpdesk/publik/tiket, dilacak dengan kode). Unit penanggung jawab mengikuti kategori; petugas yang ditugaskan ikut melihat. Bila `anonim`, identitas pelapor hanya terlihat oleh pelapor dan admin modul. Percakapan lewat aksi `balas`. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pelapor).
+     *
+     * `GET /v1/helpdesk/tiket/{id}/riwayat`
+     *
+     * scope: `helpdesk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTiketByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/tiket/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

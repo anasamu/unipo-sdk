@@ -126,6 +126,26 @@ final class Notif extends Resource
     }
 
     /**
+     * Kotak masuk: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/notif/kotak/{id}/riwayat`
+     *
+     * scope: `notif:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKotakByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/kotak/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kotak masuk: Tandai dibaca
      *
      * Pemilik data.
@@ -244,6 +264,26 @@ final class Notif extends Resource
     }
 
     /**
+     * Preferensi kanal: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kanal tambahan pengguna (email, WhatsApp, push, Telegram); username diisi otomatis untuk pengguna biasa. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/notif/preferensi/{id}/riwayat`
+     *
+     * scope: `notif:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPreferensiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/preferensi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Antrean pengiriman: daftar
      *
      * Hanya pengelola modul.
@@ -280,6 +320,26 @@ final class Notif extends Resource
     public function getAntreanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/notif/antrean/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean pengiriman: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hanya pengelola modul.
+     *
+     * `GET /v1/notif/antrean/{id}/riwayat`
+     *
+     * scope: `notif:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAntreanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/antrean/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -418,6 +478,26 @@ final class Notif extends Resource
     public function deletePengumumanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/notif/pengumuman/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengumuman massal: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengumuman ke semua pengguna aktif, level tertentu, mahasiswa satu prodi/angkatan, atau daftar username. Aksi kirim membuat notifikasi di kotak masuk setiap penerima. Hanya pengelola modul.
+     *
+     * `GET /v1/notif/pengumuman/{id}/riwayat`
+     *
+     * scope: `notif:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengumumanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pengumuman/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

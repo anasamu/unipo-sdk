@@ -361,6 +361,27 @@ final class Rbac extends Resource
     }
 
     /**
+     * Scope wajib aplikasi bawaan
+     *
+     * Scope yang selalu dimiliki klien API tiap aplikasi bawaan UNIPO: `{"lms": ["lms:read", ...], "pustikom": [...semua...]}`.
+     * Sumbernya satu: `app/Modules/Rbac/Data/scope_aplikasi.php`. Klien aplikasi bawaan dilengkapi otomatis saat `php artisan migrate`
+     * dan saat daftar klien dibuka; scope ini tidak bisa dicabut lewat ubah klien.
+     *
+     * `GET /v1/rbac/klien-api/scope-wajib`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKlienApiScopeWajib(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/klien-api/scope-wajib', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Detail klien API
      *
      * Tanpa secret.
@@ -802,6 +823,26 @@ final class Rbac extends Resource
     }
 
     /**
+     * Aplikasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/aplikasi/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAplikasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/aplikasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Izin (permission): daftar
      *
      * Katalog izin. Kode diawali kode aplikasinya (lms.kelas.kelola), kecuali izin aplikasi api yang sama dengan nama scope API (krs:read) atau <modul>:kelola. Izin bawaan (sistem) dibuat oleh sinkron katalog; hanya nama, grup, keterangan, dan aktif yang boleh diubah. Semua pemilik token ber-scope rbac:read.
@@ -897,6 +938,26 @@ final class Rbac extends Resource
     public function deleteIzinById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rbac/izin/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Izin (permission): riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Katalog izin. Kode diawali kode aplikasinya (lms.kelas.kelola), kecuali izin aplikasi api yang sama dengan nama scope API (krs:read) atau <modul>:kelola. Izin bawaan (sistem) dibuat oleh sinkron katalog; hanya nama, grup, keterangan, dan aktif yang boleh diubah. Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/izin/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getIzinByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/izin/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -998,6 +1059,26 @@ final class Rbac extends Resource
     }
 
     /**
+     * Peran (role): riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peran mewarisi semua izin peran induknya (induk_id). lingkup unit: penugasan wajib menyebut unit dan izinnya hanya berlaku di unit itu dan turunannya. level_siakad: level lama yang setara. boleh_didelegasikan: boleh diberikan pengelola hak akses unit (rbac:kelola), bukan hanya admin. Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/peran/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeranByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/peran/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Izin peran: daftar
      *
      * Satu izin milik satu peran: kode izin persis, atau pola dengan * (mis. lms.*, *.akses). Untuk mengganti seluruh izin peran sekaligus pakai PUT /v1/rbac/peran/{id}/izin. Semua pemilik token ber-scope rbac:read.
@@ -1076,6 +1157,26 @@ final class Rbac extends Resource
     }
 
     /**
+     * Izin peran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Satu izin milik satu peran: kode izin persis, atau pola dengan * (mis. lms.*, *.akses). Untuk mengganti seluruh izin peran sekaligus pakai PUT /v1/rbac/peran/{id}/izin. Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/peran-izin/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeranIzinByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/peran-izin/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Penugasan peran: daftar
      *
      * Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
@@ -1103,7 +1204,7 @@ final class Rbac extends Resource
      *
      * scope: `rbac:write`
      *
-     * @param array{username: string, peran_id: int, unit_id?: int, mulai?: string, selesai?: string, aktif?: bool, sumber?: string, nomor_sk?: string, alasan?: string, ...} $body
+     * @param array{username: string, peran_id: int, unit_id?: int, mulai?: string, selesai?: string, aktif?: bool, sumber?: string, nomor_sk?: string, alasan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1143,7 +1244,7 @@ final class Rbac extends Resource
      * scope: `rbac:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{username: string, peran_id: int, unit_id?: int, mulai?: string, selesai?: string, aktif?: bool, sumber?: string, nomor_sk?: string, alasan?: string, ...} $body
+     * @param array{username: string, peran_id: int, unit_id?: int, mulai?: string, selesai?: string, aktif?: bool, sumber?: string, nomor_sk?: string, alasan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1171,6 +1272,26 @@ final class Rbac extends Resource
     public function deletePenugasanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rbac/penugasan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penugasan peran: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peran yang diberikan ke pengguna SIAKAD (username), opsional per unit (induk_unit), dengan masa berlaku mulai/selesai. Admin memberi peran apa pun; pengelola hak akses (rbac:kelola) hanya peran yang boleh didelegasikan, di unit kewenangannya, dan bukan untuk dirinya sendiri. Pengguna bisa melihat penugasannya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/rbac/penugasan/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenugasanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/penugasan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1352,6 +1473,26 @@ final class Rbac extends Resource
     }
 
     /**
+     * Peran untuk level lama: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Setiap pengguna dengan level lama SIAKAD ini (user.level) otomatis memegang peran tersebut secara global. Level lama tetap menentukan menu SIAKAD web; pemetaan ini menambah peran/izin di atasnya. Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/level/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLevelByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/level/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Peran untuk jabatan: daftar
      *
      * Pejabat aktif (induk_pejabat, dicocokkan lewat username/NIDN/NIK karyawan) otomatis memegang peran ini di unit jabatannya selama masa jabatan. Semua pemilik token ber-scope rbac:read.
@@ -1427,5 +1568,25 @@ final class Rbac extends Resource
     public function deleteJabatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rbac/jabatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peran untuk jabatan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pejabat aktif (induk_pejabat, dicocokkan lewat username/NIDN/NIK karyawan) otomatis memegang peran ini di unit jabatannya selama masa jabatan. Semua pemilik token ber-scope rbac:read.
+     *
+     * `GET /v1/rbac/jabatan/{id}/riwayat`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJabatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/jabatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

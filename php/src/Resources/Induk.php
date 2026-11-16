@@ -226,6 +226,26 @@ final class Induk extends Resource
     }
 
     /**
+     * Unit organisasi: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+     *
+     * `GET /v1/induk/unit/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUnitByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/unit/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Jabatan struktural: daftar
      *
      * Semua pemilik token ber-scope induk:read.
@@ -321,6 +341,26 @@ final class Induk extends Resource
     public function deleteJabatanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/induk/jabatan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jabatan struktural: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope induk:read.
+     *
+     * `GET /v1/induk/jabatan/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJabatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/jabatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -422,6 +462,26 @@ final class Induk extends Resource
     }
 
     /**
+     * Pejabat struktural: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pejabat aktif dipakai modul lain untuk tanda tangan dan persetujuan. Jabatan bertanda tunggal hanya boleh punya satu pejabat aktif per unit. Riwayat jabatan lengkap pegawai ada di modul kepegawaian. Semua pemilik token ber-scope induk:read.
+     *
+     * `GET /v1/induk/pejabat/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPejabatByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/pejabat/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Orang (identitas tunggal): daftar
      *
      * Satu identitas untuk setiap orang lintas peran. Data pribadi: pengelola melihat semua; pengguna lain hanya dirinya sendiri (username). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
@@ -517,6 +577,26 @@ final class Induk extends Resource
     public function deleteOrangById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/induk/orang/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Orang (identitas tunggal): riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Satu identitas untuk setiap orang lintas peran. Data pribadi: pengelola melihat semua; pengguna lain hanya dirinya sendiri (username). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/induk/orang/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrangByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/orang/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -618,6 +698,26 @@ final class Induk extends Resource
     }
 
     /**
+     * Peran orang: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Peran orang (mahasiswa, dosen, tendik, alumni, mitra) beserta kuncinya di sumber data (NIM, NIDN, NIK karyawan). Pasangan peran+kunci unik. Hanya pengelola modul.
+     *
+     * `GET /v1/induk/orang-peran/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrangPeranByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/orang-peran/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Peran pengelola modul: daftar
      *
      * Menunjuk pengguna SIAKAD sebagai admin/pengelola modul pusat data (mbkm, kerjasama, kemahasiswaan, layanan, kalender, sarpras, keuangan, notifikasi, repositori, karier, helpdesk, dasbor, cbt, atau * untuk semua). unit_id membatasi ke unit itu dan turunannya. Hanya pengelola modul dan pemilik baris.
@@ -716,6 +816,26 @@ final class Induk extends Resource
     }
 
     /**
+     * Peran pengelola modul: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Menunjuk pengguna SIAKAD sebagai admin/pengelola modul pusat data (mbkm, kerjasama, kemahasiswaan, layanan, kalender, sarpras, keuangan, notifikasi, repositori, karier, helpdesk, dasbor, cbt, atau * untuk semua). unit_id membatasi ke unit itu dan turunannya. Hanya pengelola modul dan pemilik baris.
+     *
+     * `GET /v1/induk/peran/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeranByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/peran/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Log audit pusat data: daftar
      *
      * Jejak perubahan semua modul pusat data (filter modul, entitas, entitas_id, oleh, dari/sampai). Hanya pengelola modul.
@@ -752,5 +872,25 @@ final class Induk extends Resource
     public function getLogById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/induk/log/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Log audit pusat data: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Jejak perubahan semua modul pusat data (filter modul, entitas, entitas_id, oleh, dari/sampai). Hanya pengelola modul.
+     *
+     * `GET /v1/induk/log/{id}/riwayat`
+     *
+     * scope: `induk:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLogByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/log/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

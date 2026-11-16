@@ -79,7 +79,7 @@ final class Mbkm extends Resource
      *
      * scope: `mbkm:write`
      *
-     * @param array{kode: string, nama: string, jenis: string, id_jenis_aktivitas_feeder?: int, penyelenggara?: string, mitra_id?: int, kerjasama_dokumen_id?: int, tahun_id: string, unit_id?: int, kode_prodi?: string, deskripsi?: string, syarat?: string, lokasi?: string, daftar_mulai?: string, daftar_selesai?: string, mulai?: string, selesai?: string, kuota?: int, sks_maks?: int, daftar_mandiri?: bool, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, id_jenis_aktivitas_feeder?: int, penyelenggara?: string, mitra_id?: int, kerjasama_dokumen_id?: int, tahun_id: string, unit_id?: int, kode_prodi?: string, deskripsi?: string, syarat?: string, lampiran_minimal?: int, lokasi?: string, daftar_mulai?: string, daftar_selesai?: string, mulai?: string, selesai?: string, kuota?: int, sks_maks?: int, daftar_mandiri?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -119,7 +119,7 @@ final class Mbkm extends Resource
      * scope: `mbkm:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, jenis: string, id_jenis_aktivitas_feeder?: int, penyelenggara?: string, mitra_id?: int, kerjasama_dokumen_id?: int, tahun_id: string, unit_id?: int, kode_prodi?: string, deskripsi?: string, syarat?: string, lokasi?: string, daftar_mulai?: string, daftar_selesai?: string, mulai?: string, selesai?: string, kuota?: int, sks_maks?: int, daftar_mandiri?: bool, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, id_jenis_aktivitas_feeder?: int, penyelenggara?: string, mitra_id?: int, kerjasama_dokumen_id?: int, tahun_id: string, unit_id?: int, kode_prodi?: string, deskripsi?: string, syarat?: string, lampiran_minimal?: int, lokasi?: string, daftar_mulai?: string, daftar_selesai?: string, mulai?: string, selesai?: string, kuota?: int, sks_maks?: int, daftar_mandiri?: bool, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -147,6 +147,26 @@ final class Mbkm extends Resource
     public function deleteProgramById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/mbkm/program/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Program MBKM: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Program/aktivitas yang dibuka. Selain pengelola hanya melihat program berstatus buka, berjalan, atau selesai. Semua pemilik token ber-scope mbkm:read (selain pengelola hanya melihat status buka/berjalan/selesai).
+     *
+     * `GET /v1/mbkm/program/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getProgramByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/program/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -337,7 +357,7 @@ final class Mbkm extends Resource
      *
      * scope: `mbkm:write`
      *
-     * @param array{program_id: int, nim: string, peran?: string, judul?: string, posisi?: string, lokasi?: string, motivasi?: string, mulai?: string, selesai?: string, nomor_sk?: string, nilai_angka?: float|int, nilai_huruf?: string, catatan?: string, ...} $body
+     * @param array{program_id: int, nim: string, peran?: string, judul?: string, posisi?: string, lokasi?: string, motivasi?: string, mulai?: string, selesai?: string, nomor_sk?: string, nilai_angka?: float|int, nilai_huruf?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -377,7 +397,7 @@ final class Mbkm extends Resource
      * scope: `mbkm:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{program_id: int, nim: string, peran?: string, judul?: string, posisi?: string, lokasi?: string, motivasi?: string, mulai?: string, selesai?: string, nomor_sk?: string, nilai_angka?: float|int, nilai_huruf?: string, catatan?: string, ...} $body
+     * @param array{program_id: int, nim: string, peran?: string, judul?: string, posisi?: string, lokasi?: string, motivasi?: string, mulai?: string, selesai?: string, nomor_sk?: string, nilai_angka?: float|int, nilai_huruf?: string, catatan?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -405,6 +425,26 @@ final class Mbkm extends Resource
     public function deletePesertaById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/mbkm/peserta/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peserta: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Mahasiswa mendaftar sendiri (program berstatus buka, dalam masa daftar, kuota tersedia); nim, prodi, dan tahun diisi otomatis. Dosen pembimbing melihat peserta bimbingannya. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/mbkm/peserta/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPesertaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/peserta/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -686,6 +726,26 @@ final class Mbkm extends Resource
     }
 
     /**
+     * Pembimbing dan penguji: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hanya pengelola modul.
+     *
+     * `GET /v1/mbkm/pembimbing/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPembimbingByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/pembimbing/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Logbook kegiatan: daftar
      *
      * Diisi mahasiswa peserta (status draf/revisi bisa diubah), diajukan, lalu diperiksa dosen pembimbing atau pengelola. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
@@ -713,7 +773,7 @@ final class Mbkm extends Resource
      *
      * scope: `mbkm:write`
      *
-     * @param array{peserta_id: int, tanggal: string, jam?: float|int, kegiatan: string, hasil?: string, ...} $body
+     * @param array{peserta_id: int, tanggal: string, jam?: float|int, kegiatan: string, hasil?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -753,7 +813,7 @@ final class Mbkm extends Resource
      * scope: `mbkm:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{peserta_id: int, tanggal: string, jam?: float|int, kegiatan: string, hasil?: string, ...} $body
+     * @param array{peserta_id: int, tanggal: string, jam?: float|int, kegiatan: string, hasil?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -781,6 +841,26 @@ final class Mbkm extends Resource
     public function deleteLogbookById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/mbkm/logbook/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Logbook kegiatan: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Diisi mahasiswa peserta (status draf/revisi bisa diubah), diajukan, lalu diperiksa dosen pembimbing atau pengelola. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/mbkm/logbook/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLogbookByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/logbook/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1022,6 +1102,26 @@ final class Mbkm extends Resource
     }
 
     /**
+     * Komponen penilaian: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Diisi pengelola atau dosen pembimbing/penguji peserta. Nilai akhir = jumlah nilai×bobot/jumlah bobot. Hanya pengelola modul.
+     *
+     * `GET /v1/mbkm/penilaian/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenilaianByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/penilaian/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Konversi ke mata kuliah: daftar
      *
      * Usulan pengakuan SKS ke mata kuliah (m_mata_kuliah) oleh pengelola atau dosen pembimbing, lalu disetujui pengelola. Total SKS disetujui tidak boleh melebihi sks_maks program. Data ini tidak menulis ke KRS/KHS SIAKAD; dipakai untuk input nilai dan pelaporan Feeder. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
@@ -1117,6 +1217,26 @@ final class Mbkm extends Resource
     public function deleteKonversiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/mbkm/konversi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Konversi ke mata kuliah: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Usulan pengakuan SKS ke mata kuliah (m_mata_kuliah) oleh pengelola atau dosen pembimbing, lalu disetujui pengelola. Total SKS disetujui tidak boleh melebihi sks_maks program. Data ini tidak menulis ke KRS/KHS SIAKAD; dipakai untuk input nilai dan pelaporan Feeder. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (nim).
+     *
+     * `GET /v1/mbkm/konversi/{id}/riwayat`
+     *
+     * scope: `mbkm:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKonversiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mbkm/konversi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
