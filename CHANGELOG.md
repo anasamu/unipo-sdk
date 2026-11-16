@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.13.0 (belum dirilis)
+## 1.13.0 (2026-11-16)
 
 - Modul baru `akun` (/v1/akun, 13 operasi): kelola akun pengguna SIAKAD dari Pustikom, SDM, dan BAAK. Daftar dan ringkasan akun, orang yang belum punya akun (dosen, tendik, mahasiswa, pendaftar), buat akun satu per satu atau massal (password bawaan lama, acak, atau manual), buat akun dari pegawai SDM (`postPegawaiById`), ubah level/email, aktifkan/nonaktifkan, reset password, dan log kelola akun.
 - Spesifikasi disamakan dengan `main` SIAKAD: modul `pimpinan` (dasbor pimpinan), tambahan `kurikulumObe`, dan pilihan lingkungan di `rbac` (masuk sebagai pengguna) ikut masuk.
