@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.10.0 (belum dirilis)
+## 1.10.0 (2026-11-16)
 
 - Cek jadwal bentrok dan jadwal otomatis: akademik/fakultas getJadwalBentrok, postJadwalCek, postJadwalOtomatis, postJadwalOtomatisSimpan (+ tipe JadwalTemuan, JadwalUsulan, ...); ikut endpoint SIAKAD terbaru (kasir, obrolan, pddikti, rbac).
 
