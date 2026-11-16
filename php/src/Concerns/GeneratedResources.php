@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3241 endpoint).
+ * Akses ke semua modul API (3268 endpoint).
  */
 trait GeneratedResources
 {
