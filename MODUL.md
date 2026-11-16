@@ -1,7 +1,7 @@
 <!-- Dibuat otomatis oleh generator/generate.mjs. Jangan diubah manual. -->
 # Daftar modul
 
-3519 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
+3540 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
 
 Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/lms/kelas/{id}` (operationId `getLmsKelasById`) menjadi `lms.getKelasById(id)`. Endpoint akar modul menjadi `list`/`create`/`update`/`replace`/`delete`.
 
@@ -22,7 +22,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `dokumen` | Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik | 21 |
 | `dosen` | Dosen, Jadwal | 4 |
 | `edom` | EDOM: Soal, EDOM: Pengisian, EDOM: Hasil | 14 |
-| `fakultas` | Fakultas, Fakultas: kelola akademik | 60 |
+| `fakultas` | Fakultas, Fakultas: kelola akademik | 76 |
 | `gaji` | Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya | 64 |
 | `helpdesk` | Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket | 27 |
 | `humas` | Humas, Humas: redaksi | 53 |
@@ -64,12 +64,12 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `presensi` | Presensi QR: Peserta, Presensi QR: Sesi, Presensi QR: Izin, Presensi QR: Titik kerja | 31 |
 | `profil` | Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data | 93 |
 | `qr` | QR: Generator, QR: Gaya | 9 |
-| `rbac` | RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan | 79 |
+| `rbac` | RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Penugasan otomatis SDM, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan | 82 |
 | `referensi` | Referensi | 14 |
 | `repositori` | Repositori: OAI-PMH, Repositori: Karya, Repositori: Koleksi | 24 |
 | `rpl` | RPL: Pemohon, RPL: Asesmen, RPL: Pengajuan, RPL: Master | 84 |
 | `sarpras` | Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan | 75 |
-| `sdm` | SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER | 276 |
+| `sdm` | SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER | 278 |
 | `spmi` | SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File | 205 |
 | `ta` | Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan | 15 |
 | `tema` | Tema | 6 |

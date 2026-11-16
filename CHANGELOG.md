@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.15.0 (belum dirilis)
+## 1.15.0 (2026-11-17)
 
 - Spesifikasi diperbarui dari SIAKAD: 21 operasi baru, 0 operasi hilang (total 3547).
 
