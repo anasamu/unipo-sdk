@@ -8855,6 +8855,21 @@ export class FakultasResource {
   }
 
   /**
+   * Unit sarpras saya
+   *
+   * Unit induk (fakultas dan prodi) untuk sarana prasarana fakultas (izin fakultas.sarpras), dengan tanda kelola (fakultas.sarpras.kelola: catat aset, gedung, ruang unit dan putuskan peminjamannya). Unit fakultas hanya untuk yang berwenang di semua prodi. Data sarpras sendiri lewat /v1/sarpras.
+   *
+   * `GET /v1/fakultas/{kode}/sarpras/unit`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeSarprasUnit(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/sarpras/unit', query: { ...query, kode } }, options);
+  }
+
+  /**
    * Data modul unit fakultas
    *
    * jenis: surat (arsip surat masuk/keluar unit fakultas + disposisi), kepegawaian (sdm_pegawai), spmi (dokumen + temuan), lppm (usulan penelitian/pengabdian), lms (kelas), cbt (ujian), kalender (kegiatan unit). Hanya baca; ubah data lewat API modulnya.
@@ -44937,15 +44952,52 @@ export class SarprasResource {
   }
 
   /**
+   * Pemakaian ruang universitas
+   *
+   * Semua ruang aktif pada satu tanggal beserta pemakaiannya: peminjaman (diajukan/disetujui/dipinjam, dengan unit peminjam) dan kuliah mingguan dari t_jadwal (hari yang sama, tahun akademik aktif). Dengan `mulai` dan `selesai`, tiap ruang diberi status kosong/terpakai/menunggu pada jam itu sehingga unit tahu ruang sedang dipakai unit lain sebelum mengajukan.
+   *
+   * `GET /v1/sarpras/pemakaian-ruang`
+   *
+   * scope: `sarpras:read`
+   */
+  getPemakaianRuang(query?: {
+    /** YYYY-MM-DD (bawaan hari ini) */
+    tanggal?: string;
+    /** HH:MM */
+    mulai?: string;
+    /** HH:MM */
+    selesai?: string;
+    /** kosong | terpakai | menunggu (perlu mulai/selesai) */
+    status?: string;
+    /** Cari kode/nama ruang atau gedung */
+    q?: string;
+    /** Jenis ruang */
+    jenis?: string;
+    /** Gedung */
+    gedung_id?: string;
+    /** Unit pengelola ruang */
+    unit_id?: string;
+    /** Kapasitas minimal */
+    kapasitas?: number;
+    /** 1 = hanya ruang yang bisa dipinjam */
+    bisa_dipinjam?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sarpras/pemakaian-ruang', query }, options);
+  }
+
+  /**
    * Rekap sarpras
    *
-   * Jumlah dan nilai aset (perolehan dan buku) per kondisi/status/kategori, ruang per jenis (kapasitas, luas), gedung, pemeliharaan terbuka dan biaya tahun ini, peminjaman 30 hari terakhir. Hanya pengelola.
+   * Jumlah dan nilai aset (perolehan dan buku) per kondisi/status/kategori, ruang per jenis (kapasitas, luas), gedung, pemeliharaan terbuka dan biaya tahun ini, peminjaman 30 hari terakhir. Hanya pengelola; pengelola berlingkup unit hanya unitnya.
    *
    * `GET /v1/sarpras/rekap`
    *
    * scope: `sarpras:read`
    */
-  getRekap(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+  getRekap(query?: {
+    /** Persempit ke unit ini dan turunannya */
+    unit_id?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/sarpras/rekap', query }, options);
   }
 
@@ -45567,6 +45619,8 @@ export class SarprasResource {
     per_page?: number;
     /** Filter kesamaan (isi "null" untuk kosong) */
     peminjam?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
     /** Filter kesamaan (isi "null" untuk kosong) */
     ruang_id?: string;
     /** Filter kesamaan (isi "null" untuk kosong) */
@@ -47061,6 +47115,30 @@ export class SdmResource {
   }
 
   /**
+   * Perkiraan penghasilan setelah kenaikan
+   *
+   * Gaji pokok dan tunjangan sebelum dan sesudah kenaikan pangkat atau jabatan akademik pada TMT, dihitung dengan aturan yang sama dengan penurunan otomatis (skala gaji, aturan tunjangan). Tidak menulis data; hak baru berlaku setelah riwayat ber-SK disetujui SDM. `mulai_payroll` = bulan gaji pertama yang memuatnya. Hanya pegawai itu sendiri, atasan, dan petugas SDM.
+   *
+   * `GET /v1/sdm/pegawai/{id}/perkiraan-penghasilan`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getPegawaiByIdPerkiraanPenghasilan(id: string | number, query: {
+    /** pangkat | jabatan-akademik */
+    jenis: string;
+    /** Golongan atau jabatan akademik tujuan */
+    ke_id: number;
+    /** YYYY-MM-DD (bawaan hari ini) */
+    tmt?: string;
+    /** Masa kerja golongan di SK (khusus pangkat) */
+    masa_kerja_tahun?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/perkiraan-penghasilan', query: { ...query, id } }, options);
+  }
+
+  /**
    * Ringkasan karier
    *
    * Jabatan akademik, pangkat, KGB, sertifikasi, dan tanggal penting berikutnya (kenaikan pangkat, KGB, pensiun).
@@ -47236,6 +47314,21 @@ export class SdmResource {
   }
 
   /**
+   * Jabatan akademik (jabatan fungsional dosen): dampak ke penghasilan
+   *
+   * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+   *
+   * `GET /v1/sdm/riwayat/jabatan-akademik/{id}/dampak`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID atau UUID
+   */
+  getRiwayatJabatanAkademikByIdDampak(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/riwayat/jabatan-akademik/{id}/dampak', query: { ...query, id } }, options);
+  }
+
+  /**
    * Jabatan akademik (jabatan fungsional dosen): verifikasi
    *
    * Setujui atau tolak pengajuan. Data ringkas pegawai (jabatan, pangkat, pendidikan, serdos) diperbarui otomatis.
@@ -47325,6 +47418,21 @@ export class SdmResource {
    */
   deleteRiwayatPangkatById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/sdm/riwayat/pangkat/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pangkat/golongan dan inpassing: dampak ke penghasilan
+   *
+   * Perkiraan gaji pokok dan tunjangan sebelum dan sesudah riwayat ini disetujui (lihat perkiraan-penghasilan), plus `ada_sk`. Untuk pengaju dan verifikator.
+   *
+   * `GET /v1/sdm/riwayat/pangkat/{id}/dampak`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID atau UUID
+   */
+  getRiwayatPangkatByIdDampak(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/riwayat/pangkat/{id}/dampak', query: { ...query, id } }, options);
   }
 
   /**
@@ -48620,7 +48728,7 @@ export class SdmResource {
   /**
    * Ajukan cuti
    *
-   * Untuk diri sendiri, atau petugas atas nama pegawai. Dicek kuota, maksimal hari, bentrok tanggal, dan jenis pegawai. Alur: atasan → pejabat berwenang.
+   * Untuk diri sendiri, atau petugas atas nama pegawai. Dicek kuota, maksimal hari, bentrok tanggal, dan jenis pegawai. Alur: atasan → pejabat berwenang. Lampiran (surat dokter, SK, surat tugas) bisa ikut lewat `berkas_id` (UUID dari /v1/berkas, maks. 5).
    *
    * `POST /v1/sdm/cuti`
    *

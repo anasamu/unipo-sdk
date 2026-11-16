@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3236 endpoint).
+ * Akses ke semua modul API (3241 endpoint).
  */
 trait GeneratedResources
 {
@@ -91,7 +91,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (52 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (53 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -355,13 +355,13 @@ trait GeneratedResources
         return $this->resource(Resources\Rpl::class);
     }
 
-    /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (67 endpoint) */
+    /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (68 endpoint) */
     public function sarpras(): Resources\Sarpras
     {
         return $this->resource(Resources\Sarpras::class);
     }
 
-    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (251 endpoint) */
+    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (254 endpoint) */
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);

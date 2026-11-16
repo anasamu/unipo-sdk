@@ -13542,6 +13542,8 @@ export type SarprasPeminjaman = {
   nomor?: string;
   /** user.username */
   peminjam?: string;
+  /** ID di induk_unit */
+  unit_id?: number;
   /** ID di sarpras_ruang */
   ruang_id?: number;
   /** ID di sarpras_aset */
@@ -13573,6 +13575,8 @@ export type SarprasPeminjaman = {
 export type SarprasPeminjamanInput = {
   /** user.username */
   peminjam: string;
+  /** ID di induk_unit */
+  unit_id?: number;
   /** ID di sarpras_ruang */
   ruang_id?: number;
   /** ID di sarpras_aset */
@@ -13912,6 +13916,8 @@ export type SdmCutiInput = {
   telepon?: string | null;
   /** Pegawai pengganti */
   pengganti_id?: number | null;
+  /** Lampiran (surat dokter, SK, surat tugas): UUID dari /v1/berkas, langsung ditautkan ke pengajuan. Boleh juga satu UUID (string). Lampiran berikutnya lewat POST /v1/sdm/file entitas=cuti. */
+  berkas_id?: Array<string>;
   [key: string]: any;
 };
 
