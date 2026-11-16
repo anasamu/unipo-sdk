@@ -50,7 +50,7 @@ final class Obrolan extends Resource
     /**
      * Umpan realtime (long-poll)
      *
-     * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan.
+     * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat, kunci) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan.
      *
      * `GET /v1/obrolan/peristiwa`
      *
@@ -272,7 +272,7 @@ final class Obrolan extends Resource
     /**
      * Pesan terenkripsi
      *
-     * Terbaru dulu (atau `setelah` untuk yang lebih baru, urut naik). Setiap pesan membawa `kunci` yang dibungkus untuk perangkat ini (null bila perangkat terdaftar setelah pesan dikirim).
+     * Terbaru dulu (atau `setelah` untuk yang lebih baru, urut naik). Setiap pesan membawa `kunci` yang dibungkus untuk perangkat ini (null bila perangkat terdaftar setelah pesan dikirim; `menunggu` = true bila kunci akan disusulkan perangkat pengirim).
      *
      * `GET /v1/obrolan/ruang/{id}/pesan`
      *
@@ -290,7 +290,7 @@ final class Obrolan extends Resource
     /**
      * Kirim pesan terenkripsi
      *
-     * Body {uuid, perangkat, sandi (AES-256-GCM, base64), iv (12 byte), efemeral (kunci publik ECDH efemeral), tanda (ECDSA perangkat pengirim), kunci: {uuid_perangkat: kunci AES-KW 40 byte}, lampiran?: [uuid]}. Kunci wajib untuk tepat semua perangkat aktif anggota (409 perangkat_berubah bila tidak). Kirim ulang dengan uuid sama aman.
+     * Body {uuid, perangkat, sandi (AES-256-GCM, base64), iv (12 byte), efemeral (kunci publik ECDH efemeral), tanda (ECDSA perangkat pengirim), kunci: {uuid_perangkat: kunci AES-KW 40 byte}, lampiran?: [uuid]}. Kunci wajib untuk tepat semua perangkat aktif anggota (409 perangkat_berubah bila tidak). Anggota yang belum punya perangkat tidak menghalangi; mereka tercantum di `menunggu_penerima` dan kuncinya disusulkan lewat /v1/obrolan/susulan. Kirim ulang dengan uuid sama aman.
      *
      * `POST /v1/obrolan/ruang/{id}/pesan`
      *
@@ -303,6 +303,40 @@ final class Obrolan extends Resource
     public function postRuangByIdPesan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/obrolan/ruang/{id}/pesan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kunci pesan yang perlu disusulkan
+     *
+     * Pesan kiriman saya (OBROLAN_SUSULAN_HARI terakhir) untuk anggota yang belum punya kunci saat pesan dikirim tetapi kini sudah mendaftarkan perangkat. Setiap butir membawa efemeral + kunci untuk perangkat saya dan daftar perangkat tujuan (kunci_tukar). Perangkat saya membungkus ulang kunci pesan lalu mengirimnya ke POST /v1/obrolan/susulan.
+     *
+     * `GET /v1/obrolan/susulan`
+     *
+     * @param array{perangkat?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSusulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/obrolan/susulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kirim kunci susulan
+     *
+     * Body {perangkat, kunci: [{pesan, perangkat (tujuan), kunci (AES-KW 40 byte, dibungkus dengan ECDH perangkat saya x perangkat tujuan)}]}. Butir yang tidak memenuhi syarat dilewati. Penerima mendapat peristiwa `kunci` lalu memuat ulang pesannya.
+     *
+     * `POST /v1/obrolan/susulan`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSusulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/susulan', [], $query, null, $options, false, false);
     }
 
     /**

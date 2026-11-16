@@ -90,6 +90,82 @@ final class Akademik extends Resource
     }
 
     /**
+     * Cek jadwal bentrok
+     *
+     * Bentrok jadwal prodi pada periode ini terhadap SEMUA prodi: ruang, dosen (+ tim), rombongan kelas (prodi+semester+kelas), mahasiswa (KRS memuat dua jadwal beririsan); peringatan pindah kampus (jeda < jeda_kampus menit), ruang di kampus lain, jam tidak dikenal. Jam dihitung dari m_jam tiap prodi.
+     *
+     * `GET /v1/akademik/jadwal/bentrok`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{jeda_kampus?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalBentrok(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/jadwal/bentrok', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cek satu jadwal sebelum disimpan
+     *
+     * Body sama dengan tambah/ubah jadwal (+ "id" saat ubah, "tim": [nidn]). Hasil: {aman, jadwal, data: [temuan]}. Tidak menyimpan.
+     *
+     * `POST /v1/akademik/jadwal/cek`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalCek(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/jadwal/cek', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pratinjau jadwal otomatis
+     *
+     * TIDAK menyimpan. Body: {"sumber": "periode"|"bentrok", "dari_tahun_id": "20251", "hari": ["1".."6"], "kelas": ["01"], "jeda_kampus": 30, "menit_per_sks": 50, "batas_sore": "15:00"}. periode = jadwal periode lain yang belum ada dicarikan hari/jam/ruang bebas; bentrok = jadwal prodi yang bentrok dipindah. Ruang di kampus kelasnya, tanpa bentrok ruang/dosen/rombongan lintas prodi. Hasil: usulan + tidak_terjadwal (dengan alasan).
+     *
+     * `POST /v1/akademik/jadwal/otomatis`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{sumber?: string, dari_tahun_id?: string, hari?: list<mixed>, kelas?: list<mixed>, jeda_kampus?: int, menit_per_sks?: int, batas_sore?: string, ...} $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalOtomatis(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/jadwal/otomatis', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Simpan usulan jadwal otomatis
+     *
+     * Body: {"usulan": [butir usulan dari pratinjau yang disetujui]} (maks. 300). Tiap butir diperiksa ulang terhadap jadwal terbaru lalu disimpan lewat JadwalKuliahService (validasi lama); hasil {tersimpan, gagal}.
+     *
+     * `POST /v1/akademik/jadwal/otomatis/simpan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array{usulan: list<mixed>, ...} $body
+     * @param array{query?: array{prodi?: string, tahun_id?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalOtomatisSimpan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/jadwal/otomatis/simpan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Hapus jadwal
      *
      * Body: {"id": [12, 13]}. Jadwal yang sudah dipakai KRS dilewati.

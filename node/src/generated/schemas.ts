@@ -1065,6 +1065,170 @@ export type AkademikPengajuanTolakInput = {
   [key: string]: any;
 };
 
+export type JadwalSesiRingkas = {
+  id?: number | null;
+  prodi?: string;
+  nama_prodi?: string;
+  kode_mk?: string;
+  nama_mk?: string;
+  semester?: string;
+  kelas?: string;
+  hari?: string;
+  jamke?: number | null;
+  mulai?: string | null;
+  sampai?: string | null;
+  ruang?: string;
+  /** idkp: 01 = kampus 1, 02 = kampus 2 */
+  kampus?: string;
+  dosen?: Array<string>;
+  [key: string]: any;
+};
+
+export type JadwalTemuan = {
+  jenis?: "ruang" | "dosen" | "kelas" | "mahasiswa" | "pindah_kampus" | "kampus_ruang" | "waktu";
+  tingkat?: "bentrok" | "peringatan";
+  hari?: string;
+  nama_hari?: string;
+  pesan?: string;
+  a?: JadwalSesiRingkas;
+  b?: JadwalSesiRingkas | null;
+  detail?: {
+    nidn?: string;
+    dosen?: string;
+    jumlah_mahasiswa?: number;
+    jeda_menit?: number;
+    [key: string]: any;
+  } | null;
+  [key: string]: any;
+};
+
+export type JadwalBentrokLaporan = {
+  prodi?: string;
+  tahun_id?: string;
+  jeda_kampus?: number;
+  ringkasan?: {
+    jadwal?: number;
+    jadwal_bentrok?: number;
+    bentrok?: number;
+    peringatan?: number;
+    per_jenis?: Record<string, number>;
+    [key: string]: any;
+  };
+  /** idj jadwal prodi ini yang bentrok */
+  id_bentrok?: Array<number>;
+  data?: Array<JadwalTemuan>;
+  [key: string]: any;
+};
+
+export type JadwalCekHasil = {
+  aman?: boolean;
+  jadwal?: JadwalSesiRingkas;
+  data?: Array<JadwalTemuan>;
+  [key: string]: any;
+};
+
+export type JadwalOtomatisInput = {
+  sumber?: "periode" | "bentrok";
+  /** Contoh: `20251` */
+  dari_tahun_id?: string;
+  hari?: Array<string>;
+  kelas?: Array<string>;
+  /** Contoh: `30` */
+  jeda_kampus?: number;
+  /** Contoh: `50` */
+  menit_per_sks?: number;
+  /** Contoh: `15:00` */
+  batas_sore?: string;
+  [key: string]: any;
+};
+
+export type JadwalUsulan = {
+  kunci?: string;
+  /** Diisi bila mengubah jadwal yang ada (sumber bentrok) */
+  id?: number | null;
+  asal_id?: number | null;
+  kode_mk?: string;
+  nama_mk?: string;
+  sks?: number;
+  semester?: string;
+  kelas?: string;
+  nama_kelas?: string;
+  nidn?: string;
+  dosen?: string;
+  tim?: Array<{
+    nidn?: string;
+    nama?: string;
+    [key: string]: any;
+  }>;
+  kapasitas?: number;
+  hari?: string;
+  nama_hari?: string;
+  jamke?: number;
+  mulai?: string;
+  sampai?: string;
+  ruang?: string;
+  nama_ruang?: string;
+  kampus?: string;
+  asal?: {
+    hari?: string;
+    nama_hari?: string;
+    jamke?: number | null;
+    mulai?: string | null;
+    sampai?: string | null;
+    ruang?: string;
+    [key: string]: any;
+  };
+  catatan?: Array<string>;
+  [key: string]: any;
+};
+
+export type JadwalOtomatisHasil = {
+  prodi?: string;
+  tahun_id?: string;
+  opsi?: JadwalOtomatisInput;
+  ringkasan?: {
+    diminta?: number;
+    terjadwal?: number;
+    tidak_terjadwal?: number;
+    [key: string]: any;
+  };
+  usulan?: Array<JadwalUsulan>;
+  tidak_terjadwal?: Array<{
+    asal_id?: number | null;
+    kode_mk?: string;
+    nama_mk?: string;
+    sks?: number;
+    semester?: string;
+    kelas?: string;
+    nidn?: string;
+    dosen?: string;
+    alasan?: string;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
+export type JadwalOtomatisSimpanInput = {
+  usulan: Array<JadwalUsulan>;
+  [key: string]: any;
+};
+
+export type JadwalOtomatisSimpanHasil = {
+  tersimpan?: Array<{
+    urut?: number;
+    kunci?: string | null;
+    id?: number;
+    [key: string]: any;
+  }>;
+  gagal?: Array<{
+    urut?: number;
+    kunci?: string | null;
+    pesan?: string;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+};
+
 export type ApiPortalPengajuan = {
   id?: number;
   uuid?: string;

@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
+ * RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan
  */
 final class Rbac extends Resource
 {
@@ -196,6 +196,88 @@ final class Rbac extends Resource
     public function postSinkron(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/rbac/sinkron', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Log masuk sebagai pengguna
+     *
+     * Pemegang izin pustikom.menyamar atau admin RBAC. Saring `admin`, `username`, `status` (menunggu, aktif, selesai, kedaluwarsa, dihentikan, batal), `q`; `page`, `per_page`.
+     *
+     * `GET /v1/rbac/menyamar`
+     *
+     * scope: `rbac:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMenyamar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/menyamar', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Minta tiket masuk sebagai pengguna
+     *
+     * Khusus pemegang izin `pustikom.menyamar` (bawaan: peran superadmin). Body: `{"username": "0912345", "alasan": "Menelusuri tampilan
+     * jadwal level PROGDI", "mode": "lihat", "aplikasi": "siakad", "durasi_menit": 30}`.
+     *
+     * * `mode`: `lihat` (bawaan; simpan/ubah/hapus ditolak) atau `penuh`. `aplikasi`: client_id SSO tujuan pertama, atau `portal`.
+     * * Akun admin lain ditolak kecuali `MENYAMAR_BOLEH_ADMIN=true`. Password akun tujuan tidak pernah disentuh.
+     * * Jawaban berisi `url` SSO sekali pakai (2 menit) yang harus dibuka di browser yang sedang login SSO sebagai admin peminta.
+     * * Semua permintaan tercatat (lihat GET /v1/rbac/menyamar). Batas 20 per admin per jam.
+     *
+     * `POST /v1/rbac/menyamar`
+     *
+     * scope: `rbac:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postMenyamar(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/menyamar', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Detail log masuk sebagai pengguna
+     *
+     * `GET /v1/rbac/menyamar/{id}`
+     *
+     * scope: `rbac:read` · hanya token pengguna
+     *
+     * @param int|string $id ID log
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMenyamarById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/menyamar/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hentikan sesi masuk sebagai pengguna
+     *
+     * Sesi langsung ditolak API SIAKAD dan SIAKAD web pada permintaan berikutnya.
+     *
+     * `POST /v1/rbac/menyamar/{id}/hentikan`
+     *
+     * scope: `rbac:read` · hanya token pengguna
+     *
+     * @param int|string $id ID log
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postMenyamarByIdHentikan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/menyamar/{id}/hentikan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1068,6 +1150,86 @@ final class Rbac extends Resource
     public function deletePenugasanById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/rbac/penugasan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penugasan peran: daftar lampiran
+     *
+     * Siapa pun yang boleh melihat barisnya.
+     *
+     * `GET /v1/rbac/penugasan/{id}/berkas`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenugasanByIdBerkas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/penugasan/{id}/berkas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penugasan peran: unggah lampiran
+     *
+     * Multipart field "berkas" (atau JSON berkas_base64 + nama_file), opsional jenis dan keterangan. PDF, gambar, dokumen Office/ODF, CSV, TXT, ZIP; maksimal PUSAT_DATA_MAKS_MB (bawaan 20 MB). Pengelola modul (peran ber-unit hanya untuk unitnya).
+     *
+     * `POST /v1/rbac/penugasan/{id}/berkas`
+     *
+     * scope: `rbac:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, jenis?: string, keterangan?: string, berkas_base64?: string, nama_file?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPenugasanByIdBerkas(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/penugasan/{id}/berkas', ['id' => $id], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Penugasan peran: unduh lampiran
+     *
+     * `GET /v1/rbac/penugasan/{id}/berkas/{uuid}`
+     *
+     * scope: `rbac:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPenugasanByIdBerkasByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/penugasan/{id}/berkas/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penugasan peran: hapus lampiran
+     *
+     * Pengelola modul (peran ber-unit hanya untuk unitnya).
+     *
+     * `DELETE /v1/rbac/penugasan/{id}/berkas/{uuid}`
+     *
+     * scope: `rbac:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deletePenugasanByIdBerkasByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/rbac/penugasan/{id}/berkas/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
     }
 
     /**

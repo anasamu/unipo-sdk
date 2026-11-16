@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\JadwalUjian jadwalUjian()
  * @method static \Unipo\Siakad\Resources\Kalender kalender()
  * @method static \Unipo\Siakad\Resources\Karier karier()
+ * @method static \Unipo\Siakad\Resources\Kasir kasir()
  * @method static \Unipo\Siakad\Resources\Kelengkapan kelengkapan()
  * @method static \Unipo\Siakad\Resources\Kelulusan kelulusan()
  * @method static \Unipo\Siakad\Resources\Kemahasiswaan kemahasiswaan()

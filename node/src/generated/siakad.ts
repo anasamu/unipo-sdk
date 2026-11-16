@@ -32,7 +32,7 @@ export class Siakad extends SiakadCore {
     return this.resource('admisi', () => new R.AdmisiResource(this));
   }
 
-  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (51 endpoint) */
+  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (55 endpoint) */
   get akademik(): R.AkademikResource {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
@@ -87,7 +87,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (48 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (52 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -145,6 +145,11 @@ export class Siakad extends SiakadCore {
   /** Karier: Profil dan CV, Karier: Laporan, Karier: Rekomendasi, Karier: Mitra, Karier: Lamaran, Karier: Acara, Karier: Tips (89 endpoint) */
   get karier(): R.KarierResource {
     return this.resource('karier', () => new R.KarierResource(this));
+  }
+
+  /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Migrasi aplikasi lama (27 endpoint) */
+  get kasir(): R.KasirResource {
+    return this.resource('kasir', () => new R.KasirResource(this));
   }
 
   /** Kelengkapan data (7 endpoint) */
@@ -237,12 +242,12 @@ export class Siakad extends SiakadCore {
     return this.resource('notif', () => new R.NotifResource(this));
   }
 
-  /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (29 endpoint) */
+  /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (31 endpoint) */
   get obrolan(): R.ObrolanResource {
     return this.resource('obrolan', () => new R.ObrolanResource(this));
   }
 
-  /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Evaluasi data (25 endpoint) */
+  /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Relay Feeder Desktop, PDDikti: Evaluasi data (29 endpoint) */
   get pddikti(): R.PddiktiResource {
     return this.resource('pddikti', () => new R.PddiktiResource(this));
   }
@@ -282,7 +287,7 @@ export class Siakad extends SiakadCore {
     return this.resource('qr', () => new R.QrResource(this));
   }
 
-  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (62 endpoint) */
+  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (70 endpoint) */
   get rbac(): R.RbacResource {
     return this.resource('rbac', () => new R.RbacResource(this));
   }
