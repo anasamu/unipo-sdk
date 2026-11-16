@@ -309,7 +309,7 @@ class Siakad
                     $this->sleep(min(is_numeric($wait) ? (float) $wait : $this->backoff($attempt), 60.0));
                     continue;
                 }
-                if (in_array($status, [502, 503, 504], true) && $error->errorCode() !== 'api_disabled') {
+                if (in_array($status, [502, 503, 504], true) && !in_array($error->errorCode(), ['api_disabled', 'pemeliharaan'], true)) {
                     $this->sleep($this->backoff($attempt));
                     continue;
                 }

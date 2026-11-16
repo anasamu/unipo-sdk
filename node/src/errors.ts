@@ -138,6 +138,27 @@ export class RateLimitError extends SiakadError {
 /** 5xx: galat di server, termasuk 503 `api_disabled`. */
 export class ServerError extends SiakadError {}
 
+/**
+ * 503 `pemeliharaan`: aplikasi sedang dalam mode pemeliharaan yang dinyalakan admin di Pustikom (dijawab BFF aplikasi
+ * dari status SSO). Tidak dicoba ulang otomatis. Tampilkan halaman pemeliharaan (`GerbangPemeliharaan` unipo-ui).
+ */
+export class PemeliharaanError extends ServerError {
+  private get info(): Record<string, unknown> {
+    const p = this.details['pemeliharaan'];
+    return p && typeof p === 'object' ? (p as Record<string, unknown>) : {};
+  }
+
+  /** Perkiraan selesai (ISO 8601) atau null. */
+  get sampai(): string | null {
+    return typeof this.info['sampai'] === 'string' ? (this.info['sampai'] as string) : null;
+  }
+
+  /** Mulai pemeliharaan (ISO 8601) atau null. */
+  get sejak(): string | null {
+    return typeof this.info['sejak'] === 'string' ? (this.info['sejak'] as string) : null;
+  }
+}
+
 /** Membuat kelas galat yang sesuai dari kode HTTP. */
 export function errorFromStatus(
   status: number,
@@ -154,6 +175,7 @@ export function errorFromStatus(
   if (status === 413 || status === 415) return new PayloadError(message, args);
   if (status === 422) return new ValidationError(message, args);
   if (status === 429) return new RateLimitError(message, args);
+  if (status === 503 && args.code === 'pemeliharaan') return new PemeliharaanError(message, args);
   if (status >= 500) return new ServerError(message, args);
   return new SiakadError(message, args);
 }
