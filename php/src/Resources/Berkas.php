@@ -245,13 +245,13 @@ final class Berkas extends Resource
     /**
      * Unit yang bisa saya buka
      *
-     * Ruang berkas bersama unit (BAAK, BAUK, SDM, LPM, PMB, LPPM, Humas, fakultas, prodi, ...) yang bisa dibuka pemanggil, dengan `akses` (anggota/kelola) dan kebijakan enkripsi efektif. Anggota: izin RBAC <aplikasi>.berkas atau petugas arsip unit; pengelola: <aplikasi>.berkas.kelola atau admin/pimpinan unit.
+     * Ruang berkas bersama unit (BAAK, BAUK, SDM, LPM, PMB, LPPM, Humas, fakultas, prodi, ...) yang bisa dibuka pemanggil, dengan `akses` (anggota/kelola) dan kebijakan enkripsi efektif. Anggota: izin RBAC <aplikasi>.berkas atau petugas arsip unit; pengelola: <aplikasi>.berkas.kelola atau admin/pimpinan unit. `?semua=1` menambah `semua`: daftar semua unit aktif (kode dan nama saja) untuk tujuan berbagi.
      *
      * `GET /v1/berkas/unit`
      *
      * scope: `berkas:read`
      *
-     * @param array<string, mixed> $query
+     * @param array{semua?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
