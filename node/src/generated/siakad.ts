@@ -37,6 +37,11 @@ export class Siakad extends SiakadCore {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
 
+  /** Akun pengguna (13 endpoint) */
+  get akun(): R.AkunResource {
+    return this.resource('akun', () => new R.AkunResource(this));
+  }
+
   /** Portal API: Pengajuan, Portal API: Aplikasi saya, Portal API: Tinjauan Pustikom (18 endpoint) */
   get apiPortal(): R.ApiPortalResource {
     return this.resource('apiPortal', () => new R.ApiPortalResource(this));
@@ -192,7 +197,7 @@ export class Siakad extends SiakadCore {
     return this.resource('kurikulum', () => new R.KurikulumResource(this));
   }
 
-  /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (67 endpoint) */
+  /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
   get kurikulumObe(): R.KurikulumObeResource {
     return this.resource('kurikulumObe', () => new R.KurikulumObeResource(this));
   }
@@ -267,6 +272,11 @@ export class Siakad extends SiakadCore {
     return this.resource('perpustakaan', () => new R.PerpustakaanResource(this));
   }
 
+  /** Pimpinan: Bidang, Pimpinan: Arahan (24 endpoint) */
+  get pimpinan(): R.PimpinanResource {
+    return this.resource('pimpinan', () => new R.PimpinanResource(this));
+  }
+
   /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
   get pmb(): R.PmbResource {
     return this.resource('pmb', () => new R.PmbResource(this));
@@ -292,7 +302,7 @@ export class Siakad extends SiakadCore {
     return this.resource('qr', () => new R.QrResource(this));
   }
 
-  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (70 endpoint) */
+  /** RBAC: Hak akses efektif, RBAC: Aplikasi, RBAC: Peran, RBAC: Masuk sebagai pengguna, RBAC: Klien API, RBAC: Log API, RBAC: Akses database live, RBAC: Database development, RBAC: Izin, RBAC: Penugasan, RBAC: Pemetaan (71 endpoint) */
   get rbac(): R.RbacResource {
     return this.resource('rbac', () => new R.RbacResource(this));
   }

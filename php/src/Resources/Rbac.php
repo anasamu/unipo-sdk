@@ -224,6 +224,8 @@ final class Rbac extends Resource
      * jadwal level PROGDI", "mode": "lihat", "aplikasi": "siakad", "durasi_menit": 30}`.
      *
      * * `mode`: `lihat` (bawaan; simpan/ubah/hapus ditolak) atau `penuh`. `aplikasi`: client_id SSO tujuan pertama, atau `portal`.
+     * * `lingkungan`: `live` (bawaan) atau `development`, hanya untuk mode `penuh`. Development: semua aplikasi dan SIAKAD web
+     *   memakai database development selama sesi itu; ditolak 422 bila database development belum siap (lihat GET /v1/rbac/menyamar/info).
      * * Akun admin lain ditolak kecuali `MENYAMAR_BOLEH_ADMIN=true`. Password akun tujuan tidak pernah disentuh.
      * * Jawaban berisi `url` SSO sekali pakai (2 menit) yang harus dibuka di browser yang sedang login SSO sebagai admin peminta.
      * * Semua permintaan tercatat (lihat GET /v1/rbac/menyamar). Batas 20 per admin per jam.
@@ -240,6 +242,25 @@ final class Rbac extends Resource
     public function postMenyamar(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/rbac/menyamar', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pilihan masuk sebagai pengguna
+     *
+     * Pemegang izin pustikom.menyamar atau admin RBAC. Jawaban: `aktif`, `mode_penuh`, `durasi_bawaan`, `durasi_maks`, `development.tersedia` dan `development.pesan` (alasan bila database development belum siap).
+     *
+     * `GET /v1/rbac/menyamar/info`
+     *
+     * scope: `rbac:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMenyamarInfo(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/menyamar/info', [], $query, null, $options, false, false);
     }
 
     /**

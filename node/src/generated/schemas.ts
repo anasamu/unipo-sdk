@@ -1229,6 +1229,117 @@ export type JadwalOtomatisSimpanHasil = {
   [key: string]: any;
 };
 
+export type Akun = {
+  username?: string;
+  nama?: string;
+  email?: string | null;
+  level?: string;
+  aktif?: boolean;
+  jenis?: "dosen" | "tendik" | "mahasiswa" | "pendaftar" | null;
+  kode_prodi?: string | null;
+  sedang_login?: boolean;
+  login_terakhir?: string | null;
+  /** Akun khusus (vendor) yang tidak bisa diubah */
+  khusus?: boolean;
+  [key: string]: any;
+};
+
+export type AkunHasil = {
+  akun?: Akun;
+  /** Hanya untuk sandi=acak; tampilkan sekali ke petugas, tidak disimpan di mana pun */
+  password_sementara?: string;
+  /** Password mengikuti rumus lama */
+  password_bawaan?: boolean;
+  [key: string]: any;
+};
+
+export type AkunCalon = {
+  jenis?: string;
+  id?: string;
+  nama?: string;
+  email?: string | null;
+  kode_prodi?: string | null;
+  nama_prodi?: string | null;
+  tanggal_lahir_ada?: boolean;
+  /** false untuk tendik tanpa prodi (login lama menolaknya) */
+  bisa_login?: boolean;
+  [key: string]: any;
+};
+
+export type AkunOrangBaru = {
+  nama: string;
+  kode_prodi: string;
+  gelar_depan?: string;
+  gelar_belakang?: string;
+  jenis_kelamin?: "L" | "P";
+  tempat_lahir?: string;
+  tanggal_lahir?: string;
+  agama?: string;
+  ktp?: string;
+  hp?: string;
+  email?: string;
+  [key: string]: any;
+};
+
+export type AkunBuatInput = {
+  jenis: "dosen" | "tendik" | "mahasiswa" | "pendaftar";
+  /** NIDN, NIK karyawan, NIM, atau nomor PMB; menjadi username Contoh: `0912345601` */
+  id: string;
+  /** Bawaan: DOSEN, OPERATOR, MAHASISWA, MABA */
+  level?: string;
+  email?: string;
+  aktif?: boolean;
+  /** bawaan = rumus lama (ID + tanggal lahir 2 digit), acak = dibuat sistem dan dikembalikan sekali, manual = isi `password` */
+  sandi?: "bawaan" | "acak" | "manual";
+  password?: string;
+  orang_baru?: AkunOrangBaru;
+  [key: string]: any;
+};
+
+export type AkunMassalInput = {
+  jenis: "dosen" | "tendik" | "mahasiswa" | "pendaftar";
+  id?: Array<string>;
+  semua?: boolean;
+  q?: string;
+  kode_prodi?: string;
+  angkatan?: string;
+  batas?: number;
+  [key: string]: any;
+};
+
+export type AkunUbahInput = {
+  level?: string;
+  email?: string;
+  nama?: string;
+  [key: string]: any;
+};
+
+export type AkunStatusInput = {
+  aktif: boolean;
+  alasan?: string;
+  [key: string]: any;
+};
+
+export type AkunSandiInput = {
+  /** bawaan = rumus lama (ID + tanggal lahir 2 digit), acak = dibuat sistem dan dikembalikan sekali, manual = isi `password` */
+  sandi?: "bawaan" | "acak" | "manual";
+  password?: string;
+  [key: string]: any;
+};
+
+export type AkunPegawaiInput = {
+  /** NIDN/NIK karyawan bila pegawai belum punya */
+  id_siakad?: string;
+  kode_prodi?: string;
+  level?: string;
+  email?: string;
+  aktif?: boolean;
+  /** bawaan = rumus lama (ID + tanggal lahir 2 digit), acak = dibuat sistem dan dikembalikan sekali, manual = isi `password` */
+  sandi?: "bawaan" | "acak" | "manual";
+  password?: string;
+  [key: string]: any;
+};
+
 export type ApiPortalPengajuan = {
   id?: number;
   uuid?: string;
@@ -10698,6 +10809,74 @@ export type PerpustakaanUsulanInput = {
   tanggapan?: string;
   /** (hanya pengelola) */
   idpus?: string;
+  [key: string]: any;
+};
+
+/** Arahan pimpinan (tabel pimpinan_arahan) */
+export type PimpinanArahan = {
+  id?: number;
+  judul?: string;
+  isi?: string;
+  bidang?: string;
+  prioritas?: "biasa" | "penting" | "segera";
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** user.username */
+  penanggung_jawab?: string;
+  tenggat?: string;
+  rujukan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "dikirim" | "dikerjakan" | "dilaporkan" | "selesai" | "dibatalkan";
+  /** (hanya baca) Hanya dibaca. */
+  tindak_lanjut?: string;
+  /** (hanya baca) Hanya dibaca. */
+  progres?: number;
+  /** user.username (hanya baca) Hanya dibaca. */
+  pemberi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  selesai_pada?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PimpinanArahanInput = {
+  judul: string;
+  isi: string;
+  bidang?: string;
+  prioritas?: "biasa" | "penting" | "segera";
+  /** ID di induk_unit */
+  unit_id?: number;
+  /** user.username */
+  penanggung_jawab?: string;
+  tenggat?: string;
+  rujukan?: string;
+  [key: string]: any;
+};
+
+export type PimpinanArahanTindakLanjutInput = {
+  catatan: string;
+  progres?: number;
+  [key: string]: any;
+};
+
+export type PimpinanArahanLaporSelesaiInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type PimpinanArahanTerimaInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type PimpinanArahanKembalikanInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
+export type PimpinanArahanBatalkanInput = {
+  alasan: string;
   [key: string]: any;
 };
 

@@ -2360,6 +2360,251 @@ export class AkademikResource {
   }
 }
 
+/** Akun pengguna */
+export class AkunResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Daftar akun
+   *
+   * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`.
+   *
+   * Hak: level ADMIN atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
+   *
+   * `GET /v1/akun`
+   *
+   * scope: `akun:read` · hanya token pengguna · berhalaman
+   */
+  list(query?: {
+    /** Cari */
+    q?: string;
+    /** dosen|tendik|mahasiswa|pendaftar|lain */
+    jenis?: string;
+    /** Level */
+    level?: string;
+    /** Y|N */
+    aktif?: string;
+    /** Kode prodi */
+    kode_prodi?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Akun>>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun', query }, options);
+  }
+
+  /**
+   * Buat akun
+   *
+   * Membuat akun untuk orang yang sudah terdaftar (NIDN, NIK karyawan, NIM, atau nomor PMB menjadi username), dengan kolom dan
+   * hash password sama seperti aplikasi lama. Dosen/tendik yang belum ada di SIAKAD bisa dibuat sekaligus lewat `orang_baru`
+   * (kolom sama dengan form tambah dosen/karyawan lama; tendik wajib punya prodi agar bisa login).
+   *
+   * Level per jenis: dosen DOSEN/PROGDI/DIREKTUR/KEUANGAN/ADMIN (ADMIN hanya Pustikom), tendik OPERATOR/BAK/PUSTAKA/PANITIA,
+   * mahasiswa MAHASISWA, pendaftar MABA. `sandi`: `bawaan` (ID + tanggal lahir 2 digit, rumus lama), `acak` (dikembalikan
+   * sekali di `password_sementara`), atau `manual` (`password` min. 8 karakter). Peran RBAC diberikan terpisah lewat
+   * POST /v1/rbac/penugasan.
+   *
+   * `POST /v1/akun`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param body
+   */
+  create(body: S.AkunBuatInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.AkunHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun', body }, options);
+  }
+
+  /**
+   * Ringkasan akun
+   *
+   * Jumlah akun (dan yang aktif) per jenis, jumlah orang yang belum punya akun, jenis dan level yang boleh dikelola pemanggil.
+   *
+   * `GET /v1/akun/ringkasan`
+   *
+   * scope: `akun:read` · hanya token pengguna
+   */
+  getRingkasan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun/ringkasan', query }, options);
+  }
+
+  /**
+   * Orang yang belum punya akun
+   *
+   * Dosen (m_dosen), tendik (m_karyawan), mahasiswa (m_mahasiswa), atau pendaftar PMB tanpa baris di tabel user. `jenis` wajib; saring `q`, `kode_prodi`, `angkatan` (mahasiswa).
+   *
+   * `GET /v1/akun/calon`
+   *
+   * scope: `akun:read` · hanya token pengguna · berhalaman
+   */
+  getCalon(query: {
+    /** dosen|tendik|mahasiswa|pendaftar */
+    jenis: string;
+    /** Cari ID atau nama */
+    q?: string;
+    /** Kode prodi */
+    kode_prodi?: string;
+    /** Tahun masuk (mahasiswa) */
+    angkatan?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.AkunCalon>>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun/calon', query }, options);
+  }
+
+  /**
+   * Log kelola akun
+   *
+   * Siapa membuat, mengubah, menonaktifkan, atau mereset akun apa. Tidak pernah memuat password. Petugas unit melihat aksinya sendiri; saring `username`, `aksi`, `oleh`.
+   *
+   * `GET /v1/akun/log`
+   *
+   * scope: `akun:read` · hanya token pengguna · berhalaman
+   */
+  getLog(query?: {
+    /** Akun */
+    username?: string;
+    /** buat|massal|ubah|aktifkan|nonaktifkan|sandi|tautan */
+    aksi?: string;
+    /** Pelaku */
+    oleh?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun/log', query }, options);
+  }
+
+  /**
+   * Buat akun massal
+   *
+   * Membuat akun berpassword bawaan untuk daftar `id`, atau `"semua": true` untuk semua orang tanpa akun yang cocok saringan `q`/`kode_prodi`/`angkatan`, paling banyak `batas` (maks. 1000) per panggilan. Yang sudah punya akun dilewati. Jawaban: dibuat, dilewati (dengan alasan), sisa.
+   *
+   * `POST /v1/akun/massal`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param body
+   */
+  postMassal(body: S.AkunMassalInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/massal', body }, options);
+  }
+
+  /**
+   * Akun pegawai SDM
+   *
+   * Status akun SIAKAD seorang pegawai (sdm_pegawai.id): ID SIAKAD (NIDN/NIK karyawan), sudah terdaftar di m_dosen/m_karyawan atau belum, dan akunnya. Izin sdm.akun.
+   *
+   * `GET /v1/akun/pegawai/{id}`
+   *
+   * scope: `akun:read` · hanya token pengguna
+   *
+   * @param id ID pegawai SDM
+   */
+  getPegawaiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun/pegawai/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Buat akun pegawai SDM
+   *
+   * Membuat akun dari data pegawai SDM. Bila belum ada di m_dosen/m_karyawan, barisnya dibuat dari data SDM (`kode_prodi` wajib bila SDM belum punya). `id_siakad` diisi bila pegawai belum punya NIDN/NIK karyawan. sdm_pegawai.username ikut diisi. Izin sdm.akun.
+   *
+   * `POST /v1/akun/pegawai/{id}`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param id ID pegawai SDM
+   * @param body
+   */
+  postPegawaiById(id: string | number, body: S.AkunPegawaiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.AkunHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/pegawai/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Detail akun
+   *
+   * Akun, pegawai SDM yang tertaut, level yang boleh dipilih, dan 20 log terakhir.
+   *
+   * `GET /v1/akun/{username}`
+   *
+   * scope: `akun:read` · hanya token pengguna
+   *
+   * @param username Username SIAKAD
+   */
+  getByUsername(username: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Akun>> {
+    return this.client.request({ method: 'GET', path: '/v1/akun/{username}', query: { ...query, username } }, options);
+  }
+
+  /**
+   * Ubah level/email akun
+   *
+   * Body `level`, `email`, `nama` (salinan tampilan). Level harus cocok dengan jenis pemilik akun; email ikut disalin ke tabel master pemilik seperti Pengaturan User lama. Lewat POST karena hosting menolak PUT/PATCH.
+   *
+   * `POST /v1/akun/{username}/ubah`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param username Username SIAKAD
+   * @param body
+   */
+  postByUsernameUbah(username: string | number, body: S.AkunUbahInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Akun>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/{username}/ubah', query: { username }, body }, options);
+  }
+
+  /**
+   * Aktifkan/nonaktifkan akun
+   *
+   * Body `{"aktif": false, "alasan": "..."}`. Akun nonaktif ditolak saat login berikutnya; keluarkan juga sesi SSO-nya dari Pustikom. Akun sendiri tidak bisa dinonaktifkan.
+   *
+   * `POST /v1/akun/{username}/status`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param username Username SIAKAD
+   * @param body
+   */
+  postByUsernameStatus(username: string | number, body: S.AkunStatusInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Akun>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/{username}/status', query: { username }, body }, options);
+  }
+
+  /**
+   * Reset password akun
+   *
+   * Body `sandi` (bawaan, acak, manual) dan `password` untuk manual. Password acak dikembalikan sekali di `password_sementara`. Untuk tautan atur password lewat email, pakai SSO (Pustikom: tombol Kirim tautan).
+   *
+   * `POST /v1/akun/{username}/sandi`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param username Username SIAKAD
+   * @param body
+   */
+  postByUsernameSandi(username: string | number, body: S.AkunSandiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.AkunHasil>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/{username}/sandi', query: { username }, body }, options);
+  }
+
+  /**
+   * Catat tautan atur password
+   *
+   * Dipanggil aplikasi setelah SSO mengirim tautan atur password ke email akun, agar tercatat di log akun. Body `{"terkirim": true}`.
+   *
+   * `POST /v1/akun/{username}/tautan`
+   *
+   * scope: `akun:write` · hanya token pengguna
+   *
+   * @param username Username SIAKAD
+   * @param body
+   */
+  postByUsernameTautan(username: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akun/{username}/tautan', query: { username }, body }, options);
+  }
+}
+
 /** Portal API: Pengajuan, Portal API: Aplikasi saya, Portal API: Tinjauan Pustikom */
 export class ApiPortalResource {
   constructor(private readonly client: SiakadCore) {}
@@ -26990,6 +27235,97 @@ export class KurikulumObeResource {
   }
 
   /**
+   * Perangkat pembelajaran MK
+   *
+   * Silabus, RPS (dokumen), bahan ajar, modul, lainnya. Isi file di berkas terpusat.
+   *
+   * `GET /v1/kurikulum-obe/mk/{mk}/berkas`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param mk ID MK
+   */
+  getMkByMkBerkas(mk: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-obe/mk/{mk}/berkas', query: { ...query, mk } }, options);
+  }
+
+  /**
+   * Tautkan perangkat pembelajaran
+   *
+   * Unggah dulu ke /v1/berkas, lalu kirim `{"berkas_id": "<uuid>", "jenis": "silabus|rps|bahan_ajar|modul|lainnya", "judul": "...", "keterangan": "..."}`. Penyusun kurikulum prodi atau dosen koordinator/pengampu MK.
+   *
+   * `POST /v1/kurikulum-obe/mk/{mk}/berkas`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param mk ID MK
+   */
+  postMkByMkBerkas(mk: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-obe/mk/{mk}/berkas', query: { ...query, mk } }, options);
+  }
+
+  /**
+   * Ubah judul/jenis/keterangan perangkat
+   *
+   * `PUT /v1/kurikulum-obe/mk-berkas/{id}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID perangkat
+   */
+  putMkBerkasById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-obe/mk-berkas/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus perangkat
+   *
+   * Tautan ke berkas terpusat ikut dilepas.
+   *
+   * `DELETE /v1/kurikulum-obe/mk-berkas/{id}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID perangkat
+   */
+  deleteMkBerkasById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/kurikulum-obe/mk-berkas/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Isi file perangkat
+   *
+   * 302 ke URL sementara bila disimpan di bucket. ?unduh=1 untuk unduhan.
+   *
+   * `GET /v1/kurikulum-obe/mk-berkas/{id}/isi`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID perangkat
+   */
+  getMkBerkasByIdIsi(id: string | number, query?: {
+    /** 1 = unduh, bukan tampil */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-obe/mk-berkas/{id}/isi', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Buku kurikulum
+   *
+   * Satu paket untuk dicetak: identitas, profil lulusan, CPL, bahan kajian, struktur MK per semester (prasyarat, CPL, CPMK, koordinator, status RPS, jumlah perangkat), ekuivalensi, riwayat peninjauan.
+   *
+   * `GET /v1/kurikulum-obe/kurikulum/{id}/buku`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID kurikulum
+   */
+  getKurikulumByIdBuku(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-obe/kurikulum/{id}/buku', query: { ...query, id } }, options);
+  }
+
+  /**
    * Ekuivalensi MK lama ke baru
    *
    * MK dengan kode sama otomatis setara tanpa baris ekuivalensi.
@@ -35913,6 +36249,389 @@ export class PerpustakaanResource {
   }
 }
 
+/** Pimpinan: Bidang, Pimpinan: Arahan */
+export class PimpinanResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Bidang dan fitur saya
+   *
+   * Bidang pimpinan yang dipegang (lewat jabatan, level, atau penugasan) beserta fiturnya untuk menu, jabatan aktif saya, dan apakah boleh mengatur bidang. ADMIN melihat semua bidang aktif.
+   *
+   * `GET /v1/pimpinan/saya`
+   *
+   * scope: `pimpinan:read`
+   */
+  getSaya(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/saya', query }, options);
+  }
+
+  /**
+   * Katalog fitur
+   *
+   * Semua fitur aplikasi Dasbor Pimpinan: kode, kelompok, nama, keterangan, apakah memberi kewenangan memutuskan, dan izin RBAC yang ikut diberikan.
+   *
+   * `GET /v1/pimpinan/fitur`
+   *
+   * scope: `pimpinan:read`
+   */
+  getFitur(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/fitur', query }, options);
+  }
+
+  /**
+   * Daftar bidang
+   *
+   * Pengatur (dashboard.atur/ADMIN): semua bidang termasuk nonaktif beserta pemegang (jabatan, level, orang, pejabat aktif). Lainnya: bidang aktif tanpa pemegang.
+   *
+   * `GET /v1/pimpinan/bidang`
+   *
+   * scope: `pimpinan:read`
+   */
+  getBidang(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/bidang', query }, options);
+  }
+
+  /**
+   * Tambah bidang
+   *
+   * Body: {"kode" (baru saja), "nama", "keterangan", "ikon" (nama ikon lucide), "warna", "urutan", "aktif", "fitur": ["akademik.ringkasan", ...], "jabatan": ["WR1", ...] (kode induk_jabatan), "level": ["DIREKTUR"], "orang": [{"username", "mulai", "selesai", "nomor_sk", "alasan"}]}. Kunci yang tidak dikirim tidak diubah. Izin peran pimpinan-<kode> disamakan dengan izin fitur; jabatan/level/orang disimpan di rbac_jabatan/rbac_level/rbac_penugasan. Izin dashboard.atur atau ADMIN.
+   *
+   * `POST /v1/pimpinan/bidang`
+   *
+   * scope: `pimpinan:write`
+   */
+  postBidang(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/bidang', query }, options);
+  }
+
+  /**
+   * Urutkan bidang
+   *
+   * Body: {"kode": ["akademik", "keuangan", ...]} sesuai urutan menu.
+   *
+   * `POST /v1/pimpinan/bidang/urutan`
+   *
+   * scope: `pimpinan:write`
+   */
+  postBidangUrutan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/bidang/urutan', query }, options);
+  }
+
+  /**
+   * Jabatan struktural
+   *
+   * Jabatan data induk beserta pejabat aktifnya, untuk memilih pemegang bidang. Pengatur.
+   *
+   * `GET /v1/pimpinan/jabatan`
+   *
+   * scope: `pimpinan:read`
+   */
+  getJabatan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/jabatan', query }, options);
+  }
+
+  /**
+   * Detail bidang
+   *
+   * Bidang beserta fitur dan pemegangnya. Pengatur.
+   *
+   * `GET /v1/pimpinan/bidang/{kode}`
+   *
+   * scope: `pimpinan:read`
+   *
+   * @param kode pimpinan_bidang.kode
+   */
+  getBidangByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/bidang/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Ubah bidang (POST)
+   *
+   * Sama dengan PUT, untuk hosting yang menolak PUT.
+   *
+   * `POST /v1/pimpinan/bidang/{kode}`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param kode pimpinan_bidang.kode
+   */
+  postBidangByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/bidang/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Ubah bidang
+   *
+   * Body: {"kode" (baru saja), "nama", "keterangan", "ikon" (nama ikon lucide), "warna", "urutan", "aktif", "fitur": ["akademik.ringkasan", ...], "jabatan": ["WR1", ...] (kode induk_jabatan), "level": ["DIREKTUR"], "orang": [{"username", "mulai", "selesai", "nomor_sk", "alasan"}]}. Kunci yang tidak dikirim tidak diubah. Izin peran pimpinan-<kode> disamakan dengan izin fitur; jabatan/level/orang disimpan di rbac_jabatan/rbac_level/rbac_penugasan. Izin dashboard.atur atau ADMIN.
+   *
+   * `PUT /v1/pimpinan/bidang/{kode}`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param kode pimpinan_bidang.kode
+   */
+  putBidangByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pimpinan/bidang/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Hapus bidang
+   *
+   * Bidang diarsipkan, peran pimpinan-<kode> dinonaktifkan, pemetaan jabatan/level dilepas, penugasan orang dicabut. Pengatur.
+   *
+   * `POST /v1/pimpinan/bidang/{kode}/hapus`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param kode pimpinan_bidang.kode
+   */
+  postBidangByKodeHapus(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/bidang/{kode}/hapus', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: daftar
+   *
+   * Arahan/instruksi pimpinan ke unit atau penanggung jawab, dengan tenggat dan tindak lanjut. Pimpinan (pemegang bidang di Dasbor Pimpinan) membuat dan menerima laporan; penanggung jawab melihat arahan untuknya, mencatat tindak lanjut, dan melaporkan selesai. Hanya pengelola modul.
+   *
+   * `GET /v1/pimpinan/arahan`
+   *
+   * scope: `pimpinan:read` · berhalaman
+   */
+  getArahan(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    prioritas?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    penanggung_jawab?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    status?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    pemberi?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    bidang?: string;
+    /** Cari di judul, isi, rujukan */
+    q?: string;
+    /** Tanggal awal (YYYY-MM-DD) */
+    dari?: string;
+    /** Tanggal akhir (YYYY-MM-DD) */
+    sampai?: string;
+    /** Nama kolom, awali "-" untuk menurun */
+    urut?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PimpinanArahan>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/arahan', query }, options);
+  }
+
+  /**
+   * Arahan pimpinan: tambah
+   *
+   * Pengelola modul.
+   *
+   * `POST /v1/pimpinan/arahan`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param body
+   */
+  postArahan(body: S.PimpinanArahanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan', body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: detail
+   *
+   * Arahan/instruksi pimpinan ke unit atau penanggung jawab, dengan tenggat dan tindak lanjut. Pimpinan (pemegang bidang di Dasbor Pimpinan) membuat dan menerima laporan; penanggung jawab melihat arahan untuknya, mencatat tindak lanjut, dan melaporkan selesai. Hanya pengelola modul.
+   *
+   * `GET /v1/pimpinan/arahan/{id}`
+   *
+   * scope: `pimpinan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getArahanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/arahan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: ubah
+   *
+   * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+   *
+   * `PUT /v1/pimpinan/arahan/{id}`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  putArahanById(id: string | number, body: S.PimpinanArahanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pimpinan/arahan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: hapus
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/pimpinan/arahan/{id}`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   */
+  deleteArahanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/pimpinan/arahan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: daftar lampiran
+   *
+   * Siapa pun yang boleh melihat barisnya.
+   *
+   * `GET /v1/pimpinan/arahan/{id}/berkas`
+   *
+   * scope: `pimpinan:read`
+   *
+   * @param id ID angka atau UUID
+   */
+  getArahanByIdBerkas(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.PusatBerkas>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/arahan/{id}/berkas', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: unggah lampiran
+   *
+   * Multipart field "berkas" (atau JSON berkas_base64 + nama_file), opsional jenis dan keterangan. PDF, gambar, dokumen Office/ODF, CSV, TXT, ZIP; maksimal PUSAT_DATA_MAKS_MB (bawaan 20 MB). Pengelola modul.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/berkas`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  postArahanByIdBerkas(id: string | number, body: S.PusatBerkasInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PusatBerkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/berkas', query: { id }, body, multipart: true }, options);
+  }
+
+  /**
+   * Arahan pimpinan: unduh lampiran
+   *
+   * `GET /v1/pimpinan/arahan/{id}/berkas/{uuid}`
+   *
+   * scope: `pimpinan:read`
+   *
+   * @param id ID angka atau UUID
+   * @param uuid UUID berkas
+   */
+  getArahanByIdBerkasByUuid(id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pimpinan/arahan/{id}/berkas/{uuid}', query: { ...query, id, uuid } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: hapus lampiran
+   *
+   * Pengelola modul.
+   *
+   * `DELETE /v1/pimpinan/arahan/{id}/berkas/{uuid}`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param uuid UUID berkas
+   */
+  deleteArahanByIdBerkasByUuid(id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/pimpinan/arahan/{id}/berkas/{uuid}', query: { ...query, id, uuid } }, options);
+  }
+
+  /**
+   * Arahan pimpinan: Catat tindak lanjut
+   *
+   * Pengelola modul. Status harus dikirim/dikerjakan, menjadi dikerjakan.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/tindak-lanjut`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postArahanByIdTindakLanjut(id: string | number, body: S.PimpinanArahanTindakLanjutInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/tindak-lanjut', query: { id }, body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: Laporkan selesai
+   *
+   * Pengelola modul. Status harus dikirim/dikerjakan, menjadi dilaporkan.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/lapor-selesai`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postArahanByIdLaporSelesai(id: string | number, body: S.PimpinanArahanLaporSelesaiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/lapor-selesai', query: { id }, body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: Terima laporan (selesai)
+   *
+   * Pengelola modul. Status harus dilaporkan/dikerjakan/dikirim, menjadi selesai.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/terima`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postArahanByIdTerima(id: string | number, body: S.PimpinanArahanTerimaInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/terima', query: { id }, body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: Kembalikan untuk diperbaiki
+   *
+   * Pengelola modul. Status harus dilaporkan, menjadi dikerjakan.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/kembalikan`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postArahanByIdKembalikan(id: string | number, body: S.PimpinanArahanKembalikanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/kembalikan', query: { id }, body }, options);
+  }
+
+  /**
+   * Arahan pimpinan: Batalkan arahan
+   *
+   * Pengelola modul. Status harus dikirim/dikerjakan/dilaporkan, menjadi dibatalkan.
+   *
+   * `POST /v1/pimpinan/arahan/{id}/batalkan`
+   *
+   * scope: `pimpinan:write`
+   *
+   * @param id ID angka atau UUID
+   * @param body
+   */
+  postArahanByIdBatalkan(id: string | number, body: S.PimpinanArahanBatalkanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PimpinanArahan>> {
+    return this.client.request({ method: 'POST', path: '/v1/pimpinan/arahan/{id}/batalkan', query: { id }, body }, options);
+  }
+}
+
 /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan */
 export class PmbResource {
   constructor(private readonly client: SiakadCore) {}
@@ -42455,6 +43174,8 @@ export class RbacResource {
    * jadwal level PROGDI", "mode": "lihat", "aplikasi": "siakad", "durasi_menit": 30}`.
    *
    * * `mode`: `lihat` (bawaan; simpan/ubah/hapus ditolak) atau `penuh`. `aplikasi`: client_id SSO tujuan pertama, atau `portal`.
+   * * `lingkungan`: `live` (bawaan) atau `development`, hanya untuk mode `penuh`. Development: semua aplikasi dan SIAKAD web
+   *   memakai database development selama sesi itu; ditolak 422 bila database development belum siap (lihat GET /v1/rbac/menyamar/info).
    * * Akun admin lain ditolak kecuali `MENYAMAR_BOLEH_ADMIN=true`. Password akun tujuan tidak pernah disentuh.
    * * Jawaban berisi `url` SSO sekali pakai (2 menit) yang harus dibuka di browser yang sedang login SSO sebagai admin peminta.
    * * Semua permintaan tercatat (lihat GET /v1/rbac/menyamar). Batas 20 per admin per jam.
@@ -42467,6 +43188,19 @@ export class RbacResource {
    */
   postMenyamar(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/rbac/menyamar', body }, options);
+  }
+
+  /**
+   * Pilihan masuk sebagai pengguna
+   *
+   * Pemegang izin pustikom.menyamar atau admin RBAC. Jawaban: `aktif`, `mode_penuh`, `durasi_bawaan`, `durasi_maks`, `development.tersedia` dan `development.pesan` (alasan bila database development belum siap).
+   *
+   * `GET /v1/rbac/menyamar/info`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getMenyamarInfo(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/rbac/menyamar/info', query }, options);
   }
 
   /**
