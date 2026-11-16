@@ -3063,13 +3063,13 @@ final class Sdm extends Resource
     /**
      * Ajukan cuti
      *
-     * Untuk diri sendiri, atau petugas atas nama pegawai. Dicek kuota, maksimal hari, bentrok tanggal, dan jenis pegawai. Alur: atasan → pejabat berwenang.
+     * Untuk diri sendiri, atau petugas atas nama pegawai. Dicek kuota, maksimal hari, bentrok tanggal, dan jenis pegawai. Alur: atasan → pejabat berwenang. Lampiran (surat dokter, SK, surat tugas) bisa ikut lewat `berkas_id` (UUID dari /v1/berkas, maks. 5).
      *
      * `POST /v1/sdm/cuti`
      *
      * scope: `sdm:write`
      *
-     * @param array{pegawai_id?: int|null, jenis_id: int|null, tanggal_mulai: string|null, tanggal_selesai: string|null, alasan?: string|null, alamat_selama_cuti?: string|null, telepon?: string|null, pengganti_id?: int|null, ...} $body
+     * @param array{pegawai_id?: int|null, jenis_id: int|null, tanggal_mulai: string|null, tanggal_selesai: string|null, alasan?: string|null, alamat_selama_cuti?: string|null, telepon?: string|null, pengganti_id?: int|null, berkas_id?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

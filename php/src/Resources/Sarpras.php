@@ -53,15 +53,34 @@ final class Sarpras extends Resource
     }
 
     /**
+     * Pemakaian ruang universitas
+     *
+     * Semua ruang aktif pada satu tanggal beserta pemakaiannya: peminjaman (diajukan/disetujui/dipinjam, dengan unit peminjam) dan kuliah mingguan dari t_jadwal (hari yang sama, tahun akademik aktif). Dengan `mulai` dan `selesai`, tiap ruang diberi status kosong/terpakai/menunggu pada jam itu sehingga unit tahu ruang sedang dipakai unit lain sebelum mengajukan.
+     *
+     * `GET /v1/sarpras/pemakaian-ruang`
+     *
+     * scope: `sarpras:read`
+     *
+     * @param array{tanggal?: string, mulai?: string, selesai?: string, status?: string, q?: string, jenis?: string, gedung_id?: string, unit_id?: string, kapasitas?: int, bisa_dipinjam?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemakaianRuang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sarpras/pemakaian-ruang', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Rekap sarpras
      *
-     * Jumlah dan nilai aset (perolehan dan buku) per kondisi/status/kategori, ruang per jenis (kapasitas, luas), gedung, pemeliharaan terbuka dan biaya tahun ini, peminjaman 30 hari terakhir. Hanya pengelola.
+     * Jumlah dan nilai aset (perolehan dan buku) per kondisi/status/kategori, ruang per jenis (kapasitas, luas), gedung, pemeliharaan terbuka dan biaya tahun ini, peminjaman 30 hari terakhir. Hanya pengelola; pengelola berlingkup unit hanya unitnya.
      *
      * `GET /v1/sarpras/rekap`
      *
      * scope: `sarpras:read`
      *
-     * @param array<string, mixed> $query
+     * @param array{unit_id?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -751,7 +770,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, peminjam?: string, ruang_id?: string, aset_id?: string, status?: string, diputus_oleh?: string, kondisi_kembali?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, peminjam?: string, unit_id?: string, ruang_id?: string, aset_id?: string, status?: string, diputus_oleh?: string, kondisi_kembali?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -770,7 +789,7 @@ final class Sarpras extends Resource
      *
      * scope: `sarpras:write`
      *
-     * @param array{peminjam: string, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
+     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -810,7 +829,7 @@ final class Sarpras extends Resource
      * scope: `sarpras:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{peminjam: string, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
+     * @param array{peminjam: string, unit_id?: int, ruang_id?: int, aset_id?: int, jumlah?: int, kegiatan: string, ormawa_id?: int, mulai: string, selesai: string, jumlah_peserta?: int, kontak?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

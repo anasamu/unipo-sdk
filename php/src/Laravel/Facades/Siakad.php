@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Arsip arsip()
  * @method static \Unipo\Siakad\Resources\Aturan aturan()
  * @method static \Unipo\Siakad\Resources\Berkas berkas()
+ * @method static \Unipo\Siakad\Resources\Biaya biaya()
  * @method static \Unipo\Siakad\Resources\Cbt cbt()
  * @method static \Unipo\Siakad\Resources\Crm crm()
  * @method static \Unipo\Siakad\Resources\Dasbor dasbor()

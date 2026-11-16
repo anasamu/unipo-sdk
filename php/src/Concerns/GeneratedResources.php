@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3236 endpoint).
+ * Akses ke semua modul API (3265 endpoint).
  */
 trait GeneratedResources
 {
@@ -55,6 +55,12 @@ trait GeneratedResources
         return $this->resource(Resources\Berkas::class);
     }
 
+    /** Biaya: Aturan, Biaya: Pembagian, Biaya: SK dan riwayat (27 endpoint) */
+    public function biaya(): Resources\Biaya
+    {
+        return $this->resource(Resources\Biaya::class);
+    }
+
     /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian (50 endpoint) */
     public function cbt(): Resources\Cbt
     {
@@ -91,7 +97,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (52 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (53 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -355,7 +361,7 @@ trait GeneratedResources
         return $this->resource(Resources\Rpl::class);
     }
 
-    /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (67 endpoint) */
+    /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (68 endpoint) */
     public function sarpras(): Resources\Sarpras
     {
         return $this->resource(Resources\Sarpras::class);

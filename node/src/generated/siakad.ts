@@ -57,6 +57,11 @@ export class Siakad extends SiakadCore {
     return this.resource('berkas', () => new R.BerkasResource(this));
   }
 
+  /** Biaya: Aturan, Biaya: Pembagian, Biaya: SK dan riwayat (27 endpoint) */
+  get biaya(): R.BiayaResource {
+    return this.resource('biaya', () => new R.BiayaResource(this));
+  }
+
   /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian (50 endpoint) */
   get cbt(): R.CbtResource {
     return this.resource('cbt', () => new R.CbtResource(this));
@@ -87,7 +92,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (52 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (53 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -307,7 +312,7 @@ export class Siakad extends SiakadCore {
     return this.resource('rpl', () => new R.RplResource(this));
   }
 
-  /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (67 endpoint) */
+  /** Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan (68 endpoint) */
   get sarpras(): R.SarprasResource {
     return this.resource('sarpras', () => new R.SarprasResource(this));
   }
