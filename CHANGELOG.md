@@ -5,7 +5,6 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 ## 1.12.0 (belum dirilis)
 
 - Modul baru `biaya` (/v1/biaya, 27 operasi): aturan biaya (UKT, gedung, ujian, formulir PMB) dengan komponen pembagian (yayasan, rektor, fakultas, prodi, unit, pegawai; persen/nominal/sisa), alur ajukan/setujui/tolak/kembalikan/nonaktifkan/revisi, lampiran SK dari storage, riwayat versi, periksa klop, simulasi, rekap pembagian per penerima, rincian, ringkasan, dan pencairan.
-- Ikut endpoint SIAKAD terbaru: modul baru `pimpinan` dan tambahan `kurikulumObe` (total 3298 operasi).
 
 ## 1.11.0 (2026-11-16)
 

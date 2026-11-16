@@ -192,7 +192,7 @@ export class Siakad extends SiakadCore {
     return this.resource('kurikulum', () => new R.KurikulumResource(this));
   }
 
-  /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
+  /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (67 endpoint) */
   get kurikulumObe(): R.KurikulumObeResource {
     return this.resource('kurikulumObe', () => new R.KurikulumObeResource(this));
   }
@@ -265,11 +265,6 @@ export class Siakad extends SiakadCore {
   /** Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan (44 endpoint) */
   get perpustakaan(): R.PerpustakaanResource {
     return this.resource('perpustakaan', () => new R.PerpustakaanResource(this));
-  }
-
-  /** Pimpinan: Bidang, Pimpinan: Arahan (24 endpoint) */
-  get pimpinan(): R.PimpinanResource {
-    return this.resource('pimpinan', () => new R.PimpinanResource(this));
   }
 
   /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
