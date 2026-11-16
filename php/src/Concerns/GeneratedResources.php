@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3268 endpoint).
+ * Akses ke semua modul API (3298 endpoint).
  */
 trait GeneratedResources
 {
@@ -217,7 +217,7 @@ trait GeneratedResources
         return $this->resource(Resources\Kurikulum::class);
     }
 
-    /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (67 endpoint) */
+    /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
     public function kurikulumObe(): Resources\KurikulumObe
     {
         return $this->resource(Resources\KurikulumObe::class);
@@ -305,6 +305,12 @@ trait GeneratedResources
     public function perpustakaan(): Resources\Perpustakaan
     {
         return $this->resource(Resources\Perpustakaan::class);
+    }
+
+    /** Pimpinan: Bidang, Pimpinan: Arahan (24 endpoint) */
+    public function pimpinan(): Resources\Pimpinan
+    {
+        return $this->resource(Resources\Pimpinan::class);
     }
 
     /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
