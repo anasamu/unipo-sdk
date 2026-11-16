@@ -33,7 +33,7 @@ final class Pengunggah
 
     /**
      * @param array{nama?: string, kategori?: string, modul?: string, folder?: string, keterangan?: string, visibilitas?: string,
-     *              penyimpanan?: string, ulang?: int, lanjutkan?: string, bertahap?: bool, progres?: callable(int, int): void} $opsi
+     *              penyimpanan?: string, unit?: string, periode?: string, enkripsi?: bool, ulang?: int, lanjutkan?: string, bertahap?: bool, progres?: callable(int, int): void} $opsi
      * @return array<string, mixed> data berkas (status tersedia)
      */
     public function unggah(string|\SplFileInfo $file, array $opsi = []): array
@@ -43,7 +43,10 @@ final class Pengunggah
             throw new \InvalidArgumentException('File tidak bisa dibaca: ' . $path);
         }
         $nama = $opsi['nama'] ?? ($file instanceof \SplFileInfo && method_exists($file, 'getClientOriginalName') ? (string) $file->getClientOriginalName() : basename($path));
-        $atribut = array_filter(array_intersect_key($opsi, array_flip(['kategori', 'modul', 'folder', 'keterangan', 'visibilitas', 'penyimpanan'])), static fn ($v) => $v !== null);
+        $atribut = array_filter(array_intersect_key($opsi, array_flip(['kategori', 'modul', 'folder', 'keterangan', 'visibilitas', 'penyimpanan', 'unit', 'periode', 'enkripsi'])), static fn ($v) => $v !== null);
+        if (isset($atribut['enkripsi'])) {
+            $atribut['enkripsi'] = $atribut['enkripsi'] ? '1' : '0';
+        }
         $total = (int) filesize($path);
         $progres = $opsi['progres'] ?? null;
         $lapor = static function (int $n) use ($progres, $total): void {

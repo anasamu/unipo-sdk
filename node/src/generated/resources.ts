@@ -2653,7 +2653,7 @@ export class ArsipResource {
   /**
    * Buat unit dari data SIAKAD
    *
-   * Membuat unit universitas, fakultas (m_fakultas), dan prodi (m_program_studi) yang belum ada, serta mendaftarkan dekan (m_fakultas.pejabat) dan kaprodi (idd_ketua_prodi) sebagai pimpinan bila akunnya ada. Aman diulang.
+   * Membuat unit universitas, fakultas (m_fakultas), dan prodi (m_program_studi) yang belum ada, unit kerja bagian yang punya aplikasi sendiri (baak, bauk, sdm, lpm, pmb; jenis unit), serta mendaftarkan dekan (m_fakultas.pejabat) dan kaprodi (idd_ketua_prodi) sebagai pimpinan bila akunnya ada. Aman diulang.
    *
    * `POST /v1/arsip/unit/sinkron-siakad`
    *
@@ -2705,6 +2705,28 @@ export class ArsipResource {
    */
   deleteUnitById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'DELETE', path: '/v1/arsip/unit/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Cari akun untuk disposisi/petugas
+   *
+   * Akun aktif selain mahasiswa/pendaftar: username, nama, level, jabatan arsip. Hanya untuk admin arsip dan petugas unit.
+   *
+   * `GET /v1/arsip/pengguna`
+   *
+   * scope: `arsip:read` · berhalaman
+   */
+  getPengguna(query?: {
+    /** Nama atau username */
+    q?: string;
+    /** Satu akun (nilai awal pemilih) */
+    username?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/arsip/pengguna', query }, options);
   }
 
   /**
@@ -5105,7 +5127,7 @@ export class AturanResource {
   }
 }
 
-/** Berkas, Berkas: Unggah bertahap, Berkas: Folder */
+/** Berkas, Berkas: Unggah bertahap, Berkas: Folder, Berkas: Unit dan periode, Berkas: Berbagi, Berkas: Enkripsi */
 export class BerkasResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -5148,6 +5170,14 @@ export class BerkasResource {
     ekstensi?: string;
     /** baru (bawaan), lama, nama, -nama, ukuran, -ukuran, unduh */
     urut?: string;
+    /** Ruang bersama unit */
+    unit?: string;
+    /** UUID folder yang dibagikan ke saya */
+    bagi?: string;
+    /** Kode periode akademik (mis. 20251) atau `tanpa` */
+    periode?: string;
+    /** 1 = hanya berkas terenkripsi */
+    terenkripsi?: string;
     /** Cari nama/keterangan */
     q?: string;
     /** Admin: username */
@@ -5167,7 +5197,7 @@ export class BerkasResource {
   /**
    * Unggah berkas
    *
-   * multipart/form-data field `berkas` (atau JSON `berkas_base64` + `nama_file` untuk file kecil). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Jenis file diperiksa dari isinya. File di atas `batas_sekali_unggah_byte` (lihat /info) pakai unggah bertahap.
+   * multipart/form-data field `berkas` (atau JSON `berkas_base64` + `nama_file` untuk file kecil). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama), `unit` (simpan di ruang bersama unit), `periode` (kode periode akademik; bawaan periode aktif), `enkripsi` (true = enkripsi isi di server; bisa diwajibkan kebijakan). Jenis file diperiksa dari isinya. File di atas `batas_sekali_unggah_byte` (lihat /info) pakai unggah bertahap.
    *
    * `POST /v1/berkas`
    *
@@ -5182,7 +5212,7 @@ export class BerkasResource {
   /**
    * Mulai unggah bertahap
    *
-   * Untuk file besar atau hosting dengan upload_max_filesize kecil. Body JSON: `nama`, `ukuran` (byte), opsional `ukuran_potongan` (bawaan dari /info). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama). Lalu kirim setiap potongan ke POST /v1/berkas/{id}/potongan/{ke} (boleh paralel, boleh diulang), dan akhiri dengan POST /v1/berkas/{id}/selesai. Sesi yang tidak selesai dihapus setelah BERKAS_SESI_JAM.
+   * Untuk file besar atau hosting dengan upload_max_filesize kecil. Body JSON: `nama`, `ukuran` (byte), opsional `ukuran_potongan` (bawaan dari /info). Atribut opsional: `kategori` (dokumen, foto, lampiran, tugas, …), `modul` (aplikasi/modul pemakai), `folder`, `keterangan`, `visibilitas` (privat/publik), `penyimpanan` (kode penyedia; bawaan penyimpanan utama), `unit` (simpan di ruang bersama unit), `periode` (kode periode akademik; bawaan periode aktif), `enkripsi` (true = enkripsi isi di server; bisa diwajibkan kebijakan). Lalu kirim setiap potongan ke POST /v1/berkas/{id}/potongan/{ke} (boleh paralel, boleh diulang), dan akhiri dengan POST /v1/berkas/{id}/selesai. Sesi yang tidak selesai dihapus setelah BERKAS_SESI_JAM.
    *
    * `POST /v1/berkas/bertahap`
    *
@@ -5239,6 +5269,12 @@ export class BerkasResource {
   getFolder(query?: {
     /** Ruang folder per aplikasi/modul, mis. arsip; kosong = umum */
     modul?: string;
+    /** Ruang bersama unit */
+    unit?: string;
+    /** UUID folder yang dibagikan ke saya */
+    bagi?: string;
+    /** Hitung hanya berkas periode ini */
+    periode?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.BerkasFolderDaftar>> {
     return this.client.request({ method: 'GET', path: '/v1/berkas/folder', query }, options);
   }
@@ -5316,6 +5352,206 @@ export class BerkasResource {
    */
   postHapusBanyak(body: S.BerkasHapusBanyak, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/berkas/hapus-banyak', body }, options);
+  }
+
+  /**
+   * Unit yang bisa saya buka
+   *
+   * Ruang berkas bersama unit (BAAK, BAUK, SDM, LPM, PMB, LPPM, Humas, fakultas, prodi, ...) yang bisa dibuka pemanggil, dengan `akses` (anggota/kelola) dan kebijakan enkripsi efektif. Anggota: izin RBAC <aplikasi>.berkas atau petugas arsip unit; pengelola: <aplikasi>.berkas.kelola atau admin/pimpinan unit.
+   *
+   * `GET /v1/berkas/unit`
+   *
+   * scope: `berkas:read`
+   */
+  getUnit(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/unit', query }, options);
+  }
+
+  /**
+   * Periode akademik berkas
+   *
+   * Periode akademik (m_tahun) yang dipakai berkas di ruang ini, dengan jumlah dan ukuran berkasnya, ditambah periode aktif. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`. Pakai `periode` di GET /v1/berkas dan /v1/berkas/folder untuk mengelompokkan berkas per periode.
+   *
+   * `GET /v1/berkas/periode`
+   *
+   * scope: `berkas:read`
+   */
+  getPeriode(query?: {
+    /** Ruang unit */
+    unit?: string;
+    /** Ruang pribadi per modul */
+    modul?: string;
+    /** Folder yang dibagikan */
+    bagi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/periode', query }, options);
+  }
+
+  /**
+   * Salin banyak berkas
+   *
+   * Body: `id` (1-100 UUID), `folder` (tujuan; null = akar), opsional `tujuan_unit` (kode unit; null/"" = ruang pribadi). Isi berkas di penyimpanan dipakai bersama sampai salah satunya diubah. Nama yang bentrok diberi akhiran "(salinan)".
+   *
+   * `POST /v1/berkas/salin`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postSalin(body: S.BerkasSalinBanyak, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/salin', body }, options);
+  }
+
+  /**
+   * Salin folder
+   *
+   * Body: `path`, `induk_baru` (null = akar), opsional `tujuan_unit`. Subfolder dan berkas ikut disalin. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+   *
+   * `POST /v1/berkas/folder/salin`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postFolderSalin(body: S.BerkasFolderSalin, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/folder/salin', body }, options);
+  }
+
+  /**
+   * Daftar berbagi folder
+   *
+   * Query `path` + ruang. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+   *
+   * `GET /v1/berkas/folder/bagikan`
+   *
+   * scope: `berkas:read`
+   */
+  getFolderBagikan(query?: {
+    /** Path folder */
+    path?: string;
+    /** Ruang unit */
+    unit?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/folder/bagikan', query }, options);
+  }
+
+  /**
+   * Bagikan folder
+   *
+   * Body: `path`, `ke_jenis` (pengguna, unit, tautan), `ke` (username/kode unit), `izin` (lihat/ubah), opsional `kedaluwarsa_at`, `sandi` (tautan), `pesan`. Subfolder dan berkas di dalamnya ikut terbagi, termasuk yang ditambahkan kemudian. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+   *
+   * `POST /v1/berkas/folder/bagikan`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postFolderBagikan(body: S.BerkasBagikan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.BerkasBagi>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/folder/bagikan', body }, options);
+  }
+
+  /**
+   * Dibagikan ke saya
+   *
+   * Berkas dan folder yang dibagikan ke pemanggil langsung atau lewat unitnya (`arah=keluar`: yang saya bagikan). Buka isi folder bersama dengan GET /v1/berkas?bagi=<id>.
+   *
+   * `GET /v1/berkas/dibagikan`
+   *
+   * scope: `berkas:read`
+   */
+  getDibagikan(query?: {
+    /** masuk (bawaan) atau keluar */
+    arah?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/dibagikan', query }, options);
+  }
+
+  /**
+   * Cabut berbagi
+   *
+   * Menghentikan berbagi (termasuk tautan publik). Oleh yang membagikan, pemilik berkas, atau pengelola unit.
+   *
+   * `POST /v1/berkas/bagikan/{id}/cabut`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID data berbagi
+   */
+  postBagikanByIdCabut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/bagikan/{id}/cabut', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Buka tautan publik
+   *
+   * Tanpa token akses. Berkas: info dan alamat unduh. Folder: subfolder dan berkas di `folder` (bawaan akar tautan). Tautan bersandi: header `X-Sandi-Tautan` atau `?sandi=`; tanpa sandi 401 sandi_tautan.
+   *
+   * `GET /v1/berkas/tautan/{token}`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   */
+  getTautanByToken(token: string | number, query?: {
+    /** Subfolder */
+    folder?: string;
+    /** Kata sandi tautan */
+    sandi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/tautan/{token}', query: { ...query, token }, public: true }, options);
+  }
+
+  /**
+   * Unduh dari tautan publik
+   *
+   * Berkas yang dibagikan, atau `id` berkas di dalam folder yang dibagikan. Berkas terenkripsi didekripsi server.
+   *
+   * `GET /v1/berkas/tautan/{token}/unduh`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   */
+  getTautanByTokenUnduh(token: string | number, query?: {
+    /** UUID berkas (tautan folder) */
+    id?: string;
+    /** 1 = unduh sebagai lampiran */
+    unduh?: string;
+    /** Kata sandi tautan */
+    sandi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/tautan/{token}/unduh', query: { ...query, token }, public: true }, options);
+  }
+
+  /**
+   * Kebijakan enkripsi
+   *
+   * Kebijakan global (Pustikom), unit, dan pengguna yang berlaku untuk ruang ini serta `efektif` (mati, opsional, wajib). Isi berkas terenkripsi disimpan AES-256-GCM; penyedia storage hanya melihat teks sandi. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`.
+   *
+   * `GET /v1/berkas/kebijakan`
+   *
+   * scope: `berkas:read`
+   */
+  getKebijakan(query?: {
+    /** Ruang unit */
+    unit?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.BerkasKebijakan>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/kebijakan', query }, options);
+  }
+
+  /**
+   * Ubah kebijakan enkripsi
+   *
+   * Body: `lingkup` global (berkas:admin; mati/opsional/wajib), unit (pengelola unit + `unit`; opsional/wajib), atau pengguna (diri sendiri; opsional/wajib), `enkripsi`, opsional `catatan`. Berlaku untuk berkas baru; berkas lama dienkripsi lewat POST /v1/berkas/{id}/enkripsi.
+   *
+   * `POST /v1/berkas/kebijakan`
+   *
+   * scope: `berkas:write`
+   *
+   * @param body
+   */
+  postKebijakan(body: S.BerkasKebijakanUbah, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.BerkasKebijakan>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/kebijakan', body }, options);
   }
 
   /**
@@ -5423,6 +5659,53 @@ export class BerkasResource {
     paksa?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
     return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Daftar berbagi berkas
+   *
+   * Siapa saja yang menerima berkas ini dan tautan publiknya.
+   *
+   * `GET /v1/berkas/{id}/bagikan`
+   *
+   * scope: `berkas:read`
+   *
+   * @param id UUID berkas
+   */
+  getByIdBagikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/berkas/{id}/bagikan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Bagikan berkas
+   *
+   * Body: `ke_jenis` (pengguna, unit, tautan), `ke` (username/kode unit), `izin` (lihat/ubah; tautan hanya lihat), opsional `kedaluwarsa_at`, `sandi` (tautan), `pesan`.
+   *
+   * `POST /v1/berkas/{id}/bagikan`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param body
+   */
+  postByIdBagikan(id: string | number, body: S.BerkasBagikan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.BerkasBagi>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/bagikan', query: { id }, body }, options);
+  }
+
+  /**
+   * Enkripsi atau buka enkripsi berkas
+   *
+   * Body `aktif` (true/false). Isi ditulis ulang ke objek baru di penyimpanan yang sama. Ditolak bila kebijakan mewajibkan enkripsi (buka) atau mematikannya (aktifkan).
+   *
+   * `POST /v1/berkas/{id}/enkripsi`
+   *
+   * scope: `berkas:write`
+   *
+   * @param id UUID berkas
+   * @param body
+   */
+  postByIdEnkripsi(id: string | number, body: S.BerkasEnkripsi, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Berkas>> {
+    return this.client.request({ method: 'POST', path: '/v1/berkas/{id}/enkripsi', query: { id }, body }, options);
   }
 
   /**

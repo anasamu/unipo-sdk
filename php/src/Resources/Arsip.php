@@ -91,7 +91,7 @@ final class Arsip extends Resource
     /**
      * Buat unit dari data SIAKAD
      *
-     * Membuat unit universitas, fakultas (m_fakultas), dan prodi (m_program_studi) yang belum ada, serta mendaftarkan dekan (m_fakultas.pejabat) dan kaprodi (idd_ketua_prodi) sebagai pimpinan bila akunnya ada. Aman diulang.
+     * Membuat unit universitas, fakultas (m_fakultas), dan prodi (m_program_studi) yang belum ada, unit kerja bagian yang punya aplikasi sendiri (baak, bauk, sdm, lpm, pmb; jenis unit), serta mendaftarkan dekan (m_fakultas.pejabat) dan kaprodi (idd_ketua_prodi) sebagai pimpinan bila akunnya ada. Aman diulang.
      *
      * `POST /v1/arsip/unit/sinkron-siakad`
      *
@@ -163,6 +163,25 @@ final class Arsip extends Resource
     public function deleteUnitById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/arsip/unit/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cari akun untuk disposisi/petugas
+     *
+     * Akun aktif selain mahasiswa/pendaftar: username, nama, level, jabatan arsip. Hanya untuk admin arsip dan petugas unit.
+     *
+     * `GET /v1/arsip/pengguna`
+     *
+     * scope: `arsip:read` · berhalaman
+     *
+     * @param array{q?: string, username?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengguna(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/arsip/pengguna', [], $query, null, $options, false, false);
     }
 
     /**

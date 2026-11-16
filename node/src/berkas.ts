@@ -19,6 +19,12 @@ export interface UnggahBerkasOpsi {
   visibilitas?: 'privat' | 'publik';
   /** Kode penyedia storage; bawaan penyimpanan utama. */
   penyimpanan?: string;
+  /** Simpan di ruang berkas bersama unit (mis. `baak`, `bauk`, `fak-ft`); lihat GET /v1/berkas/unit. */
+  unit?: string;
+  /** Kode periode akademik (mis. `20251`); bawaan periode yang sedang dibuka. */
+  periode?: string;
+  /** Enkripsi isi di server sebelum masuk storage (bisa diwajibkan kebijakan Pustikom/unit/pengguna). */
+  enkripsi?: boolean;
   /** Jumlah potongan yang dikirim bersamaan (bawaan 3). */
   paralel?: number;
   /** Berapa kali satu potongan diulang bila gagal (bawaan 3). */
@@ -72,8 +78,10 @@ const tunggu = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function unggahBerkas(client: SiakadCore, file: Uploadable, opsi: UnggahBerkasOpsi = {}): Promise<Berkas> {
   const { blob, nama } = keBlob(file, opsi.nama);
   const atribut = Object.fromEntries(
-    Object.entries({ kategori: opsi.kategori, modul: opsi.modul, folder: opsi.folder, keterangan: opsi.keterangan, visibilitas: opsi.visibilitas, penyimpanan: opsi.penyimpanan })
-      .filter(([, v]) => v !== undefined),
+    Object.entries({
+      kategori: opsi.kategori, modul: opsi.modul, folder: opsi.folder, keterangan: opsi.keterangan, visibilitas: opsi.visibilitas, penyimpanan: opsi.penyimpanan,
+      unit: opsi.unit, periode: opsi.periode, enkripsi: opsi.enkripsi === undefined ? undefined : opsi.enkripsi ? '1' : '0',
+    }).filter(([, v]) => v !== undefined),
   );
   const req: RequestOptions = { signal: opsi.signal };
   const total = blob.size;

@@ -42,7 +42,7 @@ export class Siakad extends SiakadCore {
     return this.resource('apiPortal', () => new R.ApiPortalResource(this));
   }
 
-  /** Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan (123 endpoint) */
+  /** Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan (124 endpoint) */
   get arsip(): R.ArsipResource {
     return this.resource('arsip', () => new R.ArsipResource(this));
   }
@@ -52,7 +52,7 @@ export class Siakad extends SiakadCore {
     return this.resource('aturan', () => new R.AturanResource(this));
   }
 
-  /** Berkas, Berkas: Unggah bertahap, Berkas: Folder (24 endpoint) */
+  /** Berkas, Berkas: Unggah bertahap, Berkas: Folder, Berkas: Unit dan periode, Berkas: Berbagi, Berkas: Enkripsi (39 endpoint) */
   get berkas(): R.BerkasResource {
     return this.resource('berkas', () => new R.BerkasResource(this));
   }
