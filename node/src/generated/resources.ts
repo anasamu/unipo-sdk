@@ -2255,6 +2255,24 @@ export class AkademikResource {
   }
 
   /**
+   * Analisis nilai bermasalah
+   *
+   * Pengelola akademik. Untuk satu periode dan satu/semua prodi kelolaan: ringkasan kelengkapan nilai, sebaran nilai, per prodi, per kelas (peserta, terisi, belum, D/E, rerata bobot, tanda masalah: belum_dinilai, sebagian, gagal_tinggi (>= 30% D/E), seragam, tanpa_dosen, tanpa_peserta, nilai_tidak_baku), per dosen, per mata kuliah, mahasiswa bermasalah (nilai kosong, D, E, tidak baku, IPS < 2; maks. 2000), dan KRS tanpa jadwal. Hanya baca.
+   *
+   * `GET /v1/akademik/nilai/analisis`
+   *
+   * scope: `akademik:read`
+   */
+  getNilaiAnalisis(query?: {
+    /** Kode prodi (kosong = semua prodi kelolaan) */
+    prodi?: string;
+    /** Bawaan tahun aktif */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/akademik/nilai/analisis', query }, options);
+  }
+
+  /**
    * Laporan akademik per prodi
    *
    * Status mahasiswa, KRS, nilai terisi + distribusi, kelas dan pertemuan untuk satu periode. Pengelola akademik.
@@ -8779,7 +8797,7 @@ export class DasborResource {
   }
 }
 
-/** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik */
+/** Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik */
 export class DokumenResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -8903,6 +8921,127 @@ export class DokumenResource {
   }
 
   /**
+   * Daftar templat Word
+   *
+   * Templat .docx semua bagian (atau `bagian` tertentu), jenis yang mendukung placeholder, dan `pdf_tersedia` (LibreOffice di server; tanpa itu dokumen terbit sebagai .docx).
+   *
+   * `GET /v1/dokumen/templat-docx`
+   *
+   * scope: `dokumen:read`
+   */
+  getTemplatDocx(query?: {
+    /** krs, khs, transkrip, ijazah */
+    jenis?: string;
+    /** Kode unit; kosong = semua */
+    bagian?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat-docx', query }, options);
+  }
+
+  /**
+   * Unggah templat Word
+   *
+   * Multipart `berkas` (.docx, maks. 10 MB) + `jenis`, `nama?`, `bagian?` (kosong = kampus), `keterangan?`, `aktif?` (bawaan true; mengaktifkan menonaktifkan templat lain bagian + jenis yang sama). Placeholder di berkas dibaca dan dilaporkan (`penanda`, `penanda_tidak_dikenal`). Hak: admin dokumen, pimpinan/admin unit, atau pengelola akademik (BAAK untuk tingkat kampus; prodi untuk unit prodinya).
+   *
+   * `POST /v1/dokumen/templat-docx`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body Isian formulir; field berkas boleh Blob/File/Uint8Array.
+   */
+  postTemplatDocx(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat-docx', body, multipart: true }, options);
+  }
+
+  /**
+   * Daftar placeholder
+   *
+   * Placeholder {..} per jenis, dikelompokkan, dengan contoh nilai. Baris tabel berulang memakai {mk.kode}, {mk.nama}, ...; gambar QR {qr} atau {qr:30} (mm).
+   *
+   * `GET /v1/dokumen/templat-docx/penanda`
+   *
+   * scope: `dokumen:read`
+   */
+  getTemplatDocxPenanda(query: {
+    /** Jenis dokumen */
+    jenis: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat-docx/penanda', query }, options);
+  }
+
+  /**
+   * Unduh berkas contoh .docx
+   *
+   * Berkas Word awal berisi placeholder untuk jenis ini; ubah desainnya di Word lalu unggah.
+   *
+   * `GET /v1/dokumen/templat-docx/contoh`
+   *
+   * scope: `dokumen:read`
+   */
+  getTemplatDocxContoh(query: {
+    /** Jenis dokumen */
+    jenis: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat-docx/contoh', query }, options);
+  }
+
+  /**
+   * Ubah templat Word
+   *
+   * Body {nama?, keterangan?, aktif?}.
+   *
+   * `POST /v1/dokumen/templat-docx/{id}`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param id UUID templat Word
+   */
+  postTemplatDocxById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat-docx/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus templat Word
+   *
+   * `POST /v1/dokumen/templat-docx/{id}/hapus`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param id UUID templat Word
+   */
+  postTemplatDocxByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat-docx/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unduh berkas templat Word
+   *
+   * `GET /v1/dokumen/templat-docx/{id}/unduh`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param id UUID templat Word
+   */
+  getTemplatDocxByIdUnduh(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/dokumen/templat-docx/{id}/unduh', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau templat Word
+   *
+   * Body {nim?, tahun_id?}: dengan NIM memakai data mahasiswa itu, tanpa NIM memakai data contoh. Tidak disimpan. PDF bila LibreOffice ada (header X-Format), selain itu .docx.
+   *
+   * `POST /v1/dokumen/templat-docx/{id}/pratinjau`
+   *
+   * scope: `dokumen:read`
+   *
+   * @param id UUID templat Word
+   */
+  postTemplatDocxByIdPratinjau(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/templat-docx/{id}/pratinjau', query: { ...query, id } }, options);
+  }
+
+  /**
    * Terbitkan KRS
    *
    * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/krs (mahasiswa hanya miliknya). Tanda tangan dosen PA dan mahasiswa.
@@ -8966,6 +9105,28 @@ export class DokumenResource {
    */
   postTranskrip(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
     return this.client.request({ method: 'POST', path: '/v1/dokumen/transkrip', body }, options);
+  }
+
+  /**
+   * Terbitkan ijazah
+   *
+   * Body {nim}. Hanya pengelola kelulusan (BAAK); mahasiswa harus berstatus lulus. Memakai templat Word ijazah aktif bila ada (placeholder {nomor_ijazah}, {nomor_sk}, {gelar}, ...), selain itu desain bawaan.
+   * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+   * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+   * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+   * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+   *
+   * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+   * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+   *
+   * `POST /v1/dokumen/ijazah`
+   *
+   * scope: `dokumen:write`
+   *
+   * @param body
+   */
+  postIjazah(body: S.DokSumberInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.DokTerbit>> {
+    return this.client.request({ method: 'POST', path: '/v1/dokumen/ijazah', body }, options);
   }
 
   /**
@@ -9060,8 +9221,16 @@ export class DokumenResource {
     sumber_modul?: string;
     /** Referensi */
     sumber_ref?: string;
-    /** Cari judul, nomor, kode */
+    /** Cari judul, nomor, kode, NIM, nama */
     q?: string;
+    /** akademik = pengelola akademik melihat dokumen mahasiswa prodi kelolaannya + yang dibuatnya */
+    lingkup?: string;
+    /** Kode prodi pemilik (dengan lingkup=akademik atau admin) */
+    prodi?: string;
+    /** Terbit sejak YYYY-MM-DD */
+    dari?: string;
+    /** Terbit sampai YYYY-MM-DD */
+    sampai?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.DokTerbit>>> {
     return this.client.request({ method: 'GET', path: '/v1/dokumen/terbit', query }, options);
   }
@@ -10766,6 +10935,315 @@ export class FakultasResource {
     tahun_id?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/presensi/sp/{id}/batal', query: { ...query, kode, id } }, options);
+  }
+
+  /**
+   * Riwayat perbaikan nilai
+   *
+   * Perbaikan nilai prodi (nilai lama → baru, alasan, pelaku). Filter ?nim= dan ?tahun_id=.
+   *
+   * `GET /v1/fakultas/{kode}/nilai/perbaikan`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeNilaiPerbaikan(kode: string | number, query?: {
+    /** NIM */
+    nim?: string;
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/nilai/perbaikan', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Perbaiki nilai
+   *
+   * Body: {"nim", "idkrs", "nilai": "A", "alasan"}. Hanya KRS periode aktif (periode lalu lewat BAAK), mahasiswa belum lulus/keluar, nilai dari skala m_nilai; lewat KhsEditService level PROGDI dan tercatat di riwayat.
+   *
+   * `POST /v1/fakultas/{kode}/nilai/perbaikan`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  postByKodeNilaiPerbaikan(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/nilai/perbaikan', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Mahasiswa pindahan
+   *
+   * Mahasiswa status masuk pindahan (P) dengan SKS diakui vs SKS konversi terisi. ?status=belum|kurang.
+   *
+   * `GET /v1/fakultas/{kode}/nilai/pindahan`
+   *
+   * scope: `fakultas:read` · berhalaman
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeNilaiPindahan(kode: string | number, query?: {
+    /** NIM/nama */
+    q?: string;
+    /** belum|kurang */
+    status?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/nilai/pindahan', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Nilai satu mahasiswa
+   *
+   * KHS per periode + IPS, skala nilai, mana yang boleh diperbaiki, riwayat perbaikan.
+   *
+   * `GET /v1/fakultas/{kode}/nilai/mahasiswa/{nim}`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   * @param nim NIM
+   */
+  getByKodeNilaiMahasiswaByNim(kode: string | number, nim: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/nilai/mahasiswa/{nim}', query: { ...query, kode, nim } }, options);
+  }
+
+  /**
+   * Beban SKS menurut IPS
+   *
+   * Baris m_sks prodi + periode, celah rentang IPS yang belum tertutup, batas SKS periode, periode lain yang punya data.
+   *
+   * `GET /v1/fakultas/{kode}/sks-ips`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeSksIps(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/sks-ips', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Tambah beban SKS
+   *
+   * Body: {"ips_min": 3.00, "ips_max": 4.00, "sks": 24}. IPS 0–4, SKS 1–30, rentang tidak boleh bertumpuk (409); periode lalu ditolak.
+   *
+   * `POST /v1/fakultas/{kode}/sks-ips`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  postByKodeSksIps(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/sks-ips', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Hapus beban SKS
+   *
+   * Body: {"id": [1, 2]}.
+   *
+   * `POST /v1/fakultas/{kode}/sks-ips/hapus`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  postByKodeSksIpsHapus(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/sks-ips/hapus', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Salin beban SKS
+   *
+   * Body: {"dari": "20251"} ke periode tahun_id (harus masih kosong).
+   *
+   * `POST /v1/fakultas/{kode}/sks-ips/salin`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  postByKodeSksIpsSalin(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/sks-ips/salin', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Ubah beban SKS
+   *
+   * Body sama dengan tambah.
+   *
+   * `POST /v1/fakultas/{kode}/sks-ips/{id}`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   * @param id ID m_sks
+   */
+  postByKodeSksIpsById(kode: string | number, id: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/sks-ips/{id}', query: { ...query, kode, id } }, options);
+  }
+
+  /**
+   * Logbook bimbingan tugas akhir
+   *
+   * Mahasiswa TA + pembimbing, jumlah bimbingan, bimbingan terakhir, tahap. Dosen (pribadi) = bimbingannya sendiri.
+   *
+   * `GET /v1/fakultas/{kode}/ta/logbook`
+   *
+   * scope: `fakultas:read` · berhalaman
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeTaLogbook(kode: string | number, query?: {
+    /** NIM/nama/judul */
+    q?: string;
+    /** tanpa|lama|judul|bimbingan|seminar|ujian|lulus */
+    tahap?: string;
+    /** NIDN */
+    pembimbing?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Batasi ke satu prodi (harus dalam kewenangan) */
+    prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/ta/logbook', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Logbook satu mahasiswa
+   *
+   * Data TA + catatan bimbingan + boleh_tulis.
+   *
+   * `GET /v1/fakultas/{kode}/ta/logbook/{nim}`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   * @param nim NIM
+   */
+  getByKodeTaLogbookByNim(kode: string | number, nim: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/ta/logbook/{nim}', query: { ...query, kode, nim } }, options);
+  }
+
+  /**
+   * Tambah catatan bimbingan
+   *
+   * Body: {"tanggal_mulai", "tanggal_selesai", "masalah", "bimbingan"}. Oleh pembimbing atau pemegang fakultas.ta.kelola; judul harus sudah diterima.
+   *
+   * `POST /v1/fakultas/{kode}/ta/logbook/{nim}`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   * @param nim NIM
+   */
+  postByKodeTaLogbookByNim(kode: string | number, nim: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/ta/logbook/{nim}', query: { ...query, kode, nim } }, options);
+  }
+
+  /**
+   * Ubah catatan bimbingan
+   *
+   * Body sama dengan tambah.
+   *
+   * `POST /v1/fakultas/{kode}/ta/logbook/{nim}/{id}`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   * @param nim NIM
+   * @param id ID catatan
+   */
+  postByKodeTaLogbookByNimById(kode: string | number, nim: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/ta/logbook/{nim}/{id}', query: { ...query, kode, nim, id } }, options);
+  }
+
+  /**
+   * Templat SKPI prodi
+   *
+   * Isi bab 0 (kop), 3 (capaian pembelajaran), 4–6 (sistem pendidikan, KKNI, informasi tambahan).
+   *
+   * `GET /v1/fakultas/{kode}/skpi/templat`
+   *
+   * scope: `fakultas:read`
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeSkpiTemplat(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/skpi/templat', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Simpan templat SKPI
+   *
+   * Body: {"ke": "3", "isi": "<p>...</p>"}. Isi kosong menghapus bab itu.
+   *
+   * `POST /v1/fakultas/{kode}/skpi/templat`
+   *
+   * scope: `fakultas:write` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  postByKodeSkpiTemplat(kode: string | number, query?: {
+    /** Prodi (wajib bila Anda berwenang di lebih dari satu prodi; boleh juga di body) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/fakultas/{kode}/skpi/templat', query: { ...query, kode } }, options);
   }
 
   /**
@@ -13450,6 +13928,334 @@ export class HumasResource {
    */
   postSiaran(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/humas/siaran', body }, options);
+  }
+
+  /**
+   * Cari akun SIAKAD
+   *
+   * Untuk memilih pengelola situs. Admin humas atau admin situs. `q` = nama atau username, `username` = cari tepat satu akun.
+   *
+   * `GET /v1/humas/pengguna`
+   *
+   * scope: `portal:write`
+   */
+  getPengguna(query?: {
+    /** Nama atau username */
+    q?: string;
+    /** Username tepat */
+    username?: string;
+    /** 1-50, bawaan 20 */
+    per_page?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/humas/pengguna', query }, options);
+  }
+
+  /**
+   * Daftar peran RBAC
+   *
+   * Peran aktif beserta jumlah pemegang, untuk memberi hak kelola situs lewat peran. Admin humas atau admin situs.
+   *
+   * `GET /v1/humas/peran`
+   *
+   * scope: `portal:write`
+   */
+  getPeran(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/humas/peran', query }, options);
+  }
+
+  /**
+   * Peran yang mengelola situs
+   *
+   * Semua pemegang peran RBAC ini mendapat peran situs (penulis/editor/admin). Admin situs.
+   *
+   * `GET /v1/humas/situs/{kode}/peran`
+   *
+   * scope: `portal:write`
+   *
+   * @param kode Kode atau ID situs
+   */
+  getSitusByKodePeran(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/humas/situs/{kode}/peran', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Beri hak kelola situs ke peran
+   *
+   * Body: `peran_rbac` (kode rbac_peran), `peran` (penulis | editor | admin). Mengganti peran bila sudah ada.
+   *
+   * `POST /v1/humas/situs/{kode}/peran`
+   *
+   * scope: `portal:write`
+   *
+   * @param kode Kode atau ID situs
+   * @param body
+   */
+  postSitusByKodePeran(kode: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/situs/{kode}/peran', query: { kode }, body }, options);
+  }
+
+  /**
+   * Cabut hak kelola situs dari peran
+   *
+   * Admin situs.
+   *
+   * `POST /v1/humas/situs/{kode}/peran/{peran}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param kode Kode atau ID situs
+   * @param peran Kode peran RBAC
+   */
+  postSitusByKodePeranByPeranHapus(kode: string | number, peran: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/situs/{kode}/peran/{peran}/hapus', query: { ...query, kode, peran } }, options);
+  }
+
+  /**
+   * Dokumen: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/dokumen/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/dokumen/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaDokumenById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/dokumen/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Dokumen: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/dokumen/{id}.
+   *
+   * `POST /v1/humas/kelola/dokumen/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaDokumenByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/dokumen/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Banner: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/banner/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/banner/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaBannerById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/banner/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Banner: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/banner/{id}.
+   *
+   * `POST /v1/humas/kelola/banner/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaBannerByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/banner/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tautan: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/tautan/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/tautan/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaTautanById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/tautan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Tautan: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/tautan/{id}.
+   *
+   * `POST /v1/humas/kelola/tautan/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaTautanByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/tautan/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Struktur: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/struktur/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/struktur/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaStrukturById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/struktur/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Struktur: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/struktur/{id}.
+   *
+   * `POST /v1/humas/kelola/struktur/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaStrukturByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/struktur/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Faq: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/faq/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/faq/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaFaqById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/faq/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Faq: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/faq/{id}.
+   *
+   * `POST /v1/humas/kelola/faq/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaFaqByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/faq/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Menu: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/menu/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/menu/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaMenuById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/menu/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Menu: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/menu/{id}.
+   *
+   * `POST /v1/humas/kelola/menu/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaMenuByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/menu/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/lowongan/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/lowongan/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaLowonganById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/lowongan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Lowongan: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/lowongan/{id}.
+   *
+   * `POST /v1/humas/kelola/lowongan/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaLowonganByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/lowongan/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Kategori: simpan perubahan
+   *
+   * Alias POST dari PATCH /v1/portal/kelola/kategori/{id}; kirim hanya kolom yang berubah.
+   *
+   * `POST /v1/humas/kelola/kategori/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaKategoriById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/kategori/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Kategori: hapus
+   *
+   * Alias POST dari DELETE /v1/portal/kelola/kategori/{id}.
+   *
+   * `POST /v1/humas/kelola/kategori/{id}/hapus`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  postKelolaKategoriByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/humas/kelola/kategori/{id}/hapus', query: { ...query, id } }, options);
   }
 
   /**
@@ -19622,6 +20428,24 @@ export class KelulusanResource {
    */
   getPredikat(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/kelulusan/predikat', query }, options);
+  }
+
+  /**
+   * Ringkasan lulusan
+   *
+   * Pengelola. Jumlah lulusan, kelengkapan SK yudisium/nomor ijazah/PIN/tanggal ijazah, rerata IPK dan masa studi (semester), sebaran predikat, rincian per prodi, dan jumlah per periode lulus (12 terakhir). Tanpa prodi = semua prodi kelolaan.
+   *
+   * `GET /v1/kelulusan/lulusan/ringkasan`
+   *
+   * scope: `kelulusan:read`
+   */
+  getLulusanRingkasan(query?: {
+    /** Kode prodi (kosong = semua prodi kelolaan) */
+    prodi?: string;
+    /** Periode lulus (kosong = semua) */
+    tahun_lulus?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kelulusan/lulusan/ringkasan', query }, options);
   }
 
   /**
@@ -41881,6 +42705,69 @@ export class PortalResource {
   }
 
   /**
+   * Lowongan kerja: daftar
+   *
+   * Lowongan kerja, magang, dan rekrutmen. `buka=1` hanya yang batas lamarannya belum lewat. Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
+   *
+   * `GET /v1/portal/lowongan`
+   *
+   * scope: `portal:read` · berhalaman
+   */
+  getLowongan(query?: {
+    /** Kode situs Contoh: `univ` */
+    situs?: string;
+    /** 1 = sertakan situs turunan */
+    turunan?: string;
+    /** Cari judul */
+    q?: string;
+    /** penuh_waktu | paruh_waktu | kontrak | magang | lepas */
+    tipe?: string;
+    /** kantor | hibrida | jarak_jauh */
+    sistem_kerja?: string;
+    /** 1 = batas lamaran belum lewat */
+    buka?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PortalKonten>>> {
+    return this.client.request({ method: 'GET', path: '/v1/portal/lowongan', query }, options);
+  }
+
+  /**
+   * Lowongan kerja: detail
+   *
+   * Pakai ID, atau slug + `situs`.
+   *
+   * `GET /v1/portal/lowongan/{id}`
+   *
+   * scope: `portal:read`
+   *
+   * @param id ID atau slug
+   */
+  getLowonganById(id: string | number, query?: {
+    /** Kode situs (wajib bila memakai slug) Contoh: `univ` */
+    situs?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'GET', path: '/v1/portal/lowongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan kerja: catat tayang
+   *
+   * Menambah hitungan dan statistik harian. Panggil dari frontend sekali per kunjungan.
+   *
+   * `POST /v1/portal/lowongan/{id}/dilihat`
+   *
+   * scope: `portal:interaksi`
+   *
+   * @param id ID
+   */
+  postLowonganByIdDilihat(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/portal/lowongan/{id}/dilihat', query: { ...query, id } }, options);
+  }
+
+  /**
    * Kategori: daftar
    *
    * Kategori konten per jenis (termasuk kategori bersama). Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
@@ -43514,6 +44401,118 @@ export class PortalResource {
    */
   getKelolaMenuByIdRevisi(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/portal/kelola/menu/{id}/revisi', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan kerja: daftar (semua status)
+   *
+   * Hanya situs yang dikelola token ini.
+   *
+   * `GET /v1/portal/kelola/lowongan`
+   *
+   * scope: `portal:write` · berhalaman
+   */
+  getKelolaLowongan(query?: {
+    /** Kode situs Contoh: `univ` */
+    situs?: string;
+    /** draf | review | terbit | arsip */
+    status?: string;
+    /** Cari */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.PortalKonten>>> {
+    return this.client.request({ method: 'GET', path: '/v1/portal/kelola/lowongan', query }, options);
+  }
+
+  /**
+   * Lowongan kerja: buat
+   *
+   * Wajib `situs`. Peran: penulis ke atas (penulis hanya miliknya yang masih draf/review). `status` awal draf (bawaan) atau review; editor boleh langsung terbit. HTML disaring di server.
+   *
+   * `POST /v1/portal/kelola/lowongan`
+   *
+   * scope: `portal:write`
+   *
+   * @param body
+   */
+  postKelolaLowongan(body: S.PortalLowonganRequest, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/portal/kelola/lowongan', body }, options);
+  }
+
+  /**
+   * Lowongan kerja: detail
+   *
+   * `GET /v1/portal/kelola/lowongan/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  getKelolaLowonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'GET', path: '/v1/portal/kelola/lowongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan kerja: ubah
+   *
+   * Kirim hanya kolom yang diubah. Isi lama disimpan di riwayat revisi.
+   *
+   * `PATCH /v1/portal/kelola/lowongan/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  patchKelolaLowonganById(id: string | number, body: S.PortalLowonganRequest, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'PATCH', path: '/v1/portal/kelola/lowongan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Lowongan kerja: hapus
+   *
+   * Hapus lunak (deleted_at); isi tersimpan di riwayat revisi.
+   *
+   * `DELETE /v1/portal/kelola/lowongan/{id}`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  deleteKelolaLowonganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/portal/kelola/lowongan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan kerja: riwayat perubahan
+   *
+   * `GET /v1/portal/kelola/lowongan/{id}/revisi`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   */
+  getKelolaLowonganByIdRevisi(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/portal/kelola/lowongan/{id}/revisi', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Lowongan kerja: ubah status
+   *
+   * Body `{"status": "draf|review|terbit|arsip", "terbit_pada": "2026-12-01 08:00:00"}`. Penulis hanya draf/review; editor menerbitkan. `terbit_pada` di masa depan = terjadwal.
+   *
+   * `POST /v1/portal/kelola/lowongan/{id}/status`
+   *
+   * scope: `portal:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKelolaLowonganByIdStatus(id: string | number, body: S.PortalStatusRequest, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.PortalKonten>> {
+    return this.client.request({ method: 'POST', path: '/v1/portal/kelola/lowongan/{id}/status', query: { id }, body }, options);
   }
 
   /**
@@ -54814,7 +55813,7 @@ export class SdmResource {
   /**
    * Cari SDM di SISTER
    *
-   * Langsung ke GET /referensi/sdm SISTER. Isi salah satu: nidn, nip, atau nama. Setiap hasil diberi `terhubung_ke` bila id_sdm sudah dipetakan.
+   * Langsung ke GET /referensi/sdm SISTER. Isi salah satu: nidn, nip, nuptk, atau nama (minimal 3 huruf). id_sp hanya ikut bila mencari nama (aturan SISTER). Setiap hasil diberi `terhubung_ke` bila id_sdm sudah dipetakan.
    *
    * `GET /v1/sdm/sister/sdm`
    *
@@ -54825,7 +55824,9 @@ export class SdmResource {
     nidn?: string;
     /** NIP */
     nip?: string;
-    /** Nama */
+    /** NUPTK */
+    nuptk?: string;
+    /** Nama, minimal 3 huruf */
     nama?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/sister/sdm', query }, options);
@@ -54834,7 +55835,7 @@ export class SdmResource {
   /**
    * Cocokkan pegawai dengan SISTER
    *
-   * Pegawai yang belum terhubung dicari di /referensi/sdm lewat NIDN lalu NIP; dipasangkan hanya bila hasilnya tepat satu. Diproses per batch (`batas`); ulangi sampai `sisa` 0.
+   * Pegawai yang belum terhubung dicari di /referensi/sdm lewat NIDN, lalu NIP, lalu NUPTK; dipasangkan hanya bila hasilnya tepat satu. Diproses per batch (`batas`); ulangi sampai `sisa` 0.
    *
    * `POST /v1/sdm/sister/cocokkan`
    *

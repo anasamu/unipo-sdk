@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3541 endpoint).
+ * Akses ke semua modul API (3598 endpoint).
  */
 trait GeneratedResources
 {
@@ -25,7 +25,7 @@ trait GeneratedResources
         return $this->resource(Resources\Admisi::class);
     }
 
-    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (56 endpoint) */
+    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (57 endpoint) */
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
@@ -85,7 +85,7 @@ trait GeneratedResources
         return $this->resource(Resources\Dasbor::class);
     }
 
-    /** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (21 endpoint) */
+    /** Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (30 endpoint) */
     public function dokumen(): Resources\Dokumen
     {
         return $this->resource(Resources\Dokumen::class);
@@ -103,7 +103,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (76 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (91 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -121,7 +121,7 @@ trait GeneratedResources
         return $this->resource(Resources\Helpdesk::class);
     }
 
-    /** Humas, Humas: redaksi (53 endpoint) */
+    /** Humas, Humas: redaksi (74 endpoint) */
     public function humas(): Resources\Humas
     {
         return $this->resource(Resources\Humas::class);
@@ -187,7 +187,7 @@ trait GeneratedResources
         return $this->resource(Resources\Kelengkapan::class);
     }
 
-    /** Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI (82 endpoint) */
+    /** Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI (83 endpoint) */
     public function kelulusan(): Resources\Kelulusan
     {
         return $this->resource(Resources\Kelulusan::class);
@@ -331,7 +331,7 @@ trait GeneratedResources
         return $this->resource(Resources\Pmb::class);
     }
 
-    /** Portal, Portal: kelola (138 endpoint) */
+    /** Portal, Portal: kelola (148 endpoint) */
     public function portal(): Resources\Portal
     {
         return $this->resource(Resources\Portal::class);

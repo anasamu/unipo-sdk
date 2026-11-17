@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik
+ * Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik
  */
 final class Dokumen extends Resource
 {
@@ -163,6 +163,158 @@ final class Dokumen extends Resource
     }
 
     /**
+     * Daftar templat Word
+     *
+     * Templat .docx semua bagian (atau `bagian` tertentu), jenis yang mendukung placeholder, dan `pdf_tersedia` (LibreOffice di server; tanpa itu dokumen terbit sebagai .docx).
+     *
+     * `GET /v1/dokumen/templat-docx`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array{jenis?: string, bagian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatDocx(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/templat-docx', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unggah templat Word
+     *
+     * Multipart `berkas` (.docx, maks. 10 MB) + `jenis`, `nama?`, `bagian?` (kosong = kampus), `keterangan?`, `aktif?` (bawaan true; mengaktifkan menonaktifkan templat lain bagian + jenis yang sama). Placeholder di berkas dibaca dan dilaporkan (`penanda`, `penanda_tidak_dikenal`). Hak: admin dokumen, pimpinan/admin unit, atau pengelola akademik (BAAK untuk tingkat kampus; prodi untuk unit prodinya).
+     *
+     * `POST /v1/dokumen/templat-docx`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array<string, mixed> $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatDocx(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/templat-docx', [], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Daftar placeholder
+     *
+     * Placeholder {..} per jenis, dikelompokkan, dengan contoh nilai. Baris tabel berulang memakai {mk.kode}, {mk.nama}, ...; gambar QR {qr} atau {qr:30} (mm).
+     *
+     * `GET /v1/dokumen/templat-docx/penanda`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array{jenis: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatDocxPenanda(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/templat-docx/penanda', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh berkas contoh .docx
+     *
+     * Berkas Word awal berisi placeholder untuk jenis ini; ubah desainnya di Word lalu unggah.
+     *
+     * `GET /v1/dokumen/templat-docx/contoh`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array{jenis: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatDocxContoh(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/templat-docx/contoh', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah templat Word
+     *
+     * Body {nama?, keterangan?, aktif?}.
+     *
+     * `POST /v1/dokumen/templat-docx/{id}`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param int|string $id UUID templat Word
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatDocxById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/templat-docx/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus templat Word
+     *
+     * `POST /v1/dokumen/templat-docx/{id}/hapus`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param int|string $id UUID templat Word
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatDocxByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/templat-docx/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh berkas templat Word
+     *
+     * `GET /v1/dokumen/templat-docx/{id}/unduh`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param int|string $id UUID templat Word
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatDocxByIdUnduh(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/templat-docx/{id}/unduh', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pratinjau templat Word
+     *
+     * Body {nim?, tahun_id?}: dengan NIM memakai data mahasiswa itu, tanpa NIM memakai data contoh. Tidak disimpan. PDF bila LibreOffice ada (header X-Format), selain itu .docx.
+     *
+     * `POST /v1/dokumen/templat-docx/{id}/pratinjau`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param int|string $id UUID templat Word
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatDocxByIdPratinjau(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/templat-docx/{id}/pratinjau', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Terbitkan KRS
      *
      * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/krs (mahasiswa hanya miliknya). Tanda tangan dosen PA dan mahasiswa.
@@ -238,6 +390,32 @@ final class Dokumen extends Resource
     public function postTranskrip(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/dokumen/transkrip', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Terbitkan ijazah
+     *
+     * Body {nim}. Hanya pengelola kelulusan (BAAK); mahasiswa harus berstatus lulus. Memakai templat Word ijazah aktif bila ada (placeholder {nomor_ijazah}, {nomor_sk}, {gelar}, ...), selain itu desain bawaan.
+     * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+     * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+     * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+     * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+     *
+     * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+     * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+     *
+     * `POST /v1/dokumen/ijazah`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array{nim?: string, tahun_id?: string, transaksi_id?: int, surat?: string, bagian?: string, keluaran?: string, unduh?: bool, pratinjau?: bool, sertakan_pdf?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postIjazah(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/ijazah', [], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -327,7 +505,7 @@ final class Dokumen extends Resource
      *
      * scope: `dokumen:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, jenis?: string, status?: string, bagian?: string, pemilik?: string, sumber_modul?: string, sumber_ref?: string, q?: string, ...} $query
+     * @param array{page?: int, per_page?: int, jenis?: string, status?: string, bagian?: string, pemilik?: string, sumber_modul?: string, sumber_ref?: string, q?: string, lingkup?: string, prodi?: string, dari?: string, sampai?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

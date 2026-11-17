@@ -12133,6 +12133,46 @@ export type PortalMenuRequest = {
   [key: string]: any;
 };
 
+export type PortalLowonganRequest = {
+  /** Kode atau ID situs (wajib saat membuat) */
+  situs?: string;
+  judul: string;
+  judul_en?: string;
+  /** Kosong = dibuat dari judul */
+  slug?: string;
+  instansi?: string;
+  /** ID portal_media situs yang sama */
+  logo_media_id?: number;
+  /** ID portal_media situs yang sama */
+  gambar_media_id?: number;
+  /** ID portal_media situs yang sama */
+  lampiran_media_id?: number;
+  lokasi?: string;
+  tipe?: "penuh_waktu" | "paruh_waktu" | "kontrak" | "magang" | "lepas";
+  sistem_kerja?: "kantor" | "hibrida" | "jarak_jauh";
+  bidang?: string;
+  pendidikan?: string;
+  gaji?: string;
+  jumlah?: number;
+  /** HTML; tag/atribut berbahaya dibuang server */
+  deskripsi?: string;
+  /** HTML; tag/atribut berbahaya dibuang server */
+  syarat?: string;
+  /** HTML; tag/atribut berbahaya dibuang server */
+  cara_melamar?: string;
+  tautan?: string;
+  email?: string;
+  batas_lamaran?: string;
+  sematkan?: boolean;
+  meta_judul?: string;
+  meta_deskripsi?: string;
+  /** Hanya saat membuat */
+  status?: "draf" | "review" | "terbit";
+  /** Contoh: `2026-12-01 08:00:00` */
+  terbit_pada?: string;
+  [key: string]: any;
+};
+
 export type PortalKategoriRequest = {
   /** Kode atau ID situs (wajib saat membuat) */
   situs?: string;
@@ -14969,9 +15009,9 @@ export type SdmSisterPengaturan = {
   id_pengguna?: string | null;
   /** id_sp perguruan tinggi (opsional, menyaring /referensi/sdm) */
   id_perguruan_tinggi?: string | null;
-  /** Kosong = https://sister-api.kemdikbud.go.id/ws-sandbox.php/1.0 */
+  /** Kosong = https://sister-api.kemdiktisaintek.go.id/ws-sandbox.php/1.0 */
   url_sandbox?: string | null;
-  /** Kosong = https://sister-api.kemdikbud.go.id/ws.php/1.0 */
+  /** Kosong = https://sister-api.kemdiktisaintek.go.id/ws.php/1.0 */
   url_produksi?: string | null;
   /** Izinkan tarik otomatis oleh cron */
   aktif?: boolean;

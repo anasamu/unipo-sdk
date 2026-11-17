@@ -32,7 +32,7 @@ export class Siakad extends SiakadCore {
     return this.resource('admisi', () => new R.AdmisiResource(this));
   }
 
-  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (56 endpoint) */
+  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (57 endpoint) */
   get akademik(): R.AkademikResource {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
@@ -82,7 +82,7 @@ export class Siakad extends SiakadCore {
     return this.resource('dasbor', () => new R.DasborResource(this));
   }
 
-  /** Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (21 endpoint) */
+  /** Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik (30 endpoint) */
   get dokumen(): R.DokumenResource {
     return this.resource('dokumen', () => new R.DokumenResource(this));
   }
@@ -97,7 +97,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (76 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (91 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -112,7 +112,7 @@ export class Siakad extends SiakadCore {
     return this.resource('helpdesk', () => new R.HelpdeskResource(this));
   }
 
-  /** Humas, Humas: redaksi (53 endpoint) */
+  /** Humas, Humas: redaksi (74 endpoint) */
   get humas(): R.HumasResource {
     return this.resource('humas', () => new R.HumasResource(this));
   }
@@ -167,7 +167,7 @@ export class Siakad extends SiakadCore {
     return this.resource('kelengkapan', () => new R.KelengkapanResource(this));
   }
 
-  /** Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI (82 endpoint) */
+  /** Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI (83 endpoint) */
   get kelulusan(): R.KelulusanResource {
     return this.resource('kelulusan', () => new R.KelulusanResource(this));
   }
@@ -287,7 +287,7 @@ export class Siakad extends SiakadCore {
     return this.resource('pmb', () => new R.PmbResource(this));
   }
 
-  /** Portal, Portal: kelola (138 endpoint) */
+  /** Portal, Portal: kelola (148 endpoint) */
   get portal(): R.PortalResource {
     return this.resource('portal', () => new R.PortalResource(this));
   }

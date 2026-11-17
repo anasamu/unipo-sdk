@@ -620,6 +620,65 @@ final class Portal extends Resource
     }
 
     /**
+     * Lowongan kerja: daftar
+     *
+     * Lowongan kerja, magang, dan rekrutmen. `buka=1` hanya yang batas lamarannya belum lewat. Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
+     *
+     * `GET /v1/portal/lowongan`
+     *
+     * scope: `portal:read` · berhalaman
+     *
+     * @param array{situs?: string, turunan?: string, q?: string, tipe?: string, sistem_kerja?: string, buka?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLowongan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/portal/lowongan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: detail
+     *
+     * Pakai ID, atau slug + `situs`.
+     *
+     * `GET /v1/portal/lowongan/{id}`
+     *
+     * scope: `portal:read`
+     *
+     * @param int|string $id ID atau slug
+     * @param array{situs?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLowonganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/portal/lowongan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: catat tayang
+     *
+     * Menambah hitungan dan statistik harian. Panggil dari frontend sekali per kunjungan.
+     *
+     * `POST /v1/portal/lowongan/{id}/dilihat`
+     *
+     * scope: `portal:interaksi`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postLowonganByIdDilihat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/portal/lowongan/{id}/dilihat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kategori: daftar
      *
      * Kategori konten per jenis (termasuk kategori bersama). Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
@@ -2554,6 +2613,140 @@ final class Portal extends Resource
     public function getKelolaMenuByIdRevisi(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/portal/kelola/menu/{id}/revisi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: daftar (semua status)
+     *
+     * Hanya situs yang dikelola token ini.
+     *
+     * `GET /v1/portal/kelola/lowongan`
+     *
+     * scope: `portal:write` · berhalaman
+     *
+     * @param array{situs?: string, status?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaLowongan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/portal/kelola/lowongan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: buat
+     *
+     * Wajib `situs`. Peran: penulis ke atas (penulis hanya miliknya yang masih draf/review). `status` awal draf (bawaan) atau review; editor boleh langsung terbit. HTML disaring di server.
+     *
+     * `POST /v1/portal/kelola/lowongan`
+     *
+     * scope: `portal:write`
+     *
+     * @param array{situs?: string, judul: string, judul_en?: string, slug?: string, instansi?: string, logo_media_id?: int, gambar_media_id?: int, lampiran_media_id?: int, lokasi?: string, tipe?: string, sistem_kerja?: string, bidang?: string, pendidikan?: string, gaji?: string, jumlah?: int, deskripsi?: string, syarat?: string, cara_melamar?: string, tautan?: string, email?: string, batas_lamaran?: string, sematkan?: bool, meta_judul?: string, meta_deskripsi?: string, status?: string, terbit_pada?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaLowongan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/portal/kelola/lowongan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: detail
+     *
+     * `GET /v1/portal/kelola/lowongan/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaLowonganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/portal/kelola/lowongan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: ubah
+     *
+     * Kirim hanya kolom yang diubah. Isi lama disimpan di riwayat revisi.
+     *
+     * `PATCH /v1/portal/kelola/lowongan/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array{situs?: string, judul: string, judul_en?: string, slug?: string, instansi?: string, logo_media_id?: int, gambar_media_id?: int, lampiran_media_id?: int, lokasi?: string, tipe?: string, sistem_kerja?: string, bidang?: string, pendidikan?: string, gaji?: string, jumlah?: int, deskripsi?: string, syarat?: string, cara_melamar?: string, tautan?: string, email?: string, batas_lamaran?: string, sematkan?: bool, meta_judul?: string, meta_deskripsi?: string, status?: string, terbit_pada?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function patchKelolaLowonganById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PATCH', '/v1/portal/kelola/lowongan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: hapus
+     *
+     * Hapus lunak (deleted_at); isi tersimpan di riwayat revisi.
+     *
+     * `DELETE /v1/portal/kelola/lowongan/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKelolaLowonganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/portal/kelola/lowongan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: riwayat perubahan
+     *
+     * `GET /v1/portal/kelola/lowongan/{id}/revisi`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaLowonganByIdRevisi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/portal/kelola/lowongan/{id}/revisi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan kerja: ubah status
+     *
+     * Body `{"status": "draf|review|terbit|arsip", "terbit_pada": "2026-12-01 08:00:00"}`. Penulis hanya draf/review; editor menerbitkan. `terbit_pada` di masa depan = terjadwal.
+     *
+     * `POST /v1/portal/kelola/lowongan/{id}/status`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array{status: string, terbit_pada?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaLowonganByIdStatus(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/portal/kelola/lowongan/{id}/status', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

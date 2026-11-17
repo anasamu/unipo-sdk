@@ -150,6 +150,25 @@ final class Kelulusan extends Resource
     }
 
     /**
+     * Ringkasan lulusan
+     *
+     * Pengelola. Jumlah lulusan, kelengkapan SK yudisium/nomor ijazah/PIN/tanggal ijazah, rerata IPK dan masa studi (semester), sebaran predikat, rincian per prodi, dan jumlah per periode lulus (12 terakhir). Tanpa prodi = semua prodi kelolaan.
+     *
+     * `GET /v1/kelulusan/lulusan/ringkasan`
+     *
+     * scope: `kelulusan:read`
+     *
+     * @param array{prodi?: string, tahun_lulus?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLulusanRingkasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kelulusan/lulusan/ringkasan', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Data lulusan
      *
      * Mahasiswa berstatus L: periode/tanggal lulus, SKS, IPK, predikat, SK yudisium, no ijazah, PIN. Filter prodi, tahun_lulus, q, ada_pin.

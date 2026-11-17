@@ -844,6 +844,25 @@ final class Akademik extends Resource
     }
 
     /**
+     * Analisis nilai bermasalah
+     *
+     * Pengelola akademik. Untuk satu periode dan satu/semua prodi kelolaan: ringkasan kelengkapan nilai, sebaran nilai, per prodi, per kelas (peserta, terisi, belum, D/E, rerata bobot, tanda masalah: belum_dinilai, sebagian, gagal_tinggi (>= 30% D/E), seragam, tanpa_dosen, tanpa_peserta, nilai_tidak_baku), per dosen, per mata kuliah, mahasiswa bermasalah (nilai kosong, D, E, tidak baku, IPS < 2; maks. 2000), dan KRS tanpa jadwal. Hanya baca.
+     *
+     * `GET /v1/akademik/nilai/analisis`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiAnalisis(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/analisis', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Laporan akademik per prodi
      *
      * Status mahasiswa, KRS, nilai terisi + distribusi, kelas dan pertemuan untuk satu periode. Pengelola akademik.

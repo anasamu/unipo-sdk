@@ -1226,6 +1226,312 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Riwayat perbaikan nilai
+     *
+     * Perbaikan nilai prodi (nilai lama → baru, alasan, pelaku). Filter ?nim= dan ?tahun_id=.
+     *
+     * `GET /v1/fakultas/{kode}/nilai/perbaikan`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{nim?: string, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeNilaiPerbaikan(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/nilai/perbaikan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Perbaiki nilai
+     *
+     * Body: {"nim", "idkrs", "nilai": "A", "alasan"}. Hanya KRS periode aktif (periode lalu lewat BAAK), mahasiswa belum lulus/keluar, nilai dari skala m_nilai; lewat KhsEditService level PROGDI dan tercatat di riwayat.
+     *
+     * `POST /v1/fakultas/{kode}/nilai/perbaikan`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeNilaiPerbaikan(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/nilai/perbaikan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa pindahan
+     *
+     * Mahasiswa status masuk pindahan (P) dengan SKS diakui vs SKS konversi terisi. ?status=belum|kurang.
+     *
+     * `GET /v1/fakultas/{kode}/nilai/pindahan`
+     *
+     * scope: `fakultas:read` · berhalaman
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{q?: string, status?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeNilaiPindahan(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/nilai/pindahan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai satu mahasiswa
+     *
+     * KHS per periode + IPS, skala nilai, mana yang boleh diperbaiki, riwayat perbaikan.
+     *
+     * `GET /v1/fakultas/{kode}/nilai/mahasiswa/{nim}`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $nim NIM
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeNilaiMahasiswaByNim(int|string $kode, int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/nilai/mahasiswa/{nim}', ['kode' => $kode, 'nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Beban SKS menurut IPS
+     *
+     * Baris m_sks prodi + periode, celah rentang IPS yang belum tertutup, batas SKS periode, periode lain yang punya data.
+     *
+     * `GET /v1/fakultas/{kode}/sks-ips`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeSksIps(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/sks-ips', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah beban SKS
+     *
+     * Body: {"ips_min": 3.00, "ips_max": 4.00, "sks": 24}. IPS 0–4, SKS 1–30, rentang tidak boleh bertumpuk (409); periode lalu ditolak.
+     *
+     * `POST /v1/fakultas/{kode}/sks-ips`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeSksIps(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/sks-ips', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus beban SKS
+     *
+     * Body: {"id": [1, 2]}.
+     *
+     * `POST /v1/fakultas/{kode}/sks-ips/hapus`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeSksIpsHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/sks-ips/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Salin beban SKS
+     *
+     * Body: {"dari": "20251"} ke periode tahun_id (harus masih kosong).
+     *
+     * `POST /v1/fakultas/{kode}/sks-ips/salin`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeSksIpsSalin(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/sks-ips/salin', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah beban SKS
+     *
+     * Body sama dengan tambah.
+     *
+     * `POST /v1/fakultas/{kode}/sks-ips/{id}`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID m_sks
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeSksIpsById(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/sks-ips/{id}', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Logbook bimbingan tugas akhir
+     *
+     * Mahasiswa TA + pembimbing, jumlah bimbingan, bimbingan terakhir, tahap. Dosen (pribadi) = bimbingannya sendiri.
+     *
+     * `GET /v1/fakultas/{kode}/ta/logbook`
+     *
+     * scope: `fakultas:read` · berhalaman
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{q?: string, tahap?: string, pembimbing?: string, page?: int, per_page?: int, prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeTaLogbook(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ta/logbook', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Logbook satu mahasiswa
+     *
+     * Data TA + catatan bimbingan + boleh_tulis.
+     *
+     * `GET /v1/fakultas/{kode}/ta/logbook/{nim}`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeTaLogbookByNim(int|string $kode, int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ta/logbook/{nim}', ['kode' => $kode, 'nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah catatan bimbingan
+     *
+     * Body: {"tanggal_mulai", "tanggal_selesai", "masalah", "bimbingan"}. Oleh pembimbing atau pemegang fakultas.ta.kelola; judul harus sudah diterima.
+     *
+     * `POST /v1/fakultas/{kode}/ta/logbook/{nim}`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeTaLogbookByNim(int|string $kode, int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ta/logbook/{nim}', ['kode' => $kode, 'nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah catatan bimbingan
+     *
+     * Body sama dengan tambah.
+     *
+     * `POST /v1/fakultas/{kode}/ta/logbook/{nim}/{id}`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $nim NIM
+     * @param int|string $id ID catatan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeTaLogbookByNimById(int|string $kode, int|string $nim, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/ta/logbook/{nim}/{id}', ['kode' => $kode, 'nim' => $nim, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Templat SKPI prodi
+     *
+     * Isi bab 0 (kop), 3 (capaian pembelajaran), 4–6 (sistem pendidikan, KKNI, informasi tambahan).
+     *
+     * `GET /v1/fakultas/{kode}/skpi/templat`
+     *
+     * scope: `fakultas:read`
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeSkpiTemplat(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/skpi/templat', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan templat SKPI
+     *
+     * Body: {"ke": "3", "isi": "<p>...</p>"}. Isi kosong menghapus bab itu.
+     *
+     * `POST /v1/fakultas/{kode}/skpi/templat`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeSkpiTemplat(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/skpi/templat', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Antrian persetujuan KRS
      *
      * Mahasiswa aktif dengan status KRS (belum isi, menunggu, disetujui) + ringkasan. Izin fakultas.krs.kelola; dosen (pribadi) = mahasiswa bimbingan PA.

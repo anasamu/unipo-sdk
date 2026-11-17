@@ -855,6 +855,425 @@ final class Humas extends Resource
     }
 
     /**
+     * Cari akun SIAKAD
+     *
+     * Untuk memilih pengelola situs. Admin humas atau admin situs. `q` = nama atau username, `username` = cari tepat satu akun.
+     *
+     * `GET /v1/humas/pengguna`
+     *
+     * scope: `portal:write`
+     *
+     * @param array{q?: string, username?: string, per_page?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengguna(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/humas/pengguna', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar peran RBAC
+     *
+     * Peran aktif beserta jumlah pemegang, untuk memberi hak kelola situs lewat peran. Admin humas atau admin situs.
+     *
+     * `GET /v1/humas/peran`
+     *
+     * scope: `portal:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeran(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/humas/peran', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peran yang mengelola situs
+     *
+     * Semua pemegang peran RBAC ini mendapat peran situs (penulis/editor/admin). Admin situs.
+     *
+     * `GET /v1/humas/situs/{kode}/peran`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $kode Kode atau ID situs
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSitusByKodePeran(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/humas/situs/{kode}/peran', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Beri hak kelola situs ke peran
+     *
+     * Body: `peran_rbac` (kode rbac_peran), `peran` (penulis | editor | admin). Mengganti peran bila sudah ada.
+     *
+     * `POST /v1/humas/situs/{kode}/peran`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $kode Kode atau ID situs
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSitusByKodePeran(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/situs/{kode}/peran', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cabut hak kelola situs dari peran
+     *
+     * Admin situs.
+     *
+     * `POST /v1/humas/situs/{kode}/peran/{peran}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $kode Kode atau ID situs
+     * @param int|string $peran Kode peran RBAC
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSitusByKodePeranByPeranHapus(int|string $kode, int|string $peran, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/situs/{kode}/peran/{peran}/hapus', ['kode' => $kode, 'peran' => $peran], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/dokumen/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/dokumen/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaDokumenById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/dokumen/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/dokumen/{id}.
+     *
+     * `POST /v1/humas/kelola/dokumen/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaDokumenByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/dokumen/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Banner: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/banner/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/banner/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaBannerById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/banner/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Banner: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/banner/{id}.
+     *
+     * `POST /v1/humas/kelola/banner/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaBannerByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/banner/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tautan: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/tautan/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/tautan/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaTautanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/tautan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tautan: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/tautan/{id}.
+     *
+     * `POST /v1/humas/kelola/tautan/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaTautanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/tautan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Struktur: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/struktur/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/struktur/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaStrukturById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/struktur/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Struktur: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/struktur/{id}.
+     *
+     * `POST /v1/humas/kelola/struktur/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaStrukturByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/struktur/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Faq: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/faq/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/faq/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaFaqById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/faq/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Faq: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/faq/{id}.
+     *
+     * `POST /v1/humas/kelola/faq/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaFaqByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/faq/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Menu: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/menu/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/menu/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaMenuById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/menu/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Menu: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/menu/{id}.
+     *
+     * `POST /v1/humas/kelola/menu/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaMenuByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/menu/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lowongan: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/lowongan/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/lowongan/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaLowonganById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/lowongan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lowongan: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/lowongan/{id}.
+     *
+     * `POST /v1/humas/kelola/lowongan/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaLowonganByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/lowongan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kategori: simpan perubahan
+     *
+     * Alias POST dari PATCH /v1/portal/kelola/kategori/{id}; kirim hanya kolom yang berubah.
+     *
+     * `POST /v1/humas/kelola/kategori/{id}`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaKategoriById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/kategori/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kategori: hapus
+     *
+     * Alias POST dari DELETE /v1/portal/kelola/kategori/{id}.
+     *
+     * `POST /v1/humas/kelola/kategori/{id}/hapus`
+     *
+     * scope: `portal:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaKategoriByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/kelola/kategori/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ubah profil situs (alias POST dari PATCH /v1/portal/kelola/situs/{kode})
      *
      * Perilaku, hak akses, dan body sama dengan endpoint Portal aslinya (docs/PORTAL.md).

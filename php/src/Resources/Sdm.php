@@ -4913,13 +4913,13 @@ final class Sdm extends Resource
     /**
      * Cari SDM di SISTER
      *
-     * Langsung ke GET /referensi/sdm SISTER. Isi salah satu: nidn, nip, atau nama. Setiap hasil diberi `terhubung_ke` bila id_sdm sudah dipetakan.
+     * Langsung ke GET /referensi/sdm SISTER. Isi salah satu: nidn, nip, nuptk, atau nama (minimal 3 huruf). id_sp hanya ikut bila mencari nama (aturan SISTER). Setiap hasil diberi `terhubung_ke` bila id_sdm sudah dipetakan.
      *
      * `GET /v1/sdm/sister/sdm`
      *
      * scope: `sdm:admin`
      *
-     * @param array{nidn?: string, nip?: string, nama?: string, ...} $query
+     * @param array{nidn?: string, nip?: string, nuptk?: string, nama?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4932,7 +4932,7 @@ final class Sdm extends Resource
     /**
      * Cocokkan pegawai dengan SISTER
      *
-     * Pegawai yang belum terhubung dicari di /referensi/sdm lewat NIDN lalu NIP; dipasangkan hanya bila hasilnya tepat satu. Diproses per batch (`batas`); ulangi sampai `sisa` 0.
+     * Pegawai yang belum terhubung dicari di /referensi/sdm lewat NIDN, lalu NIP, lalu NUPTK; dipasangkan hanya bila hasilnya tepat satu. Diproses per batch (`batas`); ulangi sampai `sisa` 0.
      *
      * `POST /v1/sdm/sister/cocokkan`
      *
