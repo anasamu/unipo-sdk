@@ -214,7 +214,7 @@ final class Gaji extends Resource
     /**
      * Slip lengkap
      *
-     * Pengelola gaji dan admin SDM. Identitas, kehadiran, rincian pendapatan/potongan/pajak/iuran pemberi kerja dengan dasar hitung, peringatan, kode verifikasi.
+     * Pengelola gaji. Identitas, kehadiran, rincian pendapatan/potongan/pajak/iuran pemberi kerja dengan dasar hitung, peringatan, kode verifikasi.
      *
      * `GET /v1/gaji/slip/{id}/lengkap`
      *
@@ -355,7 +355,7 @@ final class Gaji extends Resource
     /**
      * Rekap payroll satu periode
      *
-     * Ringkas, per unit, per jenis pegawai, per komponen, dan rincian per pegawai (pendapatan, potongan, PPh 21, BPJS, netto, status bayar). Periode lewat periode_id (ID/kode) atau tahun + bulan (reguler terakhir). Pengelola gaji (pengelola unit hanya unitnya) dan admin SDM.
+     * Ringkas, per unit, per jenis pegawai, per komponen, dan rincian per pegawai (pendapatan, potongan, PPh 21, BPJS, netto, status bayar). Periode lewat periode_id (ID/kode) atau tahun + bulan (reguler terakhir). Pengelola gaji (pengelola unit hanya unitnya).
      *
      * `GET /v1/gaji/laporan/rekap`
      *
@@ -426,6 +426,25 @@ final class Gaji extends Resource
     public function getStatistik(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/gaji/statistik', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar pegawai ringkas
+     *
+     * Untuk pemilih pegawai form gaji/honor di BAUK: id, nama, nama_lengkap, nip, nidn, jenis, unit_id, unit_nama, golongan_id, golongan, status_aktif. Tanpa data pribadi (alamat, HP, email, NIK KTP, NPWP, rekening). Hanya pengelola gaji BAUK tingkat universitas (level KEUANGAN/ADMIN, izin gaji:kelola, token aplikasi gaji:write); selain itu 403.
+     *
+     * `GET /v1/gaji/pegawai`
+     *
+     * scope: `gaji:read` · berhalaman
+     *
+     * @param array{q?: string, jenis?: string, unit_id?: int, aktif?: int, id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPegawai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/gaji/pegawai', [], $query, null, $options, false, false);
     }
 
     /**

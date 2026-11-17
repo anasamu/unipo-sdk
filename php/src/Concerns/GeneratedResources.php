@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3598 endpoint).
+ * Akses ke semua modul API (3652 endpoint).
  */
 trait GeneratedResources
 {
@@ -25,7 +25,7 @@ trait GeneratedResources
         return $this->resource(Resources\Admisi::class);
     }
 
-    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (57 endpoint) */
+    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi (67 endpoint) */
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
@@ -49,7 +49,7 @@ trait GeneratedResources
         return $this->resource(Resources\Arsip::class);
     }
 
-    /** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian (22 endpoint) */
+    /** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan (39 endpoint) */
     public function aturan(): Resources\Aturan
     {
         return $this->resource(Resources\Aturan::class);
@@ -109,7 +109,7 @@ trait GeneratedResources
         return $this->resource(Resources\Fakultas::class);
     }
 
-    /** Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya (64 endpoint) */
+    /** Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya (65 endpoint) */
     public function gaji(): Resources\Gaji
     {
         return $this->resource(Resources\Gaji::class);
@@ -283,13 +283,13 @@ trait GeneratedResources
         return $this->resource(Resources\Mbkm::class);
     }
 
-    /** Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman (26 endpoint) */
+    /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (40 endpoint) */
     public function notif(): Resources\Notif
     {
         return $this->resource(Resources\Notif::class);
     }
 
-    /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (31 endpoint) */
+    /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (39 endpoint) */
     public function obrolan(): Resources\Obrolan
     {
         return $this->resource(Resources\Obrolan::class);
@@ -385,7 +385,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sarpras::class);
     }
 
-    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (278 endpoint) */
+    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (282 endpoint) */
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);

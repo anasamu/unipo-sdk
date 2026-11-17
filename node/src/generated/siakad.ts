@@ -32,7 +32,7 @@ export class Siakad extends SiakadCore {
     return this.resource('admisi', () => new R.AdmisiResource(this));
   }
 
-  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (57 endpoint) */
+  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi (67 endpoint) */
   get akademik(): R.AkademikResource {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
@@ -52,7 +52,7 @@ export class Siakad extends SiakadCore {
     return this.resource('arsip', () => new R.ArsipResource(this));
   }
 
-  /** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian (22 endpoint) */
+  /** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan (39 endpoint) */
   get aturan(): R.AturanResource {
     return this.resource('aturan', () => new R.AturanResource(this));
   }
@@ -102,7 +102,7 @@ export class Siakad extends SiakadCore {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
 
-  /** Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya (64 endpoint) */
+  /** Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya (65 endpoint) */
   get gaji(): R.GajiResource {
     return this.resource('gaji', () => new R.GajiResource(this));
   }
@@ -247,12 +247,12 @@ export class Siakad extends SiakadCore {
     return this.resource('mbkm', () => new R.MbkmResource(this));
   }
 
-  /** Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman (26 endpoint) */
+  /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (40 endpoint) */
   get notif(): R.NotifResource {
     return this.resource('notif', () => new R.NotifResource(this));
   }
 
-  /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (31 endpoint) */
+  /** Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi (39 endpoint) */
   get obrolan(): R.ObrolanResource {
     return this.resource('obrolan', () => new R.ObrolanResource(this));
   }
@@ -332,7 +332,7 @@ export class Siakad extends SiakadCore {
     return this.resource('sarpras', () => new R.SarprasResource(this));
   }
 
-  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (278 endpoint) */
+  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (282 endpoint) */
   get sdm(): R.SdmResource {
     return this.resource('sdm', () => new R.SdmResource(this));
   }

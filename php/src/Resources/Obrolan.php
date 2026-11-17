@@ -16,7 +16,7 @@ final class Obrolan extends Resource
     /**
      * Profil obrolan saya
      *
-     * Identitas (username atau pmb:<id>), perangkat aktif, setelan privasi, ada/tidaknya cadangan kunci, batas long-poll dan lampiran.
+     * Identitas (username atau pmb:<id>), perangkat aktif, setelan privasi, ada/tidaknya cadangan kunci, batas long-poll dan lampiran, hapus_semua_menit (batas "Hapus untuk semua").
      *
      * `GET /v1/obrolan/saya`
      *
@@ -50,7 +50,7 @@ final class Obrolan extends Resource
     /**
      * Umpan realtime (long-poll)
      *
-     * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat, kunci) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan.
+     * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat, kunci) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan. `sembunyi` = pesan dihapus untuk saya; `ruang` dengan aksi `hapus` = obrolan dihapus dari daftar saya.
      *
      * `GET /v1/obrolan/peristiwa`
      *
@@ -134,7 +134,7 @@ final class Obrolan extends Resource
     /**
      * Daftar obrolan
      *
-     * Anggota, pesan terakhir (terenkripsi, dengan kunci untuk perangkat ini), jumlah belum dibaca, sematkan/bisu/arsip.
+     * Anggota, pesan terakhir (terenkripsi, dengan kunci untuk perangkat ini), jumlah belum dibaca, sematkan/bisu/arsip. Obrolan yang dihapus pemanggil tidak tercantum sampai ada pesan baru.
      *
      * `GET /v1/obrolan/ruang`
      *
@@ -254,6 +254,60 @@ final class Obrolan extends Resource
     }
 
     /**
+     * Foto grup
+     *
+     * Gambar foto grup (dibuka dari simpanan terenkripsi server) untuk anggota. Field `foto` di data ruang berubah setiap foto diganti (pakai sebagai penanda cache).
+     *
+     * `GET /v1/obrolan/ruang/{id}/foto`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRuangByIdFoto(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/obrolan/ruang/{id}/foto', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ganti foto grup
+     *
+     * Admin grup. multipart field `berkas`: JPEG/PNG/WebP maks. 2 MB dan 2048 px (browser memotong persegi dan memperkecil ke 256 px). Disimpan terenkripsi server; foto lama tidak dihapus. Anggota mendapat peristiwa `ruang` (aksi foto) dan pesan sistem "X mengganti foto grup".
+     *
+     * `POST /v1/obrolan/ruang/{id}/foto`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdFoto(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/foto', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus foto grup
+     *
+     * Admin grup. Grup kembali memakai avatar inisial; berkas foto tetap tersimpan (hapus lunak). Pesan sistem "X menghapus foto grup".
+     *
+     * `POST /v1/obrolan/ruang/{id}/foto/hapus`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdFotoHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/foto/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Keluar dari grup
      *
      * `POST /v1/obrolan/ruang/{id}/keluar`
@@ -267,6 +321,60 @@ final class Obrolan extends Resource
     public function postRuangByIdKeluar(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/obrolan/ruang/{id}/keluar', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ringkasan sebelum membersihkan
+     *
+     * Jumlah pesan dan lampiran yang masih terlihat, yang sudah disalin ke Berkas saya, dan lampiran lama yang tidak bisa disalin.
+     *
+     * `GET /v1/obrolan/ruang/{id}/bersihkan`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRuangByIdBersihkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/obrolan/ruang/{id}/bersihkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bersihkan obrolan (untuk saya)
+     *
+     * Body {simpan: bool}. Riwayat disembunyikan hanya untuk pemanggil; anggota lain tetap melihatnya. simpan=true menyalin lampiran yang belum disalin ke Berkas saya › Obrolan/<nama obrolan>. Tidak ada yang dihapus permanen.
+     *
+     * `POST /v1/obrolan/ruang/{id}/bersihkan`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdBersihkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/bersihkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus obrolan (untuk saya)
+     *
+     * Body {simpan: bool}. Seperti bersihkan (simpan=true menyalin lampiran ke Berkas saya dulu), lalu obrolan hilang dari daftar pemanggil sampai ada pesan baru (yang tampil hanya pesan baru). Grup: pemanggil sekaligus keluar dari grup. Anggota lain tidak terpengaruh; tidak ada yang dihapus permanen. Respons {disimpan, dilewati, keluar}.
+     *
+     * `POST /v1/obrolan/ruang/{id}/hapus`
+     *
+     * @param int|string $id UUID ruang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -342,7 +450,7 @@ final class Obrolan extends Resource
     /**
      * Hapus untuk semua
      *
-     * Pengirim atau admin grup. Ciphertext, kunci, dan lampiran dihapus permanen dari server.
+     * Pengirim dalam OBROLAN_HAPUS_SEMUA_MENIT (bawaan 60) setelah dikirim, atau admin grup tanpa batas waktu (403 lewat_batas_waktu). Hapus lunak: isi dan lampiran tetap tersimpan di server, tetapi tidak lagi diberikan ke anggota mana pun (pesan tampil "Pesan ini dihapus", lampiran tidak bisa diunduh). Hapus permanen hanya oleh admin/Pustikom.
      *
      * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/hapus`
      *
@@ -356,6 +464,44 @@ final class Obrolan extends Resource
     public function postRuangByIdPesanByPesanHapus(int|string $id, int|string $pesan, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/obrolan/ruang/{id}/pesan/{pesan}/hapus', ['id' => $id, 'pesan' => $pesan], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus untuk saya
+     *
+     * Pesan apa pun di ruang ini tidak lagi dikirim ke pemanggil (semua perangkatnya, peristiwa `sembunyi`). Anggota lain tidak terpengaruh. Disimpan di obrolan_pesan_sembunyi.
+     *
+     * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/hapus-saya`
+     *
+     * @param int|string $id UUID ruang
+     * @param int|string $pesan UUID pesan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdPesanByPesanHapusSaya(int|string $id, int|string $pesan, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/pesan/{pesan}/hapus-saya', ['id' => $id, 'pesan' => $pesan], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pindahkan pesan lama ke enkripsi server
+     *
+     * Body {kunci}: kunci pesan end-to-end lama (AES-256, base64) dari perangkat anggota yang masih memegangnya. SIAKAD membuka isi aslinya sendiri lalu menyimpannya terenkripsi server; lampirannya ikut dipindah.
+     *
+     * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/pindah-server`
+     *
+     * @param int|string $id UUID ruang
+     * @param int|string $pesan UUID pesan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuangByIdPesanByPesanPindahServer(int|string $id, int|string $pesan, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/obrolan/ruang/{id}/pesan/{pesan}/pindah-server', ['id' => $id, 'pesan' => $pesan], $query, null, $options, false, false);
     }
 
     /**
@@ -413,7 +559,7 @@ final class Obrolan extends Resource
     /**
      * Unduh lampiran terenkripsi
      *
-     * Hanya anggota obrolan. Isi tetap terenkripsi; dibuka di perangkat dengan kunci dari pesan.
+     * Hanya anggota obrolan yang masih melihat pesannya. Lampiran pesan yang dihapus untuk semua atau kedaluwarsa tidak bisa diunduh siapa pun (404).
      *
      * `GET /v1/obrolan/lampiran/{id}`
      *
@@ -495,7 +641,7 @@ final class Obrolan extends Resource
     /**
      * Ubah setelan privasi
      *
-     * Body {tampil_daring?, tanda_baca?}.
+     * Body {tampil_daring?, tanda_baca?, simpan_kirim?}. simpan_kirim (bawaan true): browser menyalin berkas yang dikirim ke Berkas saya/Obrolan (salinan tidak terenkripsi end-to-end).
      *
      * `POST /v1/obrolan/setelan`
      *
