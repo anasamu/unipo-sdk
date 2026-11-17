@@ -73,7 +73,7 @@ final class Sdm extends Resource
     /**
      * Pengaturan
      *
-     * BUP, masa KGB/kenaikan pangkat, batas SKS BKD, jam kerja, lokasi presensi, hari pengingat, ukuran file maksimal.
+     * BUP, masa KGB/kenaikan pangkat, batas SKS BKD, jam kerja, lokasi presensi, hari pengingat, ukuran file maksimal. Pajak honor ada di /v1/sdm/honor/pengaturan (BAUK).
      *
      * `GET /v1/sdm/pengaturan`
      *
@@ -92,13 +92,13 @@ final class Sdm extends Resource
     /**
      * Ubah pengaturan
      *
-     * Kirim hanya kunci yang berubah.
+     * Kirim hanya kunci yang berubah. Kunci honor_pph_* ditolak (dikelola BAUK).
      *
      * `PUT /v1/sdm/pengaturan`
      *
      * scope: `sdm:admin`
      *
-     * @param array{bup_dosen?: string, bup_profesor?: string, bup_tendik?: string, kgb_tahun?: string, kenaikan_pangkat_tahun?: string, serdos_min_tahun?: string, bkd_min_sks?: string, bkd_max_sks?: string, jam_masuk?: string, jam_pulang?: string, jam_pulang_jumat?: string, toleransi_terlambat_menit?: string, hari_kerja?: string, presensi_lokasi?: string, presensi_buka_masuk_menit?: string, presensi_batas_pulang_menit?: string, presensi_akurasi_maks_m?: string, presensi_luar_area?: string, presensi_lokasi_palsu?: string, presensi_hari_libur?: string, presensi_wajib_foto?: string, presensi_batas_perangkat?: string, presensi_perangkat_baru?: string, presensi_selisih_waktu_detik?: string, presensi_skor_tinjau?: string, presensi_koreksi_maks_hari?: string, pengingat_hari?: string, file_maks_mb?: string, honor_pph_persen?: string, honor_pph_tanpa_npwp_persen?: string, pak_ak_per_sks_aa?: string, pak_ak_per_sks?: string, pak_ak_pkm?: string, pak_ak_penunjang_per_sks?: string, pak_maks_pengabdian_persen?: string, pak_maks_penunjang_persen?: string, pak_porsi_penulis_utama?: string, ...} $body
+     * @param array{bup_dosen?: string, bup_profesor?: string, bup_tendik?: string, kgb_tahun?: string, kenaikan_pangkat_tahun?: string, serdos_min_tahun?: string, bkd_min_sks?: string, bkd_max_sks?: string, jam_masuk?: string, jam_pulang?: string, jam_pulang_jumat?: string, toleransi_terlambat_menit?: string, hari_kerja?: string, presensi_lokasi?: string, presensi_buka_masuk_menit?: string, presensi_batas_pulang_menit?: string, presensi_akurasi_maks_m?: string, presensi_luar_area?: string, presensi_lokasi_palsu?: string, presensi_hari_libur?: string, presensi_wajib_foto?: string, presensi_batas_perangkat?: string, presensi_perangkat_baru?: string, presensi_selisih_waktu_detik?: string, presensi_skor_tinjau?: string, presensi_koreksi_maks_hari?: string, pengingat_hari?: string, file_maks_mb?: string, pak_ak_per_sks_aa?: string, pak_ak_per_sks?: string, pak_ak_pkm?: string, pak_ak_penunjang_per_sks?: string, pak_maks_pengabdian_persen?: string, pak_maks_penunjang_persen?: string, pak_porsi_penulis_utama?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -144,6 +144,26 @@ final class Sdm extends Resource
     public function getUnitPohon(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/unit/pohon', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tunjangan jabatan: ubah
+     *
+     * Tunjangan jabatan struktural/tugas tambahan (rupiah per bulan, sdm_ref_jabatan.tunjangan) yang dibaca payroll. Ditulis BAUK (pengelola gaji); data jabatan lain tetap oleh admin SDM.
+     *
+     * `PUT /v1/sdm/master/jabatan/{id}/tunjangan`
+     *
+     * scope: `gaji:write`
+     *
+     * @param int|string $id ID jabatan
+     * @param array{tunjangan: float|int, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putMasterJabatanByIdTunjangan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/master/jabatan/{id}/tunjangan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -454,7 +474,7 @@ final class Sdm extends Resource
      *
      * scope: `sdm:admin`
      *
-     * @param array{kode: string|null, nama: string|null, jenis: string, eselon?: string|null, setara_sks?: float|int|null, tunjangan?: float|int|null, aktif?: bool, urut?: int|null, ...} $body
+     * @param array{kode: string|null, nama: string|null, jenis: string, eselon?: string|null, setara_sks?: float|int|null, aktif?: bool, urut?: int|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -492,7 +512,7 @@ final class Sdm extends Resource
      * scope: `sdm:admin`
      *
      * @param int|string $id ID
-     * @param array{kode: string|null, nama: string|null, jenis: string, eselon?: string|null, setara_sks?: float|int|null, tunjangan?: float|int|null, aktif?: bool, urut?: int|null, ...} $body
+     * @param array{kode: string|null, nama: string|null, jenis: string, eselon?: string|null, setara_sks?: float|int|null, aktif?: bool, urut?: int|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -619,7 +639,7 @@ final class Sdm extends Resource
     /**
      * Skala gaji pokok per golongan dan masa kerja: daftar
      *
-     * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan.
+     * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan. Ditulis BAUK (scope gaji:write, pengelola gaji); SDM membaca.
      *
      * `GET /v1/sdm/master/gaji-pokok`
      *
@@ -640,7 +660,7 @@ final class Sdm extends Resource
      *
      * `POST /v1/sdm/master/gaji-pokok`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{golongan_id: int|null, masa_kerja_tahun: int|null, gaji_pokok: float|int|null, berlaku_mulai: string|null, dasar?: string|null, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -677,7 +697,7 @@ final class Sdm extends Resource
      *
      * `PUT /v1/sdm/master/gaji-pokok/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID
      * @param array{golongan_id: int|null, masa_kerja_tahun: int|null, gaji_pokok: float|int|null, berlaku_mulai: string|null, dasar?: string|null, aktif?: bool, ...} $body
@@ -697,7 +717,7 @@ final class Sdm extends Resource
      *
      * `DELETE /v1/sdm/master/gaji-pokok/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID
      * @param array<string, mixed> $query
@@ -713,7 +733,7 @@ final class Sdm extends Resource
     /**
      * Aturan tunjangan otomatis (fungsional, profesi, per golongan): daftar
      *
-     * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK.
+     * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK. Ditulis BAUK (scope gaji:write, pengelola gaji); SDM membaca.
      *
      * `GET /v1/sdm/master/tunjangan`
      *
@@ -734,7 +754,7 @@ final class Sdm extends Resource
      *
      * `POST /v1/sdm/master/tunjangan`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{kode: string|null, nama: string|null, jenis: string, dasar: string, dasar_id?: int|null, untuk?: string, nominal?: float|int|null, persen_gaji_pokok?: float|int|null, berlaku_mulai?: string|null, sumber_dana?: string|null, dasar_hukum?: string|null, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -771,7 +791,7 @@ final class Sdm extends Resource
      *
      * `PUT /v1/sdm/master/tunjangan/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID
      * @param array{kode: string|null, nama: string|null, jenis: string, dasar: string, dasar_id?: int|null, untuk?: string, nominal?: float|int|null, persen_gaji_pokok?: float|int|null, berlaku_mulai?: string|null, sumber_dana?: string|null, dasar_hukum?: string|null, aktif?: bool, ...} $body
@@ -791,7 +811,7 @@ final class Sdm extends Resource
      *
      * `DELETE /v1/sdm/master/tunjangan/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID
      * @param array<string, mixed> $query
@@ -4360,13 +4380,70 @@ final class Sdm extends Resource
     }
 
     /**
+     * Pajak honor
+     *
+     * Persen PPh 21 honor/vakasi/remunerasi untuk pegawai ber-NPWP dan tanpa NPWP (honor_pph_*), dipakai saat hitung dan honor manual.
+     *
+     * `GET /v1/sdm/honor/pengaturan`
+     *
+     * scope: `gaji:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah pajak honor
+     *
+     * Pengelola gaji BAUK. Kirim hanya kunci yang berubah (0-100).
+     *
+     * `PUT /v1/sdm/honor/pengaturan`
+     *
+     * scope: `gaji:write`
+     *
+     * @param array{honor_pph_persen?: string, honor_pph_tanpa_npwp_persen?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putHonorPengaturan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/honor/pengaturan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Statistik honor
+     *
+     * Enam periode terakhir yang punya data: bruto, pajak, netto per periode (dan status bayar), per kelompok, per unit. Pengelola gaji BAUK.
+     *
+     * `GET /v1/sdm/honor/statistik`
+     *
+     * scope: `gaji:read`
+     *
+     * @param array{unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorStatistik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/statistik', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Komponen honor yang dihitung otomatis
      *
      * Kode komponen, kelompok (remunerasi/honor/vakasi), dan satuannya.
      *
      * `GET /v1/sdm/honor/komponen`
      *
-     * scope: `sdm:read`
+     * scope: `gaji:read`
      *
      * @param array<string, mixed> $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
@@ -4385,7 +4462,7 @@ final class Sdm extends Resource
      *
      * `GET /v1/sdm/honor/tarif`
      *
-     * scope: `sdm:read`
+     * scope: `gaji:read`
      *
      * @param array{komponen?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
@@ -4402,7 +4479,7 @@ final class Sdm extends Resource
      *
      * `POST /v1/sdm/honor/tarif`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{komponen: string|null, nama: string|null, satuan: string|null, tarif: float|int|null, jabatan_akademik_id?: int|null, kategori?: string, berlaku_mulai?: string|null, berlaku_sampai?: string|null, aktif?: bool, keterangan?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -4421,7 +4498,7 @@ final class Sdm extends Resource
      *
      * `PUT /v1/sdm/honor/tarif/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID tarif
      * @param array{komponen: string|null, nama: string|null, satuan: string|null, tarif: float|int|null, jabatan_akademik_id?: int|null, kategori?: string, berlaku_mulai?: string|null, berlaku_sampai?: string|null, aktif?: bool, keterangan?: string|null, ...} $body
@@ -4439,7 +4516,7 @@ final class Sdm extends Resource
      *
      * `DELETE /v1/sdm/honor/tarif/{id}`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param int|string $id ID tarif
      * @param array<string, mixed> $query
@@ -4459,7 +4536,7 @@ final class Sdm extends Resource
      *
      * `POST /v1/sdm/honor/hitung`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{periode: string|null, komponen?: list<mixed>|null, pegawai_id?: int|null, unit_id?: int|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -4474,13 +4551,13 @@ final class Sdm extends Resource
     /**
      * Rekap honor per pegawai
      *
-     * Total remunerasi, honor, vakasi, lainnya, bruto, pajak, netto per pegawai (tanpa yang batal). Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+     * Total remunerasi, honor, vakasi, lainnya, bruto, pajak, netto per pegawai (tanpa yang batal). BAUK semua pegawai; pegawai hanya miliknya; petugas/pimpinan SDM sesuai unit.
      *
      * `GET /v1/sdm/honor/rekap`
      *
-     * scope: `sdm:read`
+     * scope: `gaji:read`
      *
-     * @param array{periode?: string, kelompok?: string, status?: string, unit_id?: string, pegawai_id?: string, ...} $query
+     * @param array{periode?: string, kelompok?: string, status?: string, unit_id?: string, pegawai_id?: string, saya?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4493,11 +4570,11 @@ final class Sdm extends Resource
     /**
      * Setujui, bayar, kembalikan, atau batalkan honor
      *
-     * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati.
+     * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati. setujui/kembalikan/batal: Kepala BAUK (admin gaji); bayar: pengelola gaji.
      *
      * `POST /v1/sdm/honor/proses`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{aksi: string, id: list<mixed>, nomor_bukti?: string|null, catatan?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -4512,13 +4589,13 @@ final class Sdm extends Resource
     /**
      * Daftar honor
      *
-     * Beserta rincian dasar perhitungan. Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+     * Beserta rincian dasar perhitungan. BAUK semua pegawai; pegawai hanya miliknya (aplikasi Profil); petugas/pimpinan SDM sesuai unit.
      *
      * `GET /v1/sdm/honor`
      *
-     * scope: `sdm:read` · berhalaman
+     * scope: `gaji:read` · berhalaman
      *
-     * @param array{periode?: string, komponen?: string, kelompok?: string, status?: string, pegawai_id?: string, unit_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{periode?: string, komponen?: string, kelompok?: string, status?: string, pegawai_id?: string, unit_id?: string, saya?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4535,7 +4612,7 @@ final class Sdm extends Resource
      *
      * `POST /v1/sdm/honor`
      *
-     * scope: `sdm:admin`
+     * scope: `gaji:write`
      *
      * @param array{periode: string|null, pegawai_id: int|null, kelompok: string, komponen: string|null, uraian: string|null, volume: float|int|null, satuan?: string|null, tarif: float|int|null, pajak_persen?: float|int|null, catatan?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -4683,7 +4760,7 @@ final class Sdm extends Resource
     /**
      * Statistik kepegawaian
      *
-     * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, honor per periode/kelompok/unit (bruto, pajak, netto, status bayar), dan antrean pekerjaan SDM. Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
+     * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, dan antrean pekerjaan SDM (statistik honor: GET /v1/sdm/honor/statistik, BAUK). Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
      *
      * `GET /v1/sdm/statistik`
      *

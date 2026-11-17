@@ -11692,7 +11692,7 @@ export class GajiResource {
   /**
    * Slip lengkap
    *
-   * Pengelola gaji dan admin SDM. Identitas, kehadiran, rincian pendapatan/potongan/pajak/iuran pemberi kerja dengan dasar hitung, peringatan, kode verifikasi.
+   * Pengelola gaji. Identitas, kehadiran, rincian pendapatan/potongan/pajak/iuran pemberi kerja dengan dasar hitung, peringatan, kode verifikasi.
    *
    * `GET /v1/gaji/slip/{id}/lengkap`
    *
@@ -11798,7 +11798,7 @@ export class GajiResource {
   /**
    * Rekap payroll satu periode
    *
-   * Ringkas, per unit, per jenis pegawai, per komponen, dan rincian per pegawai (pendapatan, potongan, PPh 21, BPJS, netto, status bayar). Periode lewat periode_id (ID/kode) atau tahun + bulan (reguler terakhir). Pengelola gaji (pengelola unit hanya unitnya) dan admin SDM.
+   * Ringkas, per unit, per jenis pegawai, per komponen, dan rincian per pegawai (pendapatan, potongan, PPh 21, BPJS, netto, status bayar). Periode lewat periode_id (ID/kode) atau tahun + bulan (reguler terakhir). Pengelola gaji (pengelola unit hanya unitnya).
    *
    * `GET /v1/gaji/laporan/rekap`
    *
@@ -11883,6 +11883,34 @@ export class GajiResource {
     jenis?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/gaji/statistik', query }, options);
+  }
+
+  /**
+   * Daftar pegawai ringkas
+   *
+   * Untuk pemilih pegawai form gaji/honor di BAUK: id, nama, nama_lengkap, nip, nidn, jenis, unit_id, unit_nama, golongan_id, golongan, status_aktif. Tanpa data pribadi (alamat, HP, email, NIK KTP, NPWP, rekening). Hanya pengelola gaji BAUK tingkat universitas (level KEUANGAN/ADMIN, izin gaji:kelola, token aplikasi gaji:write); selain itu 403.
+   *
+   * `GET /v1/gaji/pegawai`
+   *
+   * scope: `gaji:read` · berhalaman
+   */
+  getPegawai(query?: {
+    /** Cari nama/NIP/NIDN */
+    q?: string;
+    /** dosen|tendik */
+    jenis?: string;
+    /** Unit SDM (ikut turunannya) */
+    unit_id?: number;
+    /** 1 = masih bekerja (aktif, cuti, tugas/izin belajar, diperbantukan), 0 = selainnya */
+    aktif?: number;
+    /** ID pegawai, boleh dipisah koma (ambil nilai terpilih) */
+    id?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.GajiPegawaiRingkas>>> {
+    return this.client.request({ method: 'GET', path: '/v1/gaji/pegawai', query }, options);
   }
 
   /**
@@ -37139,7 +37167,7 @@ export class MbkmResource {
   }
 }
 
-/** Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman */
+/** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean */
 export class NotifResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -37176,6 +37204,209 @@ export class NotifResource {
    */
   postKirim(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/notif/kirim', query }, options);
+  }
+
+  /**
+   * Pengumuman aktif
+   *
+   * Pengumuman yang sedang tayang untuk pemanggil di aplikasi ini (sasaran aplikasi, unit, peran termasuk jenis akun `akun:*`, jadwal; yang sudah ditutup atau dihapus tidak ikut). Tautan konten portal di-resolve ke alamat baca terbaru. Tanpa token pengguna = hanya yang ditandai publik.
+   *
+   * `GET /v1/notif/pita`
+   *
+   * publik (tanpa token)
+   */
+  getPita(query?: {
+    /** Kode aplikasi pemanggil, mis. baak, pmb, siakad-lama, publik */
+    aplikasi?: string;
+    /** Kode situs portal (publik): pengumuman publik milik unit hanya tayang di situs unit itu */
+    situs?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/notif/pita', query, public: true }, options);
+  }
+
+  /**
+   * Tutup pengumuman
+   *
+   * Tidak tampil lagi untuk akun ini di semua aplikasi.
+   *
+   * `POST /v1/notif/pita/{id}/tutup`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   *
+   * @param id UUID pengumuman
+   */
+  postPitaByIdTutup(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pita/{id}/tutup', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Daftar pengumuman yang dikelola
+   *
+   * Admin/izin pengumuman:kelola global: semua; izin berlingkup unit: milik unitnya. Berisi status tayang (aktif, terjadwal, berakhir, draf, arsip), `publik`, dan `tautan_ref` (konten portal yang dirujuk). Yang dihapus tidak ikut.
+   *
+   * `GET /v1/notif/pita/kelola`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  getPitaKelola(query?: {
+    /** draf | terbit | arsip */
+    status?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/notif/pita/kelola', query }, options);
+  }
+
+  /**
+   * Buat pengumuman
+   *
+   * Body {judul, isi?, tautan?, teks_tautan?, nada, mode: pita|banner|popup|toast|bawah, gambar?, opsi?: {ulang: sekali|sesi, hilang_detik}, mulai?, selesai?, dapat_ditutup?, prioritas?, status: draf|terbit|arsip, aplikasi?: [kode], unit?: [kode], peran?: [kode RBAC atau akun:mahasiswa|akun:dosen|akun:tendik|akun:alumni|akun:pendaftar], publik?: bool (tampil juga tanpa login), tautan_ref?: {jenis: berita|pengumuman|agenda|halaman, id} (konten portal terbit; tautan = URL manual hanya untuk pembuat tingkat universitas)}. Kosong = semua akun yang masuk. `jenis` lama masih diterima: jenis akun dipindah ke peran akun:*.
+   *
+   * `POST /v1/notif/pita/kelola`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  postPitaKelola(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pita/kelola', query }, options);
+  }
+
+  /**
+   * Hak membuat pengumuman
+   *
+   * semua (boleh semua sasaran), publik (boleh menandai publik), unit (unit yang boleh disasar), tautan_manual (boleh URL bebas), peran_akun (peran khusus jenis akun untuk sasaran peran).
+   *
+   * `GET /v1/notif/pita/hak`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  getPitaHak(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/notif/pita/hak', query }, options);
+  }
+
+  /**
+   * Ubah pengumuman
+   *
+   * `POST /v1/notif/pita/kelola/{id}`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   *
+   * @param id UUID pengumuman
+   */
+  postPitaKelolaById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pita/kelola/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus pengumuman
+   *
+   * Hapus lunak (deleted_at): hilang dari daftar kelola dan semua aplikasi.
+   *
+   * `POST /v1/notif/pita/kelola/{id}/hapus`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   *
+   * @param id UUID pengumuman
+   */
+  postPitaKelolaByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pita/kelola/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pilihan tautan Selengkapnya
+   *
+   * Konten portal terbit yang boleh dirujuk pemanggil (pembuat unit: situs unitnya dan situs universitas): jenis, id, judul, situs, tanggal, url (alamat baca). Konten tanpa alamat baca publik tidak ikut.
+   *
+   * `GET /v1/notif/pita/tautan`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  getPitaTautan(query?: {
+    /** Cari judul */
+    q?: string;
+    /** berita | pengumuman | agenda | halaman */
+    jenis?: string;
+    /** Maks. 50 */
+    per_page?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/notif/pita/tautan', query }, options);
+  }
+
+  /**
+   * Perkiraan jumlah penerima
+   *
+   * Body {unit?, peran?, publik?} (jenis lama juga diterima).
+   *
+   * `POST /v1/notif/pita/perkiraan`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  postPitaPerkiraan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pita/perkiraan', query }, options);
+  }
+
+  /**
+   * Daftar pemicu
+   *
+   * Pemicu notifikasi per aplikasi/unit: penerima bawaan (terkunci), penerima tambahan dari Pustikom, dan status aktif.
+   *
+   * `GET /v1/notif/pemicu`
+   *
+   * scope: `notif:admin` · hanya token pengguna
+   */
+  getPemicu(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/notif/pemicu', query }, options);
+  }
+
+  /**
+   * Hidupkan/matikan pemicu
+   *
+   * Body {pemicu, aktif}.
+   *
+   * `POST /v1/notif/pemicu/setelan`
+   *
+   * scope: `notif:admin` · hanya token pengguna
+   */
+  postPemicuSetelan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pemicu/setelan', query }, options);
+  }
+
+  /**
+   * Tambah penerima
+   *
+   * Body {pemicu, jenis: unit|peran|pengguna, nilai: kode unit | id peran RBAC | username, label?}. Penerima bawaan tidak bisa dihapus.
+   *
+   * `POST /v1/notif/pemicu/tambahan`
+   *
+   * scope: `notif:admin` · hanya token pengguna
+   */
+  postPemicuTambahan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pemicu/tambahan', query }, options);
+  }
+
+  /**
+   * Hapus penerima tambahan
+   *
+   * Body {pemicu}.
+   *
+   * `POST /v1/notif/pemicu/tambahan/{id}/hapus`
+   *
+   * scope: `notif:admin` · hanya token pengguna
+   *
+   * @param id ID penerima tambahan
+   */
+  postPemicuTambahanByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pemicu/tambahan/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau penerima
+   *
+   * Body {pemicu, data?}: jumlah dan contoh username penerima untuk data event (bawaan: contoh di katalog event).
+   *
+   * `POST /v1/notif/pemicu/pratinjau`
+   *
+   * scope: `notif:admin` · hanya token pengguna
+   */
+  postPemicuPratinjau(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/pemicu/pratinjau', query }, options);
   }
 
   /**
@@ -37591,7 +37822,7 @@ export class ObrolanResource {
   /**
    * Profil obrolan saya
    *
-   * Identitas (username atau pmb:<id>), perangkat aktif, setelan privasi, ada/tidaknya cadangan kunci, batas long-poll dan lampiran.
+   * Identitas (username atau pmb:<id>), perangkat aktif, setelan privasi, ada/tidaknya cadangan kunci, batas long-poll dan lampiran, hapus_semua_menit (batas "Hapus untuk semua").
    *
    * `GET /v1/obrolan/saya`
    */
@@ -37620,7 +37851,7 @@ export class ObrolanResource {
   /**
    * Umpan realtime (long-poll)
    *
-   * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat, kunci) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan.
+   * Tanpa `sejak`: mengembalikan kursor terbaru. Dengan `sejak`: menunggu sampai ada peristiwa (pesan, hapus, baca, ketik, ruang, perangkat, kunci) atau `tunggu` detik habis (maksimal OBROLAN_TUNGGU_MAKS). Isi hanya penunjuk, bukan isi pesan. `sembunyi` = pesan dihapus untuk saya; `ruang` dengan aksi `hapus` = obrolan dihapus dari daftar saya.
    *
    * `GET /v1/obrolan/peristiwa`
    */
@@ -37685,7 +37916,7 @@ export class ObrolanResource {
   /**
    * Daftar obrolan
    *
-   * Anggota, pesan terakhir (terenkripsi, dengan kunci untuk perangkat ini), jumlah belum dibaca, sematkan/bisu/arsip.
+   * Anggota, pesan terakhir (terenkripsi, dengan kunci untuk perangkat ini), jumlah belum dibaca, sematkan/bisu/arsip. Obrolan yang dihapus pemanggil tidak tercantum sampai ada pesan baru.
    *
    * `GET /v1/obrolan/ruang`
    */
@@ -37776,6 +38007,45 @@ export class ObrolanResource {
   }
 
   /**
+   * Foto grup
+   *
+   * Gambar foto grup (dibuka dari simpanan terenkripsi server) untuk anggota. Field `foto` di data ruang berubah setiap foto diganti (pakai sebagai penanda cache).
+   *
+   * `GET /v1/obrolan/ruang/{id}/foto`
+   *
+   * @param id UUID ruang
+   */
+  getRuangByIdFoto(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/obrolan/ruang/{id}/foto', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ganti foto grup
+   *
+   * Admin grup. multipart field `berkas`: JPEG/PNG/WebP maks. 2 MB dan 2048 px (browser memotong persegi dan memperkecil ke 256 px). Disimpan terenkripsi server; foto lama tidak dihapus. Anggota mendapat peristiwa `ruang` (aksi foto) dan pesan sistem "X mengganti foto grup".
+   *
+   * `POST /v1/obrolan/ruang/{id}/foto`
+   *
+   * @param id UUID ruang
+   */
+  postRuangByIdFoto(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/foto', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus foto grup
+   *
+   * Admin grup. Grup kembali memakai avatar inisial; berkas foto tetap tersimpan (hapus lunak). Pesan sistem "X menghapus foto grup".
+   *
+   * `POST /v1/obrolan/ruang/{id}/foto/hapus`
+   *
+   * @param id UUID ruang
+   */
+  postRuangByIdFotoHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/foto/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
    * Keluar dari grup
    *
    * `POST /v1/obrolan/ruang/{id}/keluar`
@@ -37784,6 +38054,45 @@ export class ObrolanResource {
    */
   postRuangByIdKeluar(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/keluar', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ringkasan sebelum membersihkan
+   *
+   * Jumlah pesan dan lampiran yang masih terlihat, yang sudah disalin ke Berkas saya, dan lampiran lama yang tidak bisa disalin.
+   *
+   * `GET /v1/obrolan/ruang/{id}/bersihkan`
+   *
+   * @param id UUID ruang
+   */
+  getRuangByIdBersihkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/obrolan/ruang/{id}/bersihkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Bersihkan obrolan (untuk saya)
+   *
+   * Body {simpan: bool}. Riwayat disembunyikan hanya untuk pemanggil; anggota lain tetap melihatnya. simpan=true menyalin lampiran yang belum disalin ke Berkas saya › Obrolan/<nama obrolan>. Tidak ada yang dihapus permanen.
+   *
+   * `POST /v1/obrolan/ruang/{id}/bersihkan`
+   *
+   * @param id UUID ruang
+   */
+  postRuangByIdBersihkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/bersihkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus obrolan (untuk saya)
+   *
+   * Body {simpan: bool}. Seperti bersihkan (simpan=true menyalin lampiran ke Berkas saya dulu), lalu obrolan hilang dari daftar pemanggil sampai ada pesan baru (yang tampil hanya pesan baru). Grup: pemanggil sekaligus keluar dari grup. Anggota lain tidak terpengaruh; tidak ada yang dihapus permanen. Respons {disimpan, dilewati, keluar}.
+   *
+   * `POST /v1/obrolan/ruang/{id}/hapus`
+   *
+   * @param id UUID ruang
+   */
+  postRuangByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/hapus', query: { ...query, id } }, options);
   }
 
   /**
@@ -37849,7 +38158,7 @@ export class ObrolanResource {
   /**
    * Hapus untuk semua
    *
-   * Pengirim atau admin grup. Ciphertext, kunci, dan lampiran dihapus permanen dari server.
+   * Pengirim dalam OBROLAN_HAPUS_SEMUA_MENIT (bawaan 60) setelah dikirim, atau admin grup tanpa batas waktu (403 lewat_batas_waktu). Hapus lunak: isi dan lampiran tetap tersimpan di server, tetapi tidak lagi diberikan ke anggota mana pun (pesan tampil "Pesan ini dihapus", lampiran tidak bisa diunduh). Hapus permanen hanya oleh admin/Pustikom.
    *
    * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/hapus`
    *
@@ -37858,6 +38167,34 @@ export class ObrolanResource {
    */
   postRuangByIdPesanByPesanHapus(id: string | number, pesan: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/pesan/{pesan}/hapus', query: { ...query, id, pesan } }, options);
+  }
+
+  /**
+   * Hapus untuk saya
+   *
+   * Pesan apa pun di ruang ini tidak lagi dikirim ke pemanggil (semua perangkatnya, peristiwa `sembunyi`). Anggota lain tidak terpengaruh. Disimpan di obrolan_pesan_sembunyi.
+   *
+   * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/hapus-saya`
+   *
+   * @param id UUID ruang
+   * @param pesan UUID pesan
+   */
+  postRuangByIdPesanByPesanHapusSaya(id: string | number, pesan: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/pesan/{pesan}/hapus-saya', query: { ...query, id, pesan } }, options);
+  }
+
+  /**
+   * Pindahkan pesan lama ke enkripsi server
+   *
+   * Body {kunci}: kunci pesan end-to-end lama (AES-256, base64) dari perangkat anggota yang masih memegangnya. SIAKAD membuka isi aslinya sendiri lalu menyimpannya terenkripsi server; lampirannya ikut dipindah.
+   *
+   * `POST /v1/obrolan/ruang/{id}/pesan/{pesan}/pindah-server`
+   *
+   * @param id UUID ruang
+   * @param pesan UUID pesan
+   */
+  postRuangByIdPesanByPesanPindahServer(id: string | number, pesan: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/obrolan/ruang/{id}/pesan/{pesan}/pindah-server', query: { ...query, id, pesan } }, options);
   }
 
   /**
@@ -37900,7 +38237,7 @@ export class ObrolanResource {
   /**
    * Unduh lampiran terenkripsi
    *
-   * Hanya anggota obrolan. Isi tetap terenkripsi; dibuka di perangkat dengan kunci dari pesan.
+   * Hanya anggota obrolan yang masih melihat pesannya. Lampiran pesan yang dihapus untuk semua atau kedaluwarsa tidak bisa diunduh siapa pun (404).
    *
    * `GET /v1/obrolan/lampiran/{id}`
    *
@@ -37953,7 +38290,7 @@ export class ObrolanResource {
   /**
    * Ubah setelan privasi
    *
-   * Body {tampil_daring?, tanda_baca?}.
+   * Body {tampil_daring?, tanda_baca?, simpan_kirim?}. simpan_kirim (bawaan true): browser menyalin berkas yang dikirim ke Berkas saya/Obrolan (salinan tidak terenkripsi end-to-end).
    *
    * `POST /v1/obrolan/setelan`
    */
@@ -51709,7 +52046,7 @@ export class SdmResource {
   /**
    * Pengaturan
    *
-   * BUP, masa KGB/kenaikan pangkat, batas SKS BKD, jam kerja, lokasi presensi, hari pengingat, ukuran file maksimal.
+   * BUP, masa KGB/kenaikan pangkat, batas SKS BKD, jam kerja, lokasi presensi, hari pengingat, ukuran file maksimal. Pajak honor ada di /v1/sdm/honor/pengaturan (BAUK).
    *
    * `GET /v1/sdm/pengaturan`
    *
@@ -51722,7 +52059,7 @@ export class SdmResource {
   /**
    * Ubah pengaturan
    *
-   * Kirim hanya kunci yang berubah.
+   * Kirim hanya kunci yang berubah. Kunci honor_pph_* ditolak (dikelola BAUK).
    *
    * `PUT /v1/sdm/pengaturan`
    *
@@ -51775,6 +52112,22 @@ export class SdmResource {
    */
   getUnitPohon(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/unit/pohon', query }, options);
+  }
+
+  /**
+   * Tunjangan jabatan: ubah
+   *
+   * Tunjangan jabatan struktural/tugas tambahan (rupiah per bulan, sdm_ref_jabatan.tunjangan) yang dibaca payroll. Ditulis BAUK (pengelola gaji); data jabatan lain tetap oleh admin SDM.
+   *
+   * `PUT /v1/sdm/master/jabatan/{id}/tunjangan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param id ID jabatan
+   * @param body
+   */
+  putMasterJabatanByIdTunjangan(id: string | number, body: S.SdmJabatanTunjanganInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/master/jabatan/{id}/tunjangan', query: { id }, body }, options);
   }
 
   /**
@@ -52185,7 +52538,7 @@ export class SdmResource {
   /**
    * Skala gaji pokok per golongan dan masa kerja: daftar
    *
-   * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan.
+   * Skala gaji pokok per golongan dan masa kerja golongan (MKG), berlaku mulai tanggal tertentu. Dipakai mengisi gaji pokok otomatis saat kenaikan pangkat dan KGB ditetapkan. Ditulis BAUK (scope gaji:write, pengelola gaji); SDM membaca.
    *
    * `GET /v1/sdm/master/gaji-pokok`
    *
@@ -52211,7 +52564,7 @@ export class SdmResource {
    *
    * `POST /v1/sdm/master/gaji-pokok`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -52239,7 +52592,7 @@ export class SdmResource {
    *
    * `PUT /v1/sdm/master/gaji-pokok/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID
    * @param body
@@ -52255,7 +52608,7 @@ export class SdmResource {
    *
    * `DELETE /v1/sdm/master/gaji-pokok/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID
    */
@@ -52266,7 +52619,7 @@ export class SdmResource {
   /**
    * Aturan tunjangan otomatis (fungsional, profesi, per golongan): daftar
    *
-   * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK.
+   * Aturan tunjangan otomatis: dasar jabatan_akademik (fungsional per jenjang, dasar_id = jabatan akademik), serdos (profesi), atau golongan; nominal tetap atau persen gaji pokok. Tunjangan dibuat saat riwayat dasarnya disetujui dengan file SK. Ditulis BAUK (scope gaji:write, pengelola gaji); SDM membaca.
    *
    * `GET /v1/sdm/master/tunjangan`
    *
@@ -52292,7 +52645,7 @@ export class SdmResource {
    *
    * `POST /v1/sdm/master/tunjangan`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -52320,7 +52673,7 @@ export class SdmResource {
    *
    * `PUT /v1/sdm/master/tunjangan/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID
    * @param body
@@ -52336,7 +52689,7 @@ export class SdmResource {
    *
    * `DELETE /v1/sdm/master/tunjangan/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID
    */
@@ -55323,13 +55676,57 @@ export class SdmResource {
   }
 
   /**
+   * Pajak honor
+   *
+   * Persen PPh 21 honor/vakasi/remunerasi untuk pegawai ber-NPWP dan tanpa NPWP (honor_pph_*), dipakai saat hitung dan honor manual.
+   *
+   * `GET /v1/sdm/honor/pengaturan`
+   *
+   * scope: `gaji:read`
+   */
+  getHonorPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/honor/pengaturan', query }, options);
+  }
+
+  /**
+   * Ubah pajak honor
+   *
+   * Pengelola gaji BAUK. Kirim hanya kunci yang berubah (0-100).
+   *
+   * `PUT /v1/sdm/honor/pengaturan`
+   *
+   * scope: `gaji:write`
+   *
+   * @param body
+   */
+  putHonorPengaturan(body: S.SdmHonorPengaturanInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/honor/pengaturan', body }, options);
+  }
+
+  /**
+   * Statistik honor
+   *
+   * Enam periode terakhir yang punya data: bruto, pajak, netto per periode (dan status bayar), per kelompok, per unit. Pengelola gaji BAUK.
+   *
+   * `GET /v1/sdm/honor/statistik`
+   *
+   * scope: `gaji:read`
+   */
+  getHonorStatistik(query?: {
+    /** Unit (beserta turunannya) */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/honor/statistik', query }, options);
+  }
+
+  /**
    * Komponen honor yang dihitung otomatis
    *
    * Kode komponen, kelompok (remunerasi/honor/vakasi), dan satuannya.
    *
    * `GET /v1/sdm/honor/komponen`
    *
-   * scope: `sdm:read`
+   * scope: `gaji:read`
    */
   getHonorKomponen(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/honor/komponen', query }, options);
@@ -55342,7 +55739,7 @@ export class SdmResource {
    *
    * `GET /v1/sdm/honor/tarif`
    *
-   * scope: `sdm:read`
+   * scope: `gaji:read`
    */
   getHonorTarif(query?: {
     /** Komponen */
@@ -55358,7 +55755,7 @@ export class SdmResource {
    *
    * `POST /v1/sdm/honor/tarif`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -55373,7 +55770,7 @@ export class SdmResource {
    *
    * `PUT /v1/sdm/honor/tarif/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID tarif
    * @param body
@@ -55387,7 +55784,7 @@ export class SdmResource {
    *
    * `DELETE /v1/sdm/honor/tarif/{id}`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param id ID tarif
    */
@@ -55402,7 +55799,7 @@ export class SdmResource {
    *
    * `POST /v1/sdm/honor/hitung`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -55413,11 +55810,11 @@ export class SdmResource {
   /**
    * Rekap honor per pegawai
    *
-   * Total remunerasi, honor, vakasi, lainnya, bruto, pajak, netto per pegawai (tanpa yang batal). Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+   * Total remunerasi, honor, vakasi, lainnya, bruto, pajak, netto per pegawai (tanpa yang batal). BAUK semua pegawai; pegawai hanya miliknya; petugas/pimpinan SDM sesuai unit.
    *
    * `GET /v1/sdm/honor/rekap`
    *
-   * scope: `sdm:read`
+   * scope: `gaji:read`
    */
   getHonorRekap(query?: {
     /** Periode */
@@ -55430,6 +55827,8 @@ export class SdmResource {
     unit_id?: string;
     /** Pegawai */
     pegawai_id?: string;
+    /** 1 = hanya milik pegawai yang login */
+    saya?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/honor/rekap', query }, options);
   }
@@ -55437,11 +55836,11 @@ export class SdmResource {
   /**
    * Setujui, bayar, kembalikan, atau batalkan honor
    *
-   * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati.
+   * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati. setujui/kembalikan/batal: Kepala BAUK (admin gaji); bayar: pengelola gaji.
    *
    * `POST /v1/sdm/honor/proses`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -55452,11 +55851,11 @@ export class SdmResource {
   /**
    * Daftar honor
    *
-   * Beserta rincian dasar perhitungan. Pegawai hanya melihat miliknya; petugas/pimpinan sesuai unit.
+   * Beserta rincian dasar perhitungan. BAUK semua pegawai; pegawai hanya miliknya (aplikasi Profil); petugas/pimpinan SDM sesuai unit.
    *
    * `GET /v1/sdm/honor`
    *
-   * scope: `sdm:read` · berhalaman
+   * scope: `gaji:read` · berhalaman
    */
   getHonor(query?: {
     /** tahun_id atau YYYY-MM */
@@ -55471,6 +55870,8 @@ export class SdmResource {
     pegawai_id?: string;
     /** Unit */
     unit_id?: string;
+    /** 1 = hanya honor milik pegawai yang login (403 bila bukan pegawai) */
+    saya?: string;
     /** Nomor halaman, mulai 1. */
     page?: number;
     /** Jumlah data per halaman (maksimal 100). */
@@ -55486,7 +55887,7 @@ export class SdmResource {
    *
    * `POST /v1/sdm/honor`
    *
-   * scope: `sdm:admin`
+   * scope: `gaji:write`
    *
    * @param body
    */
@@ -55623,7 +56024,7 @@ export class SdmResource {
   /**
    * Statistik kepegawaian
    *
-   * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, honor per periode/kelompok/unit (bruto, pajak, netto, status bayar), dan antrean pekerjaan SDM. Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
+   * Komposisi pegawai (jenis, status, pendidikan, jabatan, golongan, usia, masa kerja, per unit), tren masuk/keluar 10 tahun + proyeksi pensiun 5 tahun, presensi per bulan, cuti per jenis/bulan, BKD/SKP per periode, usulan per jenis/status, dan antrean pekerjaan SDM (statistik honor: GET /v1/sdm/honor/statistik, BAUK). Dibatasi cakupan pemilik token. `bagian` memuat satu kelompok saja.
    *
    * `GET /v1/sdm/statistik`
    *
@@ -55634,7 +56035,7 @@ export class SdmResource {
     tahun?: string;
     /** Unit */
     unit_id?: string;
-    /** pegawai | tren | presensi | cuti | kinerja | usulan | honor | antrean */
+    /** pegawai | tren | presensi | cuti | kinerja | usulan | antrean */
     bagian?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/statistik', query }, options);

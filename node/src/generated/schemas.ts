@@ -4002,6 +4002,23 @@ export type GajiSlip = {
 
 export type GajiSlipInput = JsonObject;
 
+/** Pegawai ringkas untuk keperluan gaji/honor (tanpa data pribadi). */
+export type GajiPegawaiRingkas = {
+  id?: number;
+  nama?: string;
+  /** Nama dengan gelar */
+  nama_lengkap?: string;
+  nip?: string | null;
+  nidn?: string | null;
+  jenis?: "dosen" | "tendik";
+  unit_id?: number | null;
+  unit_nama?: string | null;
+  golongan_id?: number | null;
+  golongan?: string | null;
+  status_aktif?: string;
+  [key: string]: any;
+};
+
 /** Kategori (tabel helpdesk_kategori) */
 export type HelpdeskKategori = {
   id?: number;
@@ -14322,10 +14339,6 @@ export type SdmPengaturanInput = {
   pengingat_hari?: string;
   /** Ukuran maksimal file unggahan (MB) (bawaan 10) */
   file_maks_mb?: string;
-  /** PPh 21 honor/vakasi/remunerasi untuk pegawai ber-NPWP (%) (bawaan 5) */
-  honor_pph_persen?: string;
-  /** PPh 21 untuk pegawai tanpa NPWP (%) (bawaan 6) */
-  honor_pph_tanpa_npwp_persen?: string;
   /** PAK: angka kredit per SKS pendidikan BKD untuk Tenaga Pengajar/Asisten Ahli (isi sesuai juknis) (bawaan 0.5) */
   pak_ak_per_sks_aa?: string;
   /** PAK: angka kredit per SKS pendidikan BKD untuk Lektor ke atas (isi sesuai juknis) (bawaan 1) */
@@ -14340,6 +14353,20 @@ export type SdmPengaturanInput = {
   pak_maks_penunjang_persen?: string;
   /** PAK: bagian penulis utama bila penulis lebih dari satu (%); sisanya dibagi rata penulis lain (bawaan 60) */
   pak_porsi_penulis_utama?: string;
+  [key: string]: any;
+};
+
+export type SdmHonorPengaturanInput = {
+  /** PPh 21 honor/vakasi/remunerasi untuk pegawai ber-NPWP (%) (bawaan 5) */
+  honor_pph_persen?: string;
+  /** PPh 21 untuk pegawai tanpa NPWP (%) (bawaan 6) */
+  honor_pph_tanpa_npwp_persen?: string;
+  [key: string]: any;
+};
+
+export type SdmJabatanTunjanganInput = {
+  /** Tunjangan jabatan per bulan (rupiah), 0 = tanpa tunjangan */
+  tunjangan: number;
   [key: string]: any;
 };
 
@@ -14938,7 +14965,6 @@ export type SdmMasterJabatanInput = {
   jenis: "struktural" | "tugas_tambahan" | "fungsional_tendik" | "pelaksana";
   eselon?: string | null;
   setara_sks?: number | null;
-  tunjangan?: number | null;
   aktif?: boolean;
   urut?: number | null;
   [key: string]: any;

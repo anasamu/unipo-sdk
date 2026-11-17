@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman
+ * Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean
  */
 final class Notif extends Resource
 {
@@ -64,6 +64,274 @@ final class Notif extends Resource
     public function postKirim(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/notif/kirim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengumuman aktif
+     *
+     * Pengumuman yang sedang tayang untuk pemanggil di aplikasi ini (sasaran aplikasi, unit, peran termasuk jenis akun `akun:*`, jadwal; yang sudah ditutup atau dihapus tidak ikut). Tautan konten portal di-resolve ke alamat baca terbaru. Tanpa token pengguna = hanya yang ditandai publik.
+     *
+     * `GET /v1/notif/pita`
+     *
+     * publik (tanpa token)
+     *
+     * @param array{aplikasi?: string, situs?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPita(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pita', [], $query, null, $options, false, true);
+    }
+
+    /**
+     * Tutup pengumuman
+     *
+     * Tidak tampil lagi untuk akun ini di semua aplikasi.
+     *
+     * `POST /v1/notif/pita/{id}/tutup`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID pengumuman
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPitaByIdTutup(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pita/{id}/tutup', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar pengumuman yang dikelola
+     *
+     * Admin/izin pengumuman:kelola global: semua; izin berlingkup unit: milik unitnya. Berisi status tayang (aktif, terjadwal, berakhir, draf, arsip), `publik`, dan `tautan_ref` (konten portal yang dirujuk). Yang dihapus tidak ikut.
+     *
+     * `GET /v1/notif/pita/kelola`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array{status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPitaKelola(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pita/kelola', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat pengumuman
+     *
+     * Body {judul, isi?, tautan?, teks_tautan?, nada, mode: pita|banner|popup|toast|bawah, gambar?, opsi?: {ulang: sekali|sesi, hilang_detik}, mulai?, selesai?, dapat_ditutup?, prioritas?, status: draf|terbit|arsip, aplikasi?: [kode], unit?: [kode], peran?: [kode RBAC atau akun:mahasiswa|akun:dosen|akun:tendik|akun:alumni|akun:pendaftar], publik?: bool (tampil juga tanpa login), tautan_ref?: {jenis: berita|pengumuman|agenda|halaman, id} (konten portal terbit; tautan = URL manual hanya untuk pembuat tingkat universitas)}. Kosong = semua akun yang masuk. `jenis` lama masih diterima: jenis akun dipindah ke peran akun:*.
+     *
+     * `POST /v1/notif/pita/kelola`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPitaKelola(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pita/kelola', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hak membuat pengumuman
+     *
+     * semua (boleh semua sasaran), publik (boleh menandai publik), unit (unit yang boleh disasar), tautan_manual (boleh URL bebas), peran_akun (peran khusus jenis akun untuk sasaran peran).
+     *
+     * `GET /v1/notif/pita/hak`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPitaHak(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pita/hak', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah pengumuman
+     *
+     * `POST /v1/notif/pita/kelola/{id}`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID pengumuman
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPitaKelolaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pita/kelola/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus pengumuman
+     *
+     * Hapus lunak (deleted_at): hilang dari daftar kelola dan semua aplikasi.
+     *
+     * `POST /v1/notif/pita/kelola/{id}/hapus`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID pengumuman
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPitaKelolaByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pita/kelola/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pilihan tautan Selengkapnya
+     *
+     * Konten portal terbit yang boleh dirujuk pemanggil (pembuat unit: situs unitnya dan situs universitas): jenis, id, judul, situs, tanggal, url (alamat baca). Konten tanpa alamat baca publik tidak ikut.
+     *
+     * `GET /v1/notif/pita/tautan`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array{q?: string, jenis?: string, per_page?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPitaTautan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pita/tautan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Perkiraan jumlah penerima
+     *
+     * Body {unit?, peran?, publik?} (jenis lama juga diterima).
+     *
+     * `POST /v1/notif/pita/perkiraan`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPitaPerkiraan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pita/perkiraan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar pemicu
+     *
+     * Pemicu notifikasi per aplikasi/unit: penerima bawaan (terkunci), penerima tambahan dari Pustikom, dan status aktif.
+     *
+     * `GET /v1/notif/pemicu`
+     *
+     * scope: `notif:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemicu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/pemicu', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hidupkan/matikan pemicu
+     *
+     * Body {pemicu, aktif}.
+     *
+     * `POST /v1/notif/pemicu/setelan`
+     *
+     * scope: `notif:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemicuSetelan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pemicu/setelan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah penerima
+     *
+     * Body {pemicu, jenis: unit|peran|pengguna, nilai: kode unit | id peran RBAC | username, label?}. Penerima bawaan tidak bisa dihapus.
+     *
+     * `POST /v1/notif/pemicu/tambahan`
+     *
+     * scope: `notif:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemicuTambahan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pemicu/tambahan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus penerima tambahan
+     *
+     * Body {pemicu}.
+     *
+     * `POST /v1/notif/pemicu/tambahan/{id}/hapus`
+     *
+     * scope: `notif:admin` · hanya token pengguna
+     *
+     * @param int|string $id ID penerima tambahan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemicuTambahanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pemicu/tambahan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pratinjau penerima
+     *
+     * Body {pemicu, data?}: jumlah dan contoh username penerima untuk data event (bawaan: contoh di katalog event).
+     *
+     * `POST /v1/notif/pemicu/pratinjau`
+     *
+     * scope: `notif:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemicuPratinjau(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/pemicu/pratinjau', [], $query, null, $options, false, false);
     }
 
     /**

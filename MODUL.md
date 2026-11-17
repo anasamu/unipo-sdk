@@ -1,7 +1,7 @@
 <!-- Dibuat otomatis oleh generator/generate.mjs. Jangan diubah manual. -->
 # Daftar modul
 
-3598 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
+3625 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
 
 Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/lms/kelas/{id}` (operationId `getLmsKelasById`) menjadi `lms.getKelasById(id)`. Endpoint akar modul menjadi `list`/`create`/`update`/`replace`/`delete`.
 
@@ -23,7 +23,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `dosen` | Dosen, Jadwal | 4 |
 | `edom` | EDOM: Soal, EDOM: Pengisian, EDOM: Hasil | 14 |
 | `fakultas` | Fakultas, Fakultas: kelola akademik | 91 |
-| `gaji` | Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya | 64 |
+| `gaji` | Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya | 65 |
 | `helpdesk` | Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket | 27 |
 | `humas` | Humas, Humas: redaksi | 74 |
 | `iku` | IKU: Dasbor, IKU: Pengaturan, IKU: Bukti | 30 |
@@ -52,8 +52,8 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `master` | Data master: Struktur akademik, Data master: Mahasiswa dan dosen, Data master: Format dokumen akademik | 25 |
 | `mataKuliah` | Akademik | 1 |
 | `mbkm` | MBKM: Laporan, MBKM: Peserta, MBKM: Program, MBKM: Logbook, MBKM: Nilai dan konversi | 64 |
-| `notif` | Notifikasi: Kotak masuk, Notifikasi: Preferensi, Notifikasi: Antrean, Notifikasi: Pengumuman | 26 |
-| `obrolan` | Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi | 31 |
+| `notif` | Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean | 40 |
+| `obrolan` | Obrolan, Obrolan: Perangkat & kunci, Obrolan: Ruang, Obrolan: Pesan, Obrolan: Privasi | 39 |
 | `panitia` | Panitia: Kepanitiaan, Panitia: Persetujuan Pustikom, Panitia: Jenis panitia | 26 |
 | `pddikti` | PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Relay Feeder Desktop, PDDikti: Evaluasi data | 30 |
 | `peristiwa` | Event domain | 7 |
@@ -69,7 +69,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `repositori` | Repositori: OAI-PMH, Repositori: Karya, Repositori: Koleksi | 24 |
 | `rpl` | RPL: Pemohon, RPL: Asesmen, RPL: Pengajuan, RPL: Master | 84 |
 | `sarpras` | Sarpras: Peminjaman, Sarpras: Laporan, Sarpras: Gedung dan ruang, Sarpras: Aset, Sarpras: Pemeliharaan | 75 |
-| `sdm` | SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER | 278 |
+| `sdm` | SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER | 282 |
 | `spmi` | SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File | 205 |
 | `ta` | Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan | 15 |
 | `tema` | Tema | 6 |
