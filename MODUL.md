@@ -1,7 +1,7 @@
 <!-- Dibuat otomatis oleh generator/generate.mjs. Jangan diubah manual. -->
 # Daftar modul
 
-3541 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
+3598 endpoint dari SIAKAD UNIPO API 1.0.0, dikelompokkan per modul. Node.js: `siakad.<modul>.<metode>()`, PHP: `$siakad-><modul>()-><metode>()`.
 
 Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/lms/kelas/{id}` (operationId `getLmsKelasById`) menjadi `lms.getKelasById(id)`. Endpoint akar modul menjadi `list`/`create`/`update`/`replace`/`delete`.
 
@@ -9,7 +9,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 |---|---|---|
 | `system` | Sistem | 3 |
 | `admisi` | Admisi: Penerimaan, Admisi: Seleksi, Admisi: KIP Kuliah dan UKT, Admisi: Chat dan laporan, Admisi: Pendaftar, Admisi: Program studi | 86 |
-| `akademik` | Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status | 56 |
+| `akademik` | Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status | 57 |
 | `akun` | Akun pengguna | 13 |
 | `apiPortal` | Portal API: Pengajuan, Portal API: Aplikasi saya, Portal API: Tinjauan Pustikom | 18 |
 | `arsip` | Arsip: Publik, Arsip: Master, Arsip: Surat, Arsip: Disposisi, Arsip: Dokumen, Arsip: File, Arsip: Berkas, Arsip: Berbagi, Arsip: Peminjaman, Arsip: Penyusutan, Arsip: Saya, Arsip: Laporan | 124 |
@@ -19,13 +19,13 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `cbt` | CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian | 54 |
 | `crm` | CRM: Prospek, CRM: Skor dan segmen | 40 |
 | `dasbor` | Dasbor: Ringkasan, Dasbor: Perkuliahan, Dasbor: Kehadiran, Dasbor: Outcome, Dasbor: Peringatan dini | 18 |
-| `dokumen` | Dokumen: Templat, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik | 21 |
+| `dokumen` | Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik | 30 |
 | `dosen` | Dosen, Jadwal | 4 |
 | `edom` | EDOM: Soal, EDOM: Pengisian, EDOM: Hasil | 14 |
-| `fakultas` | Fakultas, Fakultas: kelola akademik | 76 |
+| `fakultas` | Fakultas, Fakultas: kelola akademik | 91 |
 | `gaji` | Gaji: Master, Gaji: Proses payroll, Gaji: Laporan, Gaji: Slip saya | 64 |
 | `helpdesk` | Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket | 27 |
-| `humas` | Humas, Humas: redaksi | 53 |
+| `humas` | Humas, Humas: redaksi | 74 |
 | `iku` | IKU: Dasbor, IKU: Pengaturan, IKU: Bukti | 30 |
 | `induk` | Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit | 45 |
 | `infra` | Infra: Layanan, Infra: Gerbang API, Infra: Rahasia, Infra: Antrean | 48 |
@@ -36,7 +36,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `karier` | Karier: Profil dan CV, Karier: Laporan, Karier: Rekomendasi, Karier: Mitra, Karier: Lamaran, Karier: Acara, Karier: Tips | 98 |
 | `kasir` | Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Migrasi aplikasi lama | 27 |
 | `kelengkapan` | Kelengkapan data | 7 |
-| `kelulusan` | Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI | 82 |
+| `kelulusan` | Kelulusan: Yudisium, Kelulusan: Syarat, Kelulusan: Wisuda, Kelulusan: Ijazah dan sertifikat, Kelulusan: Poin dan SKPI | 83 |
 | `kemahasiswaan` | Kemahasiswaan: Beasiswa, Kemahasiswaan: Organisasi, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran | 101 |
 | `kerjasama` | Kerja sama: Laporan, Kerja sama: Mitra, Kerja sama: Dokumen, Kerja sama: Kegiatan, Kerja sama: Evaluasi | 48 |
 | `keu` | Keuangan: Laporan, Keuangan: Virtual account, Keuangan: Buku besar, Keuangan: Kas, Keuangan: Laporan keuangan, Keuangan: Statistik, Keuangan: Master, Keuangan: Anggaran, Keuangan: Realisasi, Keuangan: Penerimaan | 106 |
@@ -60,7 +60,7 @@ Nama metode = `operationId` di dokumentasi API tanpa nama modul, mis. `GET /v1/l
 | `perpustakaan` | Perpustakaan: Katalog, Perpustakaan: Pengelolaan koleksi, Perpustakaan: Sirkulasi, Perpustakaan: Layanan anggota, Perpustakaan: Laporan dan integrasi, Perpustakaan: Layanan | 46 |
 | `pimpinan` | Pimpinan: Bidang, Pimpinan: Arahan | 25 |
 | `pmb` | PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan | 120 |
-| `portal` | Portal, Portal: kelola | 138 |
+| `portal` | Portal, Portal: kelola | 148 |
 | `presensi` | Presensi QR: Peserta, Presensi QR: Sesi, Presensi QR: Izin, Presensi QR: Titik kerja | 31 |
 | `profil` | Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data | 93 |
 | `qr` | QR: Generator, QR: Gaya | 9 |
