@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3540 endpoint).
+ * Akses ke semua modul API (3541 endpoint).
  */
 trait GeneratedResources
 {
@@ -409,7 +409,7 @@ trait GeneratedResources
         return $this->resource(Resources\Tema::class);
     }
 
-    /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (80 endpoint) */
+    /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (81 endpoint) */
     public function tracer(): Resources\Tracer
     {
         return $this->resource(Resources\Tracer::class);

@@ -59576,10 +59576,10 @@ export class TracerResource {
    * Verifikasi alumni tanpa akun SIAKAD
    *
    * Untuk alumni yang akun SIAKAD-nya sudah tidak aktif atau lupa password. Aplikasi tracer mengirim
-   * `{"nim": "...", "tanggal_lahir": "YYYY-MM-DD", "no_ijazah": "..."}`; bila cocok dengan data lulusan, respons berisi identitas dan kontak
-   * tercatat (email/HP dari profil tracer lalu SIAKAD). Dengan `no_ijazah` yang cocok (`ijazah_cocok: true`, spasi dan huruf besar/kecil
-   * diabaikan) aplikasi boleh langsung membuat sesi; tanpa `no_ijazah` aplikasi wajib mengirim kode OTP dulu. Nomor ijazah yang belum
-   * tercatat di SIAKAD = 409. Setelah itu aplikasi memanggil
+   * `{"nim": "...", "tanggal_lahir": "YYYY-MM-DD", "nik": "16 digit"}`; bila cocok dengan data lulusan, respons berisi identitas dan kontak
+   * tercatat (email/HP dari profil tracer lalu SIAKAD). Dengan `nik` yang cocok (`nik_cocok: true`; NIK dari m_mahasiswa, atau dari
+   * profil tracer bila di SIAKAD kosong) aplikasi boleh langsung membuat sesi. `no_ijazah` (`ijazah_cocok`) masih diterima untuk
+   * klien lama. Tanpa keduanya aplikasi wajib mengirim kode OTP dulu. NIK/nomor ijazah yang belum tercatat = 409. Setelah itu aplikasi memanggil
    * endpoint alumni (`/v1/tracer/saya/*`, `/v1/tracer/alumni/{nim}/*`, direktori) dengan header `X-Tracer-Alumni: <nim>`;
    * SIAKAD hanya mengizinkan data NIM itu. Batas 5 percobaan per NIM per jam. Tidak cocok = 404.
    *
@@ -60081,6 +60081,24 @@ export class TracerResource {
    */
   putUmp(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'PUT', path: '/v1/tracer/ump', query }, options);
+  }
+
+  /**
+   * Saran instansi untuk alumni
+   *
+   * Untuk isian nama instansi di formulir pekerjaan alumni. Hanya data usaha (nama, jenis, cakupan, bidang usaha, alamat, wilayah, situs), tanpa kontak; yang terverifikasi didahulukan. Riwayat pekerjaan yang disimpan otomatis tertaut ke instansi (dicocokkan dengan nama atau dibuat belum terverifikasi); `instansi` di body pekerjaan hanya mengisi kolom instansi yang masih kosong.
+   *
+   * `GET /v1/tracer/referensi/instansi`
+   *
+   * scope: `tracer:respond`
+   */
+  getReferensiInstansi(query?: {
+    /** Nama instansi, minimal 2 huruf */
+    q?: string;
+    /** Maksimal 20 */
+    limit?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/tracer/referensi/instansi', query }, options);
   }
 
   /**

@@ -352,7 +352,7 @@ export class Siakad extends SiakadCore {
     return this.resource('tema', () => new R.TemaResource(this));
   }
 
-  /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (80 endpoint) */
+  /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi (81 endpoint) */
   get tracer(): R.TracerResource {
     return this.resource('tracer', () => new R.TracerResource(this));
   }

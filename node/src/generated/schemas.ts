@@ -16734,6 +16734,14 @@ export type TracerPekerjaan = {
   keselarasan_vertikal?: string | null;
   /** Diisi bila berasal dari kuesioner */
   responden_id?: number | null;
+  instansi?: {
+    bidang_usaha?: string | null;
+    alamat?: string | null;
+    telepon?: string | null;
+    email?: string | null;
+    situs?: string | null;
+    [key: string]: any;
+  };
   [key: string]: any;
 };
 

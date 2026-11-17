@@ -805,10 +805,10 @@ final class Tracer extends Resource
      * Verifikasi alumni tanpa akun SIAKAD
      *
      * Untuk alumni yang akun SIAKAD-nya sudah tidak aktif atau lupa password. Aplikasi tracer mengirim
-     * `{"nim": "...", "tanggal_lahir": "YYYY-MM-DD", "no_ijazah": "..."}`; bila cocok dengan data lulusan, respons berisi identitas dan kontak
-     * tercatat (email/HP dari profil tracer lalu SIAKAD). Dengan `no_ijazah` yang cocok (`ijazah_cocok: true`, spasi dan huruf besar/kecil
-     * diabaikan) aplikasi boleh langsung membuat sesi; tanpa `no_ijazah` aplikasi wajib mengirim kode OTP dulu. Nomor ijazah yang belum
-     * tercatat di SIAKAD = 409. Setelah itu aplikasi memanggil
+     * `{"nim": "...", "tanggal_lahir": "YYYY-MM-DD", "nik": "16 digit"}`; bila cocok dengan data lulusan, respons berisi identitas dan kontak
+     * tercatat (email/HP dari profil tracer lalu SIAKAD). Dengan `nik` yang cocok (`nik_cocok: true`; NIK dari m_mahasiswa, atau dari
+     * profil tracer bila di SIAKAD kosong) aplikasi boleh langsung membuat sesi. `no_ijazah` (`ijazah_cocok`) masih diterima untuk
+     * klien lama. Tanpa keduanya aplikasi wajib mengirim kode OTP dulu. NIK/nomor ijazah yang belum tercatat = 409. Setelah itu aplikasi memanggil
      * endpoint alumni (`/v1/tracer/saya/*`, `/v1/tracer/alumni/{nim}/*`, direktori) dengan header `X-Tracer-Alumni: <nim>`;
      * SIAKAD hanya mengizinkan data NIM itu. Batas 5 percobaan per NIM per jam. Tidak cocok = 404.
      *
@@ -907,7 +907,7 @@ final class Tracer extends Resource
      * `POST /v1/tracer/alumni/{nim}/pekerjaan`
      *
      * @param int|string $nim NIM
-     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, ...} $body
+     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, instansi?: array<string, mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -926,7 +926,7 @@ final class Tracer extends Resource
      *
      * @param int|string $nim NIM
      * @param int|string $id ID pekerjaan
-     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, ...} $body
+     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, instansi?: array<string, mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -943,7 +943,7 @@ final class Tracer extends Resource
      *
      * @param int|string $nim NIM
      * @param int|string $id ID pekerjaan
-     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, ...} $body
+     * @param array{id?: int|null, nim?: string|null, instansi_id?: int|null, nama_instansi?: string|null, jenis_instansi?: string|null, tingkat?: string|null, jabatan?: string|null, posisi_wirausaha?: string|null, status_kerja?: string|null, mulai?: string|null, selesai?: string|null, saat_ini?: bool, pendapatan?: float|int|null, waktu_tunggu?: int|null, sebelum_lulus?: bool, kode_propinsi?: string|null, kode_kabupaten?: string|null, keselarasan_horizontal?: string|null, keselarasan_vertikal?: string|null, responden_id?: int|null, instansi?: array<string, mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1439,6 +1439,25 @@ final class Tracer extends Resource
     public function putUmp(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/tracer/ump', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Saran instansi untuk alumni
+     *
+     * Untuk isian nama instansi di formulir pekerjaan alumni. Hanya data usaha (nama, jenis, cakupan, bidang usaha, alamat, wilayah, situs), tanpa kontak; yang terverifikasi didahulukan. Riwayat pekerjaan yang disimpan otomatis tertaut ke instansi (dicocokkan dengan nama atau dibuat belum terverifikasi); `instansi` di body pekerjaan hanya mengisi kolom instansi yang masih kosong.
+     *
+     * `GET /v1/tracer/referensi/instansi`
+     *
+     * scope: `tracer:respond`
+     *
+     * @param array{q?: string, limit?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getReferensiInstansi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/referensi/instansi', [], $query, null, $options, false, false);
     }
 
     /**
