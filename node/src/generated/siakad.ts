@@ -337,6 +337,11 @@ export class Siakad extends SiakadCore {
     return this.resource('sdm', () => new R.SdmResource(this));
   }
 
+  /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
+  get sistem(): R.SistemResource {
+    return this.resource('sistem', () => new R.SistemResource(this));
+  }
+
   /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File (205 endpoint) */
   get spmi(): R.SpmiResource {
     return this.resource('spmi', () => new R.SpmiResource(this));

@@ -57047,6 +57047,274 @@ export class SdmResource {
   }
 }
 
+/** Sistem: Log terpadu, Sistem: Tugas terjadwal */
+export class SistemResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Log semua proses
+   *
+   * Log dari semua sumber (kelola akun, masuk sebagai pengguna, hak akses panitia, login SIAKAD lama, data induk & RBAC,
+   * riwayat aturan, tema, pengajuan API, kirim PDDikti, panggilan integrasi/berkas, webhook, AI, tugas terjadwal, kirim
+   * notifikasi, antrean event, akses rahasia, event domain, her-registrasi, SDM, SPMI, LPPM, arsip) dengan kolom seragam:
+   * `id` (`<sumber>:<kunci>`, null bila sumber tanpa kunci), `waktu`, `sumber`, `sumber_nama`, `kelompok`, `aksi`, `pelaku`,
+   * `sasaran`, `ringkasan`, `tingkat` (`info`/`peringatan`/`galat`), `ip` (disamarkan sebagian).
+   *
+   * Terbaru dulu, paginasi kursor: kirim `meta.berikut` sebagai `kursor` untuk halaman berikutnya (null = habis).
+   * `meta.sumber_galat` = sumber yang gagal dibaca (dilewati). Token, password, payload, dan isi pesan tidak pernah dikirim.
+   * Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLog(query?: {
+    /** Kode sumber, pisahkan dengan koma (lihat /v1/sistem/log/sumber) */
+    sumber?: string;
+    /** info, peringatan, galat (pisahkan dengan koma) */
+    tingkat?: string;
+    /** Username/klien pelaku (persis) */
+    pelaku?: string;
+    /** Cari teks (sasaran, aksi, catatan; maks 100 karakter) */
+    q?: string;
+    /** Y-m-d atau Y-m-d H:i[:s] */
+    dari?: string;
+    /** Y-m-d (sampai akhir hari) atau Y-m-d H:i[:s] */
+    sampai?: string;
+    /** Dari meta.berikut halaman sebelumnya */
+    kursor?: string;
+    /** Baris per halaman (1-200, bawaan 50) */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log', query }, options);
+  }
+
+  /**
+   * Sumber log
+   *
+   * Semua sumber log beserta kelompok, keterangan, tabel asal, apakah tersedia di server ini, dan tingkat yang mungkin. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/sumber`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogSumber(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/sumber', query }, options);
+  }
+
+  /**
+   * Ringkasan log
+   *
+   * Jumlah baris per tingkat (total dan per sumber) dalam `jam` terakhir (bawaan 24, maks 744) dan 5 galat terbaru. Untuk beranda Pustikom. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/ringkasan`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogRingkasan(query?: {
+    /** Rentang jam ke belakang */
+    jam?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/ringkasan', query }, options);
+  }
+
+  /**
+   * Ekspor log (CSV)
+   *
+   * Saringan sama dengan daftar; maks 10.000 baris terbaru, CSV titik koma UTF-8. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/ekspor`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogEkspor(query?: {
+    /** Kode sumber, pisahkan dengan koma (lihat /v1/sistem/log/sumber) */
+    sumber?: string;
+    /** info, peringatan, galat (pisahkan dengan koma) */
+    tingkat?: string;
+    /** Username/klien pelaku (persis) */
+    pelaku?: string;
+    /** Cari teks (sasaran, aksi, catatan; maks 100 karakter) */
+    q?: string;
+    /** Y-m-d atau Y-m-d H:i[:s] */
+    dari?: string;
+    /** Y-m-d (sampai akhir hari) atau Y-m-d H:i[:s] */
+    sampai?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/ekspor', query }, options);
+  }
+
+  /**
+   * Detail baris log
+   *
+   * Kolom seragam ditambah `detail` (kolom tambahan sumber itu, JSON sudah dibersihkan dari kunci rahasia, URL tanpa query string). `ip_lengkap` hanya untuk administrator sistem. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/{sumber}/{id}`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   *
+   * @param sumber Kode sumber
+   * @param id Kunci baris
+   */
+  getLogBySumberById(sumber: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/{sumber}/{id}', query: { ...query, sumber, id } }, options);
+  }
+
+  /**
+   * Ikhtisar tugas terjadwal
+   *
+   * Status penjadwal (`penjadwal.status`: aktif, tidak_aktif bila tidak berdetak lebih dari 5 menit, belum_pernah), ringkasan
+   * 24 jam (berhasil, gagal, terlewat, sedang berjalan), dan semua tugas bawaan: jadwal (ekspresi + kalimat awam), pelaksana
+   * (`penjadwal`, `crontab` = masih ada baris lama di crontab server sehingga penjadwal tidak menjalankannya,
+   * `crontab_server` = sengaja di crontab), jalan terakhir, yang sedang berjalan/antre, jadwal berikutnya. `hak.kelola`
+   * menandai apakah pemanggil boleh mengubah.
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   */
+  getJadwal(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal', query }, options);
+  }
+
+  /**
+   * Status penjadwal
+   *
+   * Detak terakhir per server, baris crontab yang terbaca, dan baris crontab yang perlu dipasang.
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/status`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   */
+  getJadwalStatus(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/status', query }, options);
+  }
+
+  /**
+   * Pratinjau ekspresi cron
+   *
+   * `ekspresi` (5 kolom: menit jam tanggal bulan hari, mis. `0 2 * * *`), `jumlah` (1-20, bawaan 5). Jawaban: `valid`, `galat`, `teks` (kalimat awam), `berikut` (waktu jatuh tempo).
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/pratinjau`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   */
+  getJadwalPratinjau(query?: {
+    /** Ekspresi cron Contoh: `*\/15 * * * *` */
+    ekspresi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/pratinjau', query }, options);
+  }
+
+  /**
+   * Detail tugas
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/tugas/{kode}`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   *
+   * @param kode Kode tugas
+   */
+  getJadwalTugasByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/tugas/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Ubah tugas
+   *
+   * Body (kirim yang diubah saja): `aktif` (bool), `ekspresi` (cron 5 kolom; kosong = kembali ke bawaan), `opsi` (objek nilai
+   * opsi yang diizinkan katalog, mis. `{"batas": "50"}`; nilai kosong = bawaan), atau `kembalikan: true` (semua ke bawaan).
+   * Jadwal yang lewat selama nonaktif tidak dihitung terlewat.
+   *
+   * Izin `pustikom.jadwal.kelola` atau administrator. Token pengguna saja; tercatat di log.
+   *
+   * `POST /v1/sistem/jadwal/tugas/{kode}`
+   *
+   * scope: `penjadwal:write` · hanya token pengguna
+   *
+   * @param kode Kode tugas
+   */
+  postJadwalTugasByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/tugas/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Jalankan sekarang
+   *
+   * Memasukkan tugas ke antrean; detak penjadwal berikutnya (paling lama 1 menit) memulainya sebagai proses latar,
+   * bukan di dalam permintaan HTTP ini. Ditolak 409 bila tugas itu masih antre/berjalan. Boleh untuk tugas nonaktif.
+   *
+   * Izin `pustikom.jadwal.kelola` atau administrator. Token pengguna saja; tercatat di log.
+   *
+   * `POST /v1/sistem/jadwal/tugas/{kode}/jalankan`
+   *
+   * scope: `penjadwal:write` · hanya token pengguna
+   *
+   * @param kode Kode tugas
+   */
+  postJadwalTugasByKodeJalankan(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/tugas/{kode}/jalankan', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Riwayat jalan
+   *
+   * Terbaru dulu. Saring `tugas`, `status` (antre, berjalan, berhasil, gagal, batas_waktu, terlewat, dibatalkan; boleh beberapa dipisah koma), `pemicu` (jadwal, manual), `dari`/`sampai` (YYYY-MM-DD); `page`, `per_page` (maks. 100). Tanpa keluaran lengkap (lihat detail).
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/jalan`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   */
+  getJadwalJalan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/jalan', query }, options);
+  }
+
+  /**
+   * Detail jalan
+   *
+   * Termasuk `keluaran` (stdout) dan `galat` (stderr), masing-masing maks. 64 KB (awal dan akhir).
+   *
+   * Izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/jalan/{id}`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   *
+   * @param id ID jalan
+   */
+  getJadwalJalanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/jalan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hentikan jalan
+   *
+   * Yang masih antre langsung dibatalkan. Yang sedang berjalan ditandai `minta_berhenti`; proses pelaksana menghentikannya
+   * (SIGTERM, lalu SIGKILL setelah 5 detik) dalam beberapa detik dan mencatatnya `dibatalkan`.
+   *
+   * Izin `pustikom.jadwal.kelola` atau administrator. Token pengguna saja; tercatat di log.
+   *
+   * `POST /v1/sistem/jadwal/jalan/{id}/hentikan`
+   *
+   * scope: `penjadwal:write` · hanya token pengguna
+   *
+   * @param id ID jalan
+   */
+  postJadwalJalanByIdHentikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/jalan/{id}/hentikan', query: { ...query, id } }, options);
+  }
+}
+
 /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File */
 export class SpmiResource {
   constructor(private readonly client: SiakadCore) {}

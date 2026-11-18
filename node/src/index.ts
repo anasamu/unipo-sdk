@@ -33,6 +33,10 @@ export {
   type IdentitasGerbang, type PermintaanGerbang, type OpsiVerifikasiGerbang, type AmplopEvent, type PesanAntrean,
   type OpsiKonsumsiAntrean, type HasilKonsumsiAntrean, type Rahasia, type OpsiMuatRahasia, type OpsiTerbitkanEvent,
 } from './infra.js';
+export {
+  logSistem,
+  type LogSistem, type BarisLog, type DetailLog, type SumberLog, type RingkasanLog, type SaringanLog, type HalamanLog, type TingkatLog,
+} from './log-sistem.js';
 export { kodeDariQr, formatKode, qrSvg, qrPng, cocokkanPdf, type OpsiQr } from './dokumen.js';
 export {
   jarakMeter, dalamPoligon, cocokkanArea, buatKunciPresensi, catatPresensiKerja, KODE_GALAT_PRESENSI,
