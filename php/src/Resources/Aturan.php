@@ -288,7 +288,7 @@ final class Aturan extends Resource
     /**
      * Penyetuju aturan per kategori
      *
-     * Untuk halaman "Pejabat penyetuju aturan". Per kategori: bidang pimpinan, jabatan_daftar (salah satu cukup), penyetuju.orang (yang saat ini bisa menyetujui), penyetuju.jabatan_rinci [{kode, nama, pejabat: [{username|null, nama, unit, plt, bisa_menyetujui}]}], penyetuju.bidang_rinci (pemegang peran bidang), siap (ada penyetuju), rektor (jatuh ke Rektor), isi_di (aplikasi, menu, path, api, langkah tempat mengisi pejabat), telaah_spmi.
+     * Untuk halaman "Pejabat penyetuju aturan". Per kategori: bidang pimpinan, jabatan_daftar (salah satu cukup), penyetuju.orang [{username, nama, sebagai, sumber: penugasan|jabatan}] (yang saat ini bisa menyetujui: pemegang izin aturan.setujui lewat RBAC Pustikom, bukan level SIAKAD lama), penyetuju.peran (peran yang perlu diberikan, mis. pimpinan-akademik/rektor), penyetuju.jabatan_rinci [{kode, nama, pejabat: [{username|null, nama, unit, plt, bisa_menyetujui}]}], penyetuju.bidang_rinci {kode, peran, pemegang}, siap (ada penyetuju), pesan (bila kosong), rektor (jatuh ke Rektor), isi_di (aplikasi, menu, path, api, langkah di Pustikom), telaah_spmi.
      *
      * `GET /v1/aturan/penyetuju`
      *
@@ -510,7 +510,7 @@ final class Aturan extends Resource
     /**
      * Setujui aturan (penyetuju)
      *
-     * Hanya penyetuju kategori aturan (pejabat bidang yang dipetakan, atau Rektor bila bidang tanpa pejabat) yang memegang izin aturan.setujui. Aturan langsung berlaku (atau versi baru menggantikan versi lama), SK didaftarkan sebagai dokumen kebijakan unit di SPMI. Body opsional {"catatan"}. Event aturan.disetujui + aturan.diaktifkan/aturan.diubah.
+     * Hanya penyetuju kategori aturan (GET /v1/aturan/penyetuju): pemegang izin aturan.setujui lewat penugasan peran pimpinan-<bidang>/rektor atau jabatan yang dipetakan ke peran (Pustikom » Peran & hak akses). Level SIAKAD lama tidak dipakai. Aturan langsung berlaku (atau versi baru menggantikan versi lama), SK didaftarkan sebagai dokumen kebijakan unit di SPMI. Body opsional {"catatan"}. Event aturan.disetujui + aturan.diaktifkan/aturan.diubah.
      *
      * `POST /v1/aturan/{id}/setujui`
      *

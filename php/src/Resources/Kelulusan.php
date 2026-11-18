@@ -55,13 +55,13 @@ final class Kelulusan extends Resource
     /**
      * Kandidat lulus (yudisium)
      *
-     * Daftar menu Lulus Akademik: mahasiswa berstatus A pada periode, belum lulus/DO, dalam batas studi; tiap baris dengan SKS, IPK, boleh, dan alasan bila belum boleh.
+     * Daftar menu Lulus Akademik: mahasiswa berstatus A pada periode, belum lulus/DO, dalam batas studi; tiap baris dengan kode_prodi, SKS, IPK, boleh, dan alasan bila belum boleh. Tanpa prodi (pengelola lintas prodi) = semua prodi kelolaan, digabung berurutan per prodi; meta.semua_prodi dan meta.per_prodi (jumlah kandidat tiap prodi). Penetapan lulus (POST /yudisium) tetap per prodi.
      *
      * `GET /v1/kelulusan/kandidat`
      *
      * scope: `kelulusan:read` · berhalaman
      *
-     * @param array{angkatan?: string, nim?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{prodi?: string, tahun_id?: string, angkatan?: string, nim?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

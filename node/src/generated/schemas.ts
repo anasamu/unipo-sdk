@@ -1074,6 +1074,76 @@ export type AkademikPengajuanTolakInput = {
   [key: string]: any;
 };
 
+/** Pengajuan perbaikan nilai (tabel akd_nilai_perbaikan) */
+export type AkademikNilaiPerbaikan = {
+  id?: number;
+  idkrs?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nim?: string;
+  /** m_program_studi.kode_prodi (hanya baca) Hanya dibaca. */
+  kode_prodi?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tahun_id?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kode_mk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nama_mk?: string;
+  /** (hanya baca) Hanya dibaca. */
+  kelas?: string;
+  /** (hanya baca) Hanya dibaca. */
+  sks?: number;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_lama?: string;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_angka_lama?: number;
+  nilai_baru?: string;
+  nilai_angka_baru?: number;
+  alasan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  peran_pengaju?: "dosen" | "prodi" | "baak" | "dekan";
+  /** (hanya baca) Hanya dibaca. */
+  pengaju?: string;
+  /** (hanya baca) Hanya dibaca. */
+  status?: "diajukan" | "disetujui" | "ditolak" | "dibatalkan";
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** (hanya baca) Hanya dibaca. */
+  tercatat_siakad?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  nilai_hasil?: string;
+  /** (hanya baca) Hanya dibaca. */
+  hasil_siakad?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  diputus_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type AkademikNilaiPerbaikanInput = {
+  idkrs: number;
+  nilai_baru?: string;
+  nilai_angka_baru?: number;
+  alasan: string;
+  /** (hanya pengelola) */
+  catatan?: string;
+  /** Hanya saat membuat: dokumen pendukung (UUID dari /v1/berkas) yang langsung dilampirkan */
+  lampiran?: Array<string>;
+  [key: string]: any;
+};
+
+export type AkademikNilaiPerbaikanSetujuiInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type AkademikNilaiPerbaikanTolakInput = {
+  catatan: string;
+  [key: string]: any;
+};
+
 export type JadwalSesiRingkas = {
   id?: number | null;
   prodi?: string;
@@ -4307,7 +4377,7 @@ export type IndukUnit = {
   induk_id?: number;
   /** (unik) */
   kode?: string;
-  jenis?: "universitas" | "fakultas" | "prodi" | "lembaga" | "biro" | "upt" | "bagian" | "unit";
+  jenis?: "universitas" | "rektorat" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -4333,7 +4403,7 @@ export type IndukUnitInput = {
   induk_id?: number;
   /** (unik) */
   kode: string;
-  jenis: "universitas" | "fakultas" | "prodi" | "lembaga" | "biro" | "upt" | "bagian" | "unit";
+  jenis: "universitas" | "rektorat" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -4402,6 +4472,8 @@ export type IndukPejabat = {
   mulai?: string;
   selesai?: string;
   plt?: boolean;
+  plh?: boolean;
+  catatan?: string;
   aktif?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
@@ -4428,6 +4500,8 @@ export type IndukPejabatInput = {
   mulai: string;
   selesai?: string;
   plt?: boolean;
+  plh?: boolean;
+  catatan?: string;
   aktif?: boolean;
   [key: string]: any;
 };
@@ -15227,6 +15301,186 @@ export type SdmHonorProses = {
   /** Untuk bayar */
   nomor_bukti?: string | null;
   catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SkRegistri = {
+  /** UUID SK registri */
+  id: string | null;
+  /** Penulisan resmi penerbit Contoh: `91.01/UNIPO-SK/VII/2026` */
+  nomor: string | null;
+  /** Nomor dinormalisasi untuk deteksi ganda Contoh: `91/1/UNIPO/SK/VII/2026` */
+  nomor_kunci?: string | null;
+  tanggal?: string | null;
+  perihal?: string | null;
+  /** kalender, aturan, pengangkatan, penugasan, panitia, kepegawaian, kurikulum, akreditasi, pendirian, penetapan, lainnya */
+  jenis?: string | null;
+  jenis_label?: string | null;
+  penerbit?: {
+    /** induk_unit.id; null untuk instansi luar */
+    unit_id?: number | null;
+    kode?: string | null;
+    jenis?: string | null;
+    nama?: string | null;
+    luar?: boolean;
+    [key: string]: any;
+  };
+  penandatangan?: {
+    /** induk_pejabat.id */
+    pejabat_id?: number | null;
+    jabatan?: string | null;
+    nama?: string | null;
+    /** Path gambar tanda tangan bila ada */
+    ttd?: string | null;
+    [key: string]: any;
+  };
+  /** Ditetapkan di */
+  tempat?: string | null;
+  berkas?: {
+    ada?: boolean;
+    nama?: string | null;
+    mime?: string | null;
+    ukuran?: number | null;
+    /** /v1/sk/{id}/berkas */
+    url?: string | null;
+    [key: string]: any;
+  };
+  /** draf = ajuan pencatatan menunggu verifikasi penerbit */
+  status: "draf" | "terbit" | "ditolak" | "dicabut" | "diubah";
+  keamanan?: "biasa" | "terbatas";
+  /** registri, ajuan[:modul], arsip, impor:<tabel> */
+  sumber?: string | null;
+  catatan?: string | null;
+  diverifikasi_oleh?: string | null;
+  diverifikasi_at?: string | null;
+  dibuat_oleh?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type SkDetail = SkRegistri & {
+  pemakaian?: Array<{
+    modul?: string | null;
+    tabel?: string | null;
+    baris?: string | null;
+    peran?: string | null;
+    label?: string | null;
+    uraian?: string | null;
+    oleh?: string | null;
+    sejak?: string | null;
+    [key: string]: any;
+  }>;
+  mengubah?: Array<{
+    id?: string | null;
+    nomor?: string | null;
+    perihal?: string | null;
+    jenis?: "mengubah" | "mencabut";
+    /** draf = ajuan pencatatan menunggu verifikasi penerbit */
+    status?: "draf" | "terbit" | "ditolak" | "dicabut" | "diubah";
+    [key: string]: any;
+  }>;
+  diubah_oleh_sk?: Array<{
+    id?: string | null;
+    nomor?: string | null;
+    perihal?: string | null;
+    jenis?: "mengubah" | "mencabut";
+    /** draf = ajuan pencatatan menunggu verifikasi penerbit */
+    status?: "draf" | "terbit" | "ditolak" | "dicabut" | "diubah";
+    [key: string]: any;
+  }>;
+  ganda?: Array<SkRegistri>;
+  boleh?: {
+    catat?: boolean;
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
+
+export type SkPeriksa = {
+  nomor?: string | null;
+  nomor_kunci?: string | null;
+  sama?: Array<SkRegistri>;
+  mirip?: Array<SkRegistri>;
+  pesan?: string | null;
+  [key: string]: any;
+};
+
+export type SkCatat = {
+  /** Contoh: `91.01/UNIPO-SK/VII/2026` */
+  nomor?: string | null;
+  tanggal?: string | null;
+  perihal?: string | null;
+  jenis?: string | null;
+  penerbit_unit_id?: number | null;
+  /** Instansi luar, mis. BAN-PT */
+  penerbit_luar?: string | null;
+  /** induk_pejabat.id; jabatan dan nama diambil dari data pejabat */
+  penandatangan_pejabat_id?: number | null;
+  /** Hanya SK instansi luar */
+  penandatangan_jabatan?: string | null;
+  /** Hanya SK instansi luar */
+  penandatangan_nama?: string | null;
+  tempat?: string | null;
+  /** UUID /v1/berkas */
+  berkas_id?: string | null;
+  ttd_berkas_id?: string | null;
+  keamanan?: "biasa" | "terbatas";
+  catatan?: string | null;
+  mengubah?: Array<string>;
+  mencabut?: Array<string>;
+  /** Tetap catat walau nomor sama tercatat di penerbit lain */
+  abaikan_mirip?: boolean;
+  /** Ubah: penerbit menerbitkan draf */
+  status?: "terbit";
+  [key: string]: any;
+};
+
+export type SkVerifikasi = {
+  keputusan: "terima" | "tolak";
+  /** Wajib saat tolak */
+  catatan?: string | null;
+  penerbit_unit_id?: number | null;
+  [key: string]: any;
+};
+
+export type SkCabut = {
+  /** UUID SK pencabut */
+  oleh_sk_id?: string | null;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SkGabung = {
+  /** UUID SK tujuan */
+  ke: string | null;
+  [key: string]: any;
+};
+
+export type SkPenerbit = {
+  unit_id?: number | null;
+  kode?: string | null;
+  jenis?: string | null;
+  nama?: string | null;
+  induk_id?: number | null;
+  boleh_catat?: boolean;
+  [key: string]: any;
+};
+
+export type SkPenandatangan = {
+  pejabat_id?: number | null;
+  nama?: string | null;
+  jabatan?: string | null;
+  jabatan_kode?: string | null;
+  unit_id?: number | null;
+  unit_penerbit_id?: number | null;
+  plt?: boolean;
+  [key: string]: any;
+};
+
+export type SkBerkasUrl = {
+  url?: string | null;
+  kedaluwarsa_at?: string | null;
   [key: string]: any;
 };
 

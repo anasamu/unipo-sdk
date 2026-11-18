@@ -18,11 +18,13 @@ final class Rbac extends Resource
      *
      * Peran yang sedang dipegang pemilik token (dari level lama, penugasan, dan jabatan), izin efektif (pola `*` sudah diuraikan
      * menjadi kode di katalog) beserta lingkup unitnya, aplikasi yang boleh dimasuki (izin `<aplikasi>.akses`), scope API, dan
-     * level SIAKAD yang setara. `?aplikasi=lms` membatasi ke satu aplikasi. Dipakai SSO untuk klaim `roles`/`permissions`.
+     * level SIAKAD yang setara. `?aplikasi=lms` membatasi ke satu aplikasi. Dipakai SSO untuk klaim `roles`/`permissions` dan
+     * BFF aplikasi untuk memeriksa ulang hak pengguna selama sesi. Token pengguna apa pun (tanpa scope khusus); akun nonaktif
+     * atau token yang dicabut dijawab 401.
      *
      * `GET /v1/rbac/saya`
      *
-     * scope: `rbac:read` · hanya token pengguna
+     * hanya token pengguna
      *
      * @param array{aplikasi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
@@ -37,7 +39,7 @@ final class Rbac extends Resource
     /**
      * Hak akses pengguna
      *
-     * Sama dengan /saya untuk pengguna lain. Untuk pengelola hak akses dan token aplikasi (client_credentials) ber-scope rbac:read.
+     * Sama dengan /saya untuk pengguna lain. Untuk pengelola hak akses dan token aplikasi (client_credentials) ber-scope rbac:read. Akun yang tidak ada atau nonaktif dijawab 404 dengan kode `pengguna_tidak_aktif` (SSO mengakhiri sesinya).
      *
      * `GET /v1/rbac/pengguna/{username}`
      *

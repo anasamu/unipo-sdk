@@ -317,7 +317,7 @@ final class Dokumen extends Resource
     /**
      * Terbitkan KRS
      *
-     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/krs (mahasiswa hanya miliknya). Tanda tangan dosen PA dan mahasiswa.
+     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/krs (mahasiswa hanya miliknya). Tanda tangan dosen PA dan mahasiswa. Aturan dinamis titik `krs.cetak` (/v1/aturan) diperiksa setelah hak akses; pelanggaran 409 aturan_dilanggar.
      * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
      * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
      * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
@@ -343,7 +343,7 @@ final class Dokumen extends Resource
     /**
      * Terbitkan KHS
      *
-     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/khs. Nilai yang belum boleh tampil ditulis "-".
+     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/khs. Nilai yang belum boleh tampil ditulis "-". Aturan dinamis titik `khs.lihat` dan `khs.cetak` (/v1/aturan) diperiksa setelah hak akses; pelanggaran 409 aturan_dilanggar.
      * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
      * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
      * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
@@ -369,7 +369,7 @@ final class Dokumen extends Resource
     /**
      * Terbitkan transkrip nilai
      *
-     * Body {nim}. Nilai terbaik tiap mata kuliah, sama dengan GET /v1/mahasiswa/{nim}/transkrip.
+     * Body {nim}. Nilai terbaik tiap mata kuliah, sama dengan GET /v1/mahasiswa/{nim}/transkrip. Aturan dinamis titik `transkrip.cetak` (/v1/aturan) diperiksa setelah hak akses; pelanggaran 409 aturan_dilanggar.
      * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
      * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
      * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan

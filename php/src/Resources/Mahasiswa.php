@@ -181,6 +181,9 @@ final class Mahasiswa extends Resource
      *
      * Dengan `tahun_id`: KHS satu periode. Tanpa `tahun_id`: semua periode. Nilai, IPS, dan IPK dihitung dengan fungsi
      * yang sama dengan halaman KHS (nilai yang belum divalidasi tidak ditampilkan: `nilai_ditampilkan` false).
+     * Aturan dinamis titik `khs.lihat` (mis. wajib isi EDOM): dengan `tahun_id` pelanggaran ditolak 409 `aturan_dilanggar`;
+     * tanpa `tahun_id` periode yang dilanggar ditandai `terkunci` (nilai, IPS, IPK disembunyikan) dengan `pesan_aturan`.
+     * Ringkasan pemeriksaan ada di `aturan`.
      *
      * `GET /v1/mahasiswa/{nim}/khs`
      *

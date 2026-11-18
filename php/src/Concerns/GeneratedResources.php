@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3666 endpoint).
+ * Akses ke semua modul API (3760 endpoint).
  */
 trait GeneratedResources
 {
@@ -25,13 +25,13 @@ trait GeneratedResources
         return $this->resource(Resources\Admisi::class);
     }
 
-    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi (67 endpoint) */
+    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Ujian, Akademik: Konversi dan riwayat nilai, Akademik: Pengajuan status, Akademik: Perbaikan nilai, Akademik: Periode, Akademik: Her-registrasi (102 endpoint) */
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
     }
 
-    /** Akun pengguna (13 endpoint) */
+    /** Akun pengguna (14 endpoint) */
     public function akun(): Resources\Akun
     {
         return $this->resource(Resources\Akun::class);
@@ -103,7 +103,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (91 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (98 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -133,7 +133,7 @@ trait GeneratedResources
         return $this->resource(Resources\Iku::class);
     }
 
-    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit (45 endpoint) */
+    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (63 endpoint) */
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
@@ -163,7 +163,7 @@ trait GeneratedResources
         return $this->resource(Resources\JadwalUjian::class);
     }
 
-    /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Kegiatan (15 endpoint) */
+    /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan (34 endpoint) */
     public function kalender(): Resources\Kalender
     {
         return $this->resource(Resources\Kalender::class);
@@ -395,6 +395,12 @@ trait GeneratedResources
     public function sistem(): Resources\Sistem
     {
         return $this->resource(Resources\Sistem::class);
+    }
+
+    /** SK: Registri (14 endpoint) */
+    public function sk(): Resources\Sk
+    {
+        return $this->resource(Resources\Sk::class);
     }
 
     /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File (205 endpoint) */

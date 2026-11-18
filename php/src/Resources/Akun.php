@@ -238,6 +238,32 @@ final class Akun extends Resource
     }
 
     /**
+     * Akhiri semua sesi akun
+     *
+     * Mengeluarkan akun dari semua aplikasi: semua refresh token API dicabut, token akses yang sudah terbit ditolak seketika, dan
+     * semua sesi SSO-nya (juga sesi "masuk sebagai pengguna" yang dibukanya) dicabut lewat SSO (`POST /session/revoke-user`,
+     * klien SSO SIAKAD). Aplikasi yang sedang terbuka kembali ke halaman masuk pada permintaan berikutnya. Password tidak
+     * berubah. Body opsional `{"alasan": "..."}`. Hak: administrator, izin `pustikom.akun`, atau izin `rbac:admin`.
+     *
+     * Jawaban: `refresh_dicabut` (jumlah refresh token API) dan `sso` (`{"dicabut": n}`, `{"galat": "..."}`, atau null bila SSO
+     * belum dikonfigurasi di SIAKAD).
+     *
+     * `POST /v1/akun/{username}/akhiri-sesi`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $username Username SIAKAD
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByUsernameAkhiriSesi(int|string $username, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/{username}/akhiri-sesi', ['username' => $username], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Reset password akun
      *
      * Body `sandi` (bawaan, acak, manual) dan `password` untuk manual. Password acak dikembalikan sekali di `password_sementara`. Untuk tautan atur password lewat email, pakai SSO (Pustikom: tombol Kirim tautan).

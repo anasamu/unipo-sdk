@@ -80,6 +80,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Unipo\Siakad\Resources\Sarpras sarpras()
  * @method static \Unipo\Siakad\Resources\Sdm sdm()
  * @method static \Unipo\Siakad\Resources\Sistem sistem()
+ * @method static \Unipo\Siakad\Resources\Sk sk()
  * @method static \Unipo\Siakad\Resources\Spmi spmi()
  * @method static \Unipo\Siakad\Resources\Ta ta()
  * @method static \Unipo\Siakad\Resources\Tema tema()
