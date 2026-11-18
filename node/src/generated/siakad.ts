@@ -337,7 +337,7 @@ export class Siakad extends SiakadCore {
     return this.resource('sdm', () => new R.SdmResource(this));
   }
 
-  /** Sistem: Log terpadu (5 endpoint) */
+  /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
   get sistem(): R.SistemResource {
     return this.resource('sistem', () => new R.SistemResource(this));
   }

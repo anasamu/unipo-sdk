@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3657 endpoint).
+ * Akses ke semua modul API (3666 endpoint).
  */
 trait GeneratedResources
 {
@@ -391,7 +391,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sdm::class);
     }
 
-    /** Sistem: Log terpadu (5 endpoint) */
+    /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
     public function sistem(): Resources\Sistem
     {
         return $this->resource(Resources\Sistem::class);

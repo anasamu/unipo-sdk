@@ -5,6 +5,7 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 ## 1.19.0 (belum dirilis)
 
 - Log terpadu semua proses untuk Pustikom: `logSistem(siakad)` bertipe (`daftar` dengan paginasi kursor, `semua`, `detail`, `sumber`, `ringkasan`, `eksporCsv`) dan tipe `BarisLog`, `DetailLog`, `SumberLog`, `RingkasanLog`, `SaringanLog`. Endpoint mentah juga tersedia di `siakad.sistem.*` (GET /v1/sistem/log, /sumber, /ringkasan, /ekspor, /{sumber}/{id}); hak izin `pustikom.log`.
+- Tugas terjadwal (penjadwal SIAKAD): `siakad.sistem.*` untuk /v1/sistem/jadwal (status penjadwal, daftar tugas, ubah, jalankan, hentikan, riwayat jalan); 9 operasi baru.
 - Spesifikasi diperbarui dari SIAKAD: 32 operasi baru, 0 operasi hilang. Selain log sistem: titik penerapan aturan (/v1/aturan/titik), alur persetujuan aturan (ajukan, telaah, setujui, kembalikan, darurat, ajuan pengecualian, penyetuju), periode dan her-registrasi akademik (/v1/akademik/periode, /v1/akademik/registrasi).
 
 ## 1.18.0 (belum dirilis)
