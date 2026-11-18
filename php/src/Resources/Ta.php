@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan
+ * Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan, Ujian TA: Kelayakan & pengajuan, Ujian TA: Penjadwalan, Ujian TA: Penetapan SK Dekan, Ujian TA: Pelaksanaan & hasil
  */
 final class Ta extends Resource
 {
@@ -305,5 +305,513 @@ final class Ta extends Resource
     public function postPengaturan(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/ta/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jenis ujian dan pengaturan
+     *
+     * Jenis (proposal, seminar hasil, sidang skripsi) dengan titik aturan, jumlah penguji, durasi, rubrik, keputusan; pengaturan efektif (penjadwal, penetap, alur mahasiswa); label status.
+     *
+     * `GET /v1/ta/ujian/jenis`
+     *
+     * scope: `ta:read`
+     *
+     * @param array{prodi?: string, fakultas?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianJenis(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/jenis', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan efektif
+     *
+     * Kampus <- fakultas <- prodi.
+     *
+     * `GET /v1/ta/ujian/pengaturan`
+     *
+     * scope: `ta:read`
+     *
+     * @param array{prodi?: string, fakultas?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan pengaturan
+     *
+     * Body {lingkup: kampus|fakultas|prodi, kode, penjadwal?: prodi|fakultas|keduanya, penetap?: dekan|wd1, alur_mahasiswa?, jam_mulai?, jam_selesai?, jenis?: {proposal: {aktif, min_penguji, maks_penguji, durasi_menit, sekretaris, pembimbing_menilai, batas_revisi_hari, nilai_lulus, rubrik}}}.
+     *
+     * `POST /v1/ta/ujian/pengaturan`
+     *
+     * scope: `ta:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ujian TA saya
+     *
+     * Mahasiswa: kelayakan per jenis (syarat per unit), ujian aktif, boleh_ajukan. Dosen: ujian yang diuji/dibimbing, jumlah menunggu persetujuan dan perlu nilai. Semua: prodi_jadwal, prodi_lihat, fakultas_tetapkan.
+     *
+     * `GET /v1/ta/ujian/saya`
+     *
+     * scope: `ta:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianSaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/saya', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar kelayakan ujian
+     *
+     * Mahasiswa aktif berjudul diterima di prodi pengguna yang belum lulus jenis ujian ini, dengan hasil aturan titik pendaftaran dikelompokkan per unit (layak, alasan, tindakan).
+     *
+     * `GET /v1/ta/ujian/kelayakan`
+     *
+     * scope: `ta:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, prodi?: string, angkatan?: string, pembimbing?: string, status?: string, q?: string, jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianKelayakan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/kelayakan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kelayakan satu mahasiswa
+     *
+     * Mahasiswa itu, pembimbingnya, pengelola prodi.
+     *
+     * `GET /v1/ta/ujian/kelayakan/{nim}`
+     *
+     * scope: `ta:read`
+     *
+     * @param int|string $nim NIM
+     * @param array{jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianKelayakanByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/kelayakan/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa mengajukan siap ujian
+     *
+     * Body {jenis, catatan?}. Syarat aturan harus terpenuhi (422 belum_memenuhi_syarat dengan kelayakan). Pembimbing diberi notifikasi.
+     *
+     * `POST /v1/ta/ujian/ajukan`
+     *
+     * scope: `ta:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianAjukan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/ajukan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Persetujuan pembimbing (layak uji)
+     *
+     * Body {keputusan: setuju|kembalikan, catatan (wajib bila kembalikan)}.
+     *
+     * `POST /v1/ta/ujian/{id}/pembimbing`
+     *
+     * scope: `ta:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdPembimbing(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/pembimbing', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar ujian
+     *
+     * Pengelola: prodi yang boleh dilihat. Dosen (untuk=saya): ujian yang diuji/dibimbing. Mahasiswa: miliknya.
+     *
+     * `GET /v1/ta/ujian`
+     *
+     * scope: `ta:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, untuk?: string, jenis?: string, status?: string, prodi?: string, dari?: string, sampai?: string, ruang?: string, dosen?: string, q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Operator membuat ujian
+     *
+     * Body {nim, jenis}. Untuk mahasiswa yang memenuhi syarat (tanpa permohonan mahasiswa). Status layak uji.
+     *
+     * `POST /v1/ta/ujian`
+     *
+     * scope: `ta:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Agenda ujian
+     *
+     * Ujian berjadwal dalam rentang tanggal (kalender/agenda/papan per ruang).
+     *
+     * `GET /v1/ta/ujian/agenda`
+     *
+     * scope: `ta:read`
+     *
+     * @param array{dari?: string, sampai?: string, untuk?: string, prodi?: string, ruang?: string, jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianAgenda(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/agenda', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ruang ujian
+     *
+     * Sarpras (bila sudah disinkronkan) atau ruang kuliah lama.
+     *
+     * `GET /v1/ta/ujian/ruang`
+     *
+     * scope: `ta:read`
+     *
+     * @param array{q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianRuang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/ruang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail ujian
+     *
+     * Tim, SK, nilai, keputusan, riwayat, syarat saat diajukan, hak.
+     *
+     * `GET /v1/ta/ujian/{id}`
+     *
+     * scope: `ta:read`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Susun jadwal dan tim
+     *
+     * Body {tanggal, mulai, selesai, ruang? (kode), daring?, tautan?, ketua, sekretaris?, penguji: [nidn], catatan?, abaikan_kuliah?}. Pembimbing ikut otomatis. 422 syarat_dosen (aturan titik penguji), 409 bentrok (ruang/dosen/mahasiswa di ujian lain selalu; kuliah/UTS/peminjaman kecuali abaikan_kuliah). Status draf.
+     *
+     * `POST /v1/ta/ujian/{id}/jadwal`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdJadwal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/jadwal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periksa jadwal tanpa menyimpan
+     *
+     * Body sama dengan jadwal. Hasil {bentrok, syarat_dosen, boleh}.
+     *
+     * `POST /v1/ta/ujian/{id}/periksa-jadwal`
+     *
+     * scope: `ta:read`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdPeriksaJadwal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/periksa-jadwal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Saran slot
+     *
+     * Body {dosen?: [nidn tim], dari?, hari? (1-30), durasi? (menit), ruang?}. Slot hari kerja yang kosong untuk dosen, mahasiswa, dan satu ruang.
+     *
+     * `POST /v1/ta/ujian/{id}/saran`
+     *
+     * scope: `ta:read`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdSaran(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/saran', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan ke Dekan
+     *
+     * Body {ids: [UUID draf], catatan?}. Dekan/WD I fakultas diberi notifikasi.
+     *
+     * `POST /v1/ta/ujian/ajukan-penetapan`
+     *
+     * scope: `ta:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianAjukanPenetapan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/ajukan-penetapan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tetapkan dengan SK Dekan
+     *
+     * Body {ids: [UUID diajukan, satu fakultas], sk_id (UUID registri SK, terbit, penerbit fakultas itu), catatan?}. Hanya Dekan (atau WD I bila didelegasikan). SK dicatat dipakai (sk_pakai) per ujian; mahasiswa dan tim diberi notifikasi; jadwal ditulis ke Daftar TA lama.
+     *
+     * `POST /v1/ta/ujian/tetapkan`
+     *
+     * scope: `ta:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianTetapkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/tetapkan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kembalikan usulan
+     *
+     * Dekan. Body {ids, catatan}. Status kembali draf.
+     *
+     * `POST /v1/ta/ujian/kembalikan`
+     *
+     * scope: `ta:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianKembalikan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/kembalikan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Catat kehadiran
+     *
+     * Body {mahasiswa_hadir, hadir: {nidn: bool}}. Status terlaksana.
+     *
+     * `POST /v1/ta/ujian/{id}/hadir`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdHadir(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/hadir', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Isi nilai
+     *
+     * Anggota tim penilai. Body {nilai (0-100)} atau {rubrik: {kode: 0-100}}, catatan?.
+     *
+     * `POST /v1/ta/ujian/{id}/nilai`
+     *
+     * scope: `ta:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdNilai(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/nilai', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Keputusan
+     *
+     * Ketua sidang atau penyusun jadwal. Body {keputusan: lanjut|revisi|ulang, catatan_revisi (wajib bila revisi), batas_revisi?}. Nilai akhir = rata-rata penilai yang hadir.
+     *
+     * `POST /v1/ta/ujian/{id}/putuskan`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdPutuskan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/putuskan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Revisi selesai
+     *
+     * Pembimbing, ketua sidang, atau penyusun jadwal.
+     *
+     * `POST /v1/ta/ujian/{id}/revisi-selesai`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdRevisiSelesai(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/revisi-selesai', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tunda
+     *
+     * Body {alasan}. Bila sudah ditetapkan, tautan SK dilepas (jadwalkan dan tetapkan ulang).
+     *
+     * `POST /v1/ta/ujian/{id}/tunda`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdTunda(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/tunda', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan
+     *
+     * Body {alasan}.
+     *
+     * `POST /v1/ta/ujian/{id}/batal`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID ujian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * PDF undangan / berita acara
+     *
+     * Diterbitkan modul Dokumen (kop prodi, kode verifikasi + QR).
+     *
+     * `GET /v1/ta/ujian/{id}/dokumen/{jenis}`
+     *
+     * scope: `ta:read`
+     *
+     * @param int|string $id UUID ujian
+     * @param int|string $jenis undangan | berita-acara
+     * @param array{pratinjau?: string, unduh?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianByIdDokumenByJenis(int|string $id, int|string $jenis, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/{id}/dokumen/{jenis}', ['id' => $id, 'jenis' => $jenis], $query, null, $options, false, false);
     }
 }

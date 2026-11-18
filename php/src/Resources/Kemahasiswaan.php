@@ -9,10 +9,210 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Kemahasiswaan: Beasiswa, Kemahasiswaan: Organisasi, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran
+ * Kemahasiswaan: Organisasi, Kemahasiswaan: Beasiswa, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran
  */
 final class Kemahasiswaan extends Resource
 {
+    /**
+     * Bagan struktur organisasi kemahasiswaan
+     *
+     * WR III, Bagian Kemahasiswaan (pejabat aktif), ormawa tingkat universitas (BEM, DPM, UKM) dan per fakultas/prodi (BEM fakultas, HIMA) beserta ketua, wakil, pembina, periode aktif, SK kepengurusan, dan unit_induk_id (unit kampus tempat ormawa ditempel sebagai lapisan di bagan organisasi kampus). semua=1 ikut ormawa nonaktif.
+     *
+     * `GET /v1/kemahasiswaan/struktur`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param array{semua?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getStruktur(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/struktur', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Susunan pengurus per periode
+     *
+     * Periode terpilih (bawaan periode aktif, lalu terbaru), semua periode (riwayat kepengurusan), pengurus periode itu (inti dan per divisi), daftar jabatan, dan boleh.kelola (pengelola atau pembina).
+     *
+     * `GET /v1/kemahasiswaan/ormawa/{id}/susunan`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID ormawa
+     * @param array{periode_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrmawaByIdSusunan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/ormawa/{id}/susunan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periode kepengurusan
+     *
+     * Semua periode ormawa, terbaru dulu, dengan SK kepengurusan (registri SK), ketua, jumlah pengurus, dan data serah terima.
+     *
+     * `GET /v1/kemahasiswaan/ormawa/{id}/periode`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $id ID ormawa
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrmawaByIdPeriode(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/ormawa/{id}/periode', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah periode kepengurusan
+     *
+     * Body {nama?, mulai, selesai?, status: rencana|aktif|selesai, sk_id? (SK kepengurusan dari registri; penerbit bawaan universitas/WR III untuk tingkat universitas, fakultas/Dekan untuk BEM fakultas dan HIMA), catatan?}. Periode tidak boleh beririsan; hanya satu yang aktif. SK periode aktif ikut menjadi SK ormawa (nomor_sk salinan). Pengelola atau pembina.
+     *
+     * `POST /v1/kemahasiswaan/ormawa/{id}/periode`
+     *
+     * scope: `kemahasiswaan:write`
+     *
+     * @param int|string $id ID ormawa
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrmawaByIdPeriode(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/ormawa/{id}/periode', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah periode kepengurusan
+     *
+     * Body seperti tambah; isian yang tidak dikirim tidak berubah. Kirim sk_id null untuk melepas SK. Tanggal pengurus yang mengikuti periode ikut digeser.
+     *
+     * `POST /v1/kemahasiswaan/ormawa/{id}/periode/{pid}`
+     *
+     * scope: `kemahasiswaan:write`
+     *
+     * @param int|string $id ID ormawa
+     * @param int|string $pid ID periode
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrmawaByIdPeriodeByPid(int|string $id, int|string $pid, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/ormawa/{id}/periode/{pid}', ['id' => $id, 'pid' => $pid], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus periode kosong
+     *
+     * Hanya periode tanpa pengurus (periode berisi pengurus adalah riwayat).
+     *
+     * `POST /v1/kemahasiswaan/ormawa/{id}/periode/{pid}/hapus`
+     *
+     * scope: `kemahasiswaan:write`
+     *
+     * @param int|string $id ID ormawa
+     * @param int|string $pid ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrmawaByIdPeriodeByPidHapus(int|string $id, int|string $pid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/ormawa/{id}/periode/{pid}/hapus', ['id' => $id, 'pid' => $pid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Serah terima kepengurusan
+     *
+     * Periode aktif {pid} selesai sehari sebelum periode baru, pengurusnya dinonaktifkan (tetap tersimpan sebagai riwayat), lalu periode baru aktif. Body {nama?, mulai, selesai?, tanggal? (serah terima), sk_id?, catatan?, catatan_serah_terima?, pengurus: [{nim, jabatan_kode, divisi?, jabatan?}] (tepat satu ketua), lanjutkan?: [id pengurus lama yang lanjut]}. Setiap pengurus baru diperiksa aturan; satu ditolak = seluruh serah terima batal.
+     *
+     * `POST /v1/kemahasiswaan/ormawa/{id}/periode/{pid}/serah-terima`
+     *
+     * scope: `kemahasiswaan:write`
+     *
+     * @param int|string $id ID ormawa
+     * @param int|string $pid ID periode aktif
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrmawaByIdPeriodeByPidSerahTerima(int|string $id, int|string $pid, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/ormawa/{id}/periode/{pid}/serah-terima', ['id' => $id, 'pid' => $pid], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Periksa calon pengurus
+     *
+     * Tanpa menyimpan: aturan titik kemahasiswaan.pengurus.tetapkan untuk {ormawa_id, nim, jabatan_kode, periode_id?, mulai?, selesai?, pengurus_id? (saat mengubah)}. Hasil: boleh, pelanggaran, peringatan, indikator, data_kosong.
+     *
+     * `POST /v1/kemahasiswaan/pengurus/periksa`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengurusPeriksa(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/pengurus/periksa', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Periksa calon pembina
+     *
+     * Tanpa menyimpan: aturan titik kemahasiswaan.pembina.tetapkan (subjek dosen) untuk {pembina_nidn, jenis?, unit_id?, kode_prodi?}.
+     *
+     * `POST /v1/kemahasiswaan/pembina/periksa`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPembinaPeriksa(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kemahasiswaan/pembina/periksa', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Riwayat organisasi mahasiswa
+     *
+     * Ormawa, jabatan, divisi, periode, dan SK kepengurusan seorang mahasiswa (terbaru dulu). Pemilik, pengelola kemahasiswaan, atau aplikasi.
+     *
+     * `GET /v1/kemahasiswaan/mahasiswa/{nim}/organisasi`
+     *
+     * scope: `kemahasiswaan:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMahasiswaByNimOrganisasi(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kemahasiswaan/mahasiswa/{nim}/organisasi', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
     /**
      * Program beasiswa: daftar
      *
@@ -770,7 +970,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Organisasi mahasiswa: daftar
      *
-     * Semua pemilik token ber-scope kemahasiswaan:read.
+     * Tingkat ormawa mengikuti unit/prodi: universitas (BEM, DPM, UKM), fakultas (BEM fakultas), prodi (HIMA). nomor_sk = salinan tampilan SK kepengurusan periode berjalan (registri SK tunggal; diatur per periode di /v1/kemahasiswaan/ormawa/{id}/periode). Pembina diperiksa aturan titik kemahasiswaan.pembina.tetapkan (bawaan: dosen aktif). Detail memuat periode aktif dan pengurusnya. Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/ormawa`
      *
@@ -808,7 +1008,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Organisasi mahasiswa: detail
      *
-     * Semua pemilik token ber-scope kemahasiswaan:read.
+     * Tingkat ormawa mengikuti unit/prodi: universitas (BEM, DPM, UKM), fakultas (BEM fakultas), prodi (HIMA). nomor_sk = salinan tampilan SK kepengurusan periode berjalan (registri SK tunggal; diatur per periode di /v1/kemahasiswaan/ormawa/{id}/periode). Pembina diperiksa aturan titik kemahasiswaan.pembina.tetapkan (bawaan: dosen aktif). Detail memuat periode aktif dan pengurusnya. Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/ormawa/{id}`
      *
@@ -868,7 +1068,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Organisasi mahasiswa: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kemahasiswaan:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Tingkat ormawa mengikuti unit/prodi: universitas (BEM, DPM, UKM), fakultas (BEM fakultas), prodi (HIMA). nomor_sk = salinan tampilan SK kepengurusan periode berjalan (registri SK tunggal; diatur per periode di /v1/kemahasiswaan/ormawa/{id}/periode). Pembina diperiksa aturan titik kemahasiswaan.pembina.tetapkan (bawaan: dosen aktif). Detail memuat periode aktif dan pengurusnya. Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/ormawa/{id}/riwayat`
      *
@@ -968,13 +1168,13 @@ final class Kemahasiswaan extends Resource
     /**
      * Pengurus organisasi: daftar
      *
-     * Semua pemilik token ber-scope kemahasiswaan:read.
+     * Pengurus per periode kepengurusan (periode_id; kosong = periode aktif ormawa). Jabatan terstruktur: jabatan_kode ketua, wakil_ketua, sekretaris, wakil_sekretaris, bendahara, wakil_bendahara, koordinator (wajib divisi), anggota (boleh divisi), lainnya; teks jabatan, inti, mulai, selesai otomatis bila tidak diisi. Satu ketua per periode; syarat lain lewat aturan titik kemahasiswaan.pengurus.tetapkan (bawaan: mahasiswa aktif, IPK minimal 2,75, tanpa sanksi berjalan, ketua di satu ormawa saja pada masa yang sama, masa jabatan 1 tahun). Pengurus lama tetap tersimpan sebagai riwayat (aktif = 0). Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/pengurus`
      *
      * scope: `kemahasiswaan:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, ormawa_id?: string, nim?: string, inti?: string, aktif?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, ormawa_id?: string, periode_id?: string, nim?: string, jabatan_kode?: string, inti?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -993,7 +1193,7 @@ final class Kemahasiswaan extends Resource
      *
      * scope: `kemahasiswaan:write`
      *
-     * @param array{ormawa_id: int, nim: string, jabatan: string, inti?: bool, mulai: string, selesai?: string, aktif?: bool, ...} $body
+     * @param array{ormawa_id: int, periode_id?: int, nim: string, jabatan_kode?: string, divisi?: string, jabatan?: string, inti?: bool, urut?: int, mulai?: string, selesai?: string, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1006,7 +1206,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Pengurus organisasi: detail
      *
-     * Semua pemilik token ber-scope kemahasiswaan:read.
+     * Pengurus per periode kepengurusan (periode_id; kosong = periode aktif ormawa). Jabatan terstruktur: jabatan_kode ketua, wakil_ketua, sekretaris, wakil_sekretaris, bendahara, wakil_bendahara, koordinator (wajib divisi), anggota (boleh divisi), lainnya; teks jabatan, inti, mulai, selesai otomatis bila tidak diisi. Satu ketua per periode; syarat lain lewat aturan titik kemahasiswaan.pengurus.tetapkan (bawaan: mahasiswa aktif, IPK minimal 2,75, tanpa sanksi berjalan, ketua di satu ormawa saja pada masa yang sama, masa jabatan 1 tahun). Pengurus lama tetap tersimpan sebagai riwayat (aktif = 0). Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/pengurus/{id}`
      *
@@ -1033,7 +1233,7 @@ final class Kemahasiswaan extends Resource
      * scope: `kemahasiswaan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{ormawa_id: int, nim: string, jabatan: string, inti?: bool, mulai: string, selesai?: string, aktif?: bool, ...} $body
+     * @param array{ormawa_id: int, periode_id?: int, nim: string, jabatan_kode?: string, divisi?: string, jabatan?: string, inti?: bool, urut?: int, mulai?: string, selesai?: string, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1066,7 +1266,7 @@ final class Kemahasiswaan extends Resource
     /**
      * Pengurus organisasi: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Semua pemilik token ber-scope kemahasiswaan:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pengurus per periode kepengurusan (periode_id; kosong = periode aktif ormawa). Jabatan terstruktur: jabatan_kode ketua, wakil_ketua, sekretaris, wakil_sekretaris, bendahara, wakil_bendahara, koordinator (wajib divisi), anggota (boleh divisi), lainnya; teks jabatan, inti, mulai, selesai otomatis bila tidak diisi. Satu ketua per periode; syarat lain lewat aturan titik kemahasiswaan.pengurus.tetapkan (bawaan: mahasiswa aktif, IPK minimal 2,75, tanpa sanksi berjalan, ketua di satu ormawa saja pada masa yang sama, masa jabatan 1 tahun). Pengurus lama tetap tersimpan sebagai riwayat (aktif = 0). Semua pemilik token ber-scope kemahasiswaan:read.
      *
      * `GET /v1/kemahasiswaan/pengurus/{id}/riwayat`
      *

@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3778 endpoint).
+ * Akses ke semua modul API (3874 endpoint).
  */
 trait GeneratedResources
 {
@@ -49,7 +49,7 @@ trait GeneratedResources
         return $this->resource(Resources\Arsip::class);
     }
 
-    /** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan (39 endpoint) */
+    /** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan (42 endpoint) */
     public function aturan(): Resources\Aturan
     {
         return $this->resource(Resources\Aturan::class);
@@ -65,6 +65,12 @@ trait GeneratedResources
     public function biaya(): Resources\Biaya
     {
         return $this->resource(Resources\Biaya::class);
+    }
+
+    /** Aturan: Bukti syarat (6 endpoint) */
+    public function buktiSyarat(): Resources\BuktiSyarat
+    {
+        return $this->resource(Resources\BuktiSyarat::class);
     }
 
     /** CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian (54 endpoint) */
@@ -103,7 +109,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (99 endpoint) */
+    /** Fakultas, Fakultas: struktur organisasi, Fakultas: kelola akademik (112 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -133,7 +139,7 @@ trait GeneratedResources
         return $this->resource(Resources\Iku::class);
     }
 
-    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (70 endpoint) */
+    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (77 endpoint) */
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
@@ -193,7 +199,7 @@ trait GeneratedResources
         return $this->resource(Resources\Kelulusan::class);
     }
 
-    /** Kemahasiswaan: Beasiswa, Kemahasiswaan: Organisasi, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran (101 endpoint) */
+    /** Kemahasiswaan: Organisasi, Kemahasiswaan: Beasiswa, Kemahasiswaan: Prestasi, Kemahasiswaan: Konseling, Kemahasiswaan: Pelanggaran (111 endpoint) */
     public function kemahasiswaan(): Resources\Kemahasiswaan
     {
         return $this->resource(Resources\Kemahasiswaan::class);
@@ -325,6 +331,12 @@ trait GeneratedResources
         return $this->resource(Resources\Pimpinan::class);
     }
 
+    /** Plagiasi: Mahasiswa & pembimbing, Plagiasi: Unit pemeriksa (11 endpoint) */
+    public function plagiasi(): Resources\Plagiasi
+    {
+        return $this->resource(Resources\Plagiasi::class);
+    }
+
     /** PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (120 endpoint) */
     public function pmb(): Resources\Pmb
     {
@@ -343,7 +355,7 @@ trait GeneratedResources
         return $this->resource(Resources\Presensi::class);
     }
 
-    /** Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (93 endpoint) */
+    /** Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (94 endpoint) */
     public function profil(): Resources\Profil
     {
         return $this->resource(Resources\Profil::class);
@@ -385,7 +397,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sarpras::class);
     }
 
-    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (282 endpoint) */
+    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: Usulan pejabat, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (296 endpoint) */
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);
@@ -397,7 +409,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sistem::class);
     }
 
-    /** SK: Registri (23 endpoint) */
+    /** SK: Registri (28 endpoint) */
     public function sk(): Resources\Sk
     {
         return $this->resource(Resources\Sk::class);
@@ -409,7 +421,7 @@ trait GeneratedResources
         return $this->resource(Resources\Spmi::class);
     }
 
-    /** Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan (15 endpoint) */
+    /** Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan, Ujian TA: Kelayakan & pengajuan, Ujian TA: Penjadwalan, Ujian TA: Penetapan SK Dekan, Ujian TA: Pelaksanaan & hasil (41 endpoint) */
     public function ta(): Resources\Ta
     {
         return $this->resource(Resources\Ta::class);

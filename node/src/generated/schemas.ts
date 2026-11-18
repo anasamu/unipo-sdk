@@ -4409,7 +4409,7 @@ export type IndukUnit = {
   induk_id?: number;
   /** (unik) */
   kode?: string;
-  jenis?: "universitas" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
+  jenis?: "yayasan" | "universitas" | "kelompok" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -4438,7 +4438,7 @@ export type IndukUnitInput = {
   induk_id?: number;
   /** (unik) */
   kode: string;
-  jenis: "universitas" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
+  jenis: "yayasan" | "universitas" | "kelompok" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -6472,10 +6472,15 @@ export type KemahasiswaanPengurus = {
   id?: number;
   /** ID di kmhs_ormawa */
   ormawa_id?: number;
+  /** ID di kmhs_ormawa_periode */
+  periode_id?: number;
   /** m_mahasiswa.NIM */
   nim?: string;
+  jabatan_kode?: "ketua" | "wakil_ketua" | "sekretaris" | "wakil_sekretaris" | "bendahara" | "wakil_bendahara" | "koordinator" | "anggota" | "lainnya";
+  divisi?: string;
   jabatan?: string;
   inti?: boolean;
+  urut?: number;
   mulai?: string;
   selesai?: string;
   aktif?: boolean;
@@ -6487,11 +6492,16 @@ export type KemahasiswaanPengurus = {
 export type KemahasiswaanPengurusInput = {
   /** ID di kmhs_ormawa */
   ormawa_id: number;
+  /** ID di kmhs_ormawa_periode */
+  periode_id?: number;
   /** m_mahasiswa.NIM */
   nim: string;
-  jabatan: string;
+  jabatan_kode?: "ketua" | "wakil_ketua" | "sekretaris" | "wakil_sekretaris" | "bendahara" | "wakil_bendahara" | "koordinator" | "anggota" | "lainnya";
+  divisi?: string;
+  jabatan?: string;
   inti?: boolean;
-  mulai: string;
+  urut?: number;
+  mulai?: string;
   selesai?: string;
   aktif?: boolean;
   [key: string]: any;
@@ -14820,14 +14830,23 @@ export type SdmUsulanInput = {
 };
 
 export type SdmUsulanProses = {
-  /** Wajib saat tolak */
+  /** Wajib saat tolak/kembalikan, dan saat nilai tidak_memenuhi */
   catatan?: string | null;
   /** kirim */
   nomor_usulan?: string | null;
-  /** tetapkan, wajib */
+  /** tetapkan alur lama, wajib bila tanpa sk_id */
   nomor_sk?: string | null;
   tanggal_sk?: string | null;
   tmt_sk?: string | null;
+  /** UUID SK registri (PilihSK) */
+  sk_id?: string | null;
+  /** SK dari LLDIKTI/Kementerian yang belum ada di registri: nomor, tanggal, penerbit_luar, berkas_id, perihal? */
+  sk_luar?: JsonObject;
+  pak_pendidikan?: number | null;
+  pak_penelitian?: number | null;
+  pak_pengabdian?: number | null;
+  pak_penunjang?: number | null;
+  hasil?: "memenuhi" | "tidak_memenuhi";
   [key: string]: any;
 };
 

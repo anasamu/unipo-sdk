@@ -324,6 +324,45 @@ final class Aturan extends Resource
     }
 
     /**
+     * Calon dosen bersyarat
+     *
+     * Dosen aktif beserta hasil aturan titik penetapan dosen (akademik.pa.tetapkan, ta.pembimbing.tetapkan, ta.penguji.proposal.tetapkan, ta.penguji.skripsi.tetapkan) untuk satu mahasiswa (nim) atau prodi: memenuhi, alasan singkat ("Belum Lektor", "Sudah membimbing 10 mahasiswa"), peringatan, data_kurang. Urut: prodi mahasiswa, fakultasnya, lalu lainnya. Angka indikator dan sumber datanya hanya untuk pengatur titik (rinci=1). meta.ringkasan, meta.aturan_aktif.
+     *
+     * `GET /v1/aturan/calon-dosen`
+     *
+     * scope: `aturan:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, titik?: string, nim?: string, prodi?: string, peran?: string, q?: string, nidn?: string, hanya_memenuhi?: string, rinci?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getCalonDosen(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/calon-dosen', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ringkasan aturan fakultas
+     *
+     * Untuk halaman Aturan fakultas: aturan fakultas (tingkat fakultas/prodi, termasuk aturan bawaan fakultas yang dibuat otomatis bila belum ada), aturan universitas yang berlaku di fakultas itu untuk titik penetapan dosen (lihat saja), penyetuju (Dekan), penelaah GPM, boleh_atur, dampak per titik (dosen memenuhi/tidak/data kurang menurut data sekarang), dan dosen dengan data belum lengkap. ?dampak=0 untuk melewati perhitungan dampak.
+     *
+     * `GET /v1/aturan/fakultas/{kode}`
+     *
+     * scope: `aturan:read`
+     *
+     * @param int|string $kode Kode fakultas (01), kode unit (FAK-01), atau kode prodi
+     * @param array{dampak?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/fakultas/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Periksa aturan di satu titik
      *
      * Body: `{"titik": "krs.ambil", "nim": "...", "tahun_id": "20261", "konteks": {"sks_diambil": 24}}` (titik kelas: `kode_prodi`, `kelas`; `dosen` untuk
@@ -585,6 +624,26 @@ final class Aturan extends Resource
     public function postByIdNonaktifkan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/aturan/{id}/nonaktifkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kembalikan aturan bawaan fakultas ke bawaan
+     *
+     * Body {"alasan"} wajib (min. 10 karakter). Isi aturan diganti isi bawaan fakultas (Data/bawaan_fakultas.php) dan aktif lagi; usulan perubahan yang berjalan dibatalkan; tercatat di riwayat (dikembalikan_ke_bawaan). Hanya aturan bawaan fakultas.
+     *
+     * `POST /v1/aturan/{id}/kembalikan-bawaan`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdKembalikanBawaan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/{id}/kembalikan-bawaan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -185,6 +185,104 @@ final class Sk extends Resource
     }
 
     /**
+     * Tambah pengurus Yayasan
+     *
+     * Body: {jabatan: pembina|ketua|wakil_ketua|sekretaris|bendahara|anggota|pengawas, nama, gelar_depan?, gelar_belakang?, nik? (16 digit), telepon?, email?, foto_berkas_id? (berkas /v1/berkas JPG/PNG maks 2 MB), mulai?, selesai?, sk_id? (registri SK) | akta_nomor?, aktif?, catatan?}. Izin sk.atur.
+     *
+     * `POST /v1/sk/yayasan/pengurus`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasanPengurus(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan/pengurus', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Urutan tampil pengurus Yayasan
+     *
+     * Body: {id: [..]} sesuai urutan baru.
+     *
+     * `POST /v1/sk/yayasan/pengurus/urut`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasanPengurusUrut(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan/pengurus/urut', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah pengurus Yayasan
+     *
+     * Body sama dengan tambah (sebagian boleh).
+     *
+     * `POST /v1/sk/yayasan/pengurus/{id}`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pengurus
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasanPengurusById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan/pengurus/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Akhiri masa pengurus Yayasan
+     *
+     * Body: {selesai?: YYYY-MM-DD} (bawaan hari ini).
+     *
+     * `POST /v1/sk/yayasan/pengurus/{id}/akhiri`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pengurus
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasanPengurusByIdAkhiri(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan/pengurus/{id}/akhiri', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus pengurus Yayasan
+     *
+     * Untuk salah input; pergantian pengurus pakai akhiri.
+     *
+     * `POST /v1/sk/yayasan/pengurus/{id}/hapus`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pengurus
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasanPengurusByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan/pengurus/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Riwayat profil Yayasan dan kewenangan SK
      *
      * 100 perubahan terakhir (jejak audit).

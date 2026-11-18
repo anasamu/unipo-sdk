@@ -9,10 +9,29 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data
+ * Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data
  */
 final class Profil extends Resource
 {
+    /**
+     * Riwayat organisasi mahasiswa saya
+     *
+     * Untuk profile.unipo.ac.id: riwayat kepengurusan ormawa milik pengguna mahasiswa/alumni (ormawa, jabatan, periode, SK kepengurusan). Selain mahasiswa: berlaku false.
+     *
+     * `GET /v1/profil/saya/organisasi-mahasiswa`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaOrganisasiMahasiswa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/organisasi-mahasiswa', [], $query, null, $options, false, false);
+    }
+
     /**
      * Profil saya
      *

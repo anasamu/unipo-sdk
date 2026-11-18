@@ -155,7 +155,7 @@ final class Induk extends Resource
      *
      * scope: `induk:read` · hanya token pengguna
      *
-     * @param array{unit?: string, semua?: string, kampus?: string, tendik?: string, ...} $query
+     * @param array{unit?: string, semua?: string, kampus?: string, kelompok_kampus?: string, tendik?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -242,6 +242,86 @@ final class Induk extends Resource
     public function postOrganisasiUnit(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/induk/organisasi/unit', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pas foto untuk bagan
+     *
+     * jenis: pejabat (pas foto profil akun, atau foto lama SIAKAD m_dosen/m_karyawan) | pengurus (pengurus Yayasan). Gambar JPEG 240x320 (bukan JSON), 404 bila belum ada. Token pengguna aplikasi mana pun; bagan menandai ada_foto.
+     *
+     * `GET /v1/induk/organisasi/foto/{jenis}/{id}`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $jenis pejabat|pengurus
+     * @param int|string $id ID pejabat / pengurus
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiFotoByJenisById(int|string $jenis, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/foto/{jenis}/{id}', ['jenis' => $jenis, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Struktur organisasi unit aplikasi (lihat saja)
+     *
+     * aplikasi: baak (BAAK), keuangan (BAUK), lp2m (LP2M), spmi (LPM), humas (HUMAS), pmb (PMB), tracer (Pusat Karier), pustikom (PUSTIKOM), dashboard (seluruh universitas). Bagan unit dan sub-unitnya (pejabat + tendik), daftar pejabat (SK, masa, status), struktur jabatan unit `unit` (bawaan unit akar; harus di dalam lingkup, selain itu 403 di_luar_unit). Hanya pemegang izin masuk aplikasi itu (<app>.akses), pengelola organisasi, petugas SDM, atau administrator; tanpa scope khusus.
+     *
+     * `GET /v1/induk/organisasi/unit-aplikasi/{aplikasi}`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $aplikasi Kode aplikasi
+     * @param array{unit?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiUnitAplikasiByAplikasi(int|string $aplikasi, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/unit-aplikasi/{aplikasi}', ['aplikasi' => $aplikasi], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah kampus pengembangan
+     *
+     * Body: {"idkp": "03" (kode 2-3 huruf/angka), "nama", "singkatan", "alamat", "tanggal_berdiri", "sk_id" (SK izin di registri SK), "status": "aktif|persiapan|nonaktif", "unit": [ID unit yang tersedia di kampus ini, mis. prodi PSDKU], "daftar_siakad": false}. Sekaligus membuat data kampus (induk_kampus), unit organisasi jenis kampus langsung di bawah Universitas dengan jabatan bawaan kampus, dan penanda kampus unit terpilih. daftar_siakad = true juga menyisipkan baris m_kampus (kampus muncul di SIAKAD lama; skema tidak diubah). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/kampus`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiKampus(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/kampus', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan khusus kampus
+     *
+     * Aturan dengan cakupan.kampus memuat kampus ini. Tanpa aturan khusus, kampus pengembangan mengikuti aturan universitas.
+     *
+     * `GET /v1/induk/organisasi/kampus/{idkp}/aturan`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $idkp Kode kampus
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiKampusByIdkpAturan(int|string $idkp, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/kampus/{idkp}/aturan', ['idkp' => $idkp], $query, null, $options, false, false);
     }
 
     /**
@@ -381,6 +461,65 @@ final class Induk extends Resource
     public function getOrganisasiPegawai(array $query, array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/induk/organisasi/pegawai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean usulan organisasi
+     *
+     * Usulan dari aplikasi unit (Fakultas): sub-unit baru (laboratorium, pusat studi) dan pejabat pimpinan (Dekan/Wakil Dekan). ?status=diajukan,disetujui,ditolak,batal. Pengelola organisasi melihat semua; petugas SDM ber-izin sdm.pejabat.kelola hanya usulan pejabat.
+     *
+     * `GET /v1/induk/organisasi/usulan`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param array{status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiUsulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/usulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Setujui usulan
+     *
+     * Unit (pengelola organisasi): unit dibuat aktif di bawah unit pengusul; body boleh menimpa kode, nama, singkatan, jenis. Pejabat (pengelola organisasi/SDM): tetapkan dulu lewat tambah pejabat, lalu body {"pejabat_id"}. Pengusul mendapat notifikasi.
+     *
+     * `POST /v1/induk/organisasi/usulan/{id}/setujui`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUsulanByIdSetujui(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/usulan/{id}/setujui', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tolak usulan
+     *
+     * Body: {"catatan": "alasan"} (wajib). Pengusul mendapat notifikasi.
+     *
+     * `POST /v1/induk/organisasi/usulan/{id}/tolak`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUsulanByIdTolak(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/usulan/{id}/tolak', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
