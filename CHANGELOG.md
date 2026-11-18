@@ -13,12 +13,11 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 
 - Log terpadu semua proses untuk Pustikom: `logSistem(siakad)` bertipe (`daftar` dengan paginasi kursor, `semua`, `detail`, `sumber`, `ringkasan`, `eksporCsv`) dan tipe `BarisLog`, `DetailLog`, `SumberLog`, `RingkasanLog`, `SaringanLog`. Endpoint mentah juga tersedia di `siakad.sistem.*` (GET /v1/sistem/log, /sumber, /ringkasan, /ekspor, /{sumber}/{id}); hak izin `pustikom.log`.
 - Tugas terjadwal (penjadwal SIAKAD): `siakad.sistem.*` untuk /v1/sistem/jadwal (status penjadwal, daftar tugas, ubah, jalankan, hentikan, riwayat jalan); 9 operasi baru.
-- Spesifikasi diperbarui dari SIAKAD: 32 operasi baru, 0 operasi hilang. Selain log sistem: titik penerapan aturan (/v1/aturan/titik), alur persetujuan aturan (ajukan, telaah, setujui, kembalikan, darurat, ajuan pengecualian, penyetuju), periode dan her-registrasi akademik (/v1/akademik/periode, /v1/akademik/registrasi).
+- Spesifikasi diperbarui dari SIAKAD: 14 operasi baru dibanding 1.18.0 (semuanya /v1/sistem/log dan /v1/sistem/jadwal), 0 operasi hilang (total 3673).
 
 ## 1.18.0 (belum dirilis)
 
-- (main) Spesifikasi diperbarui dari SIAKAD: 54 operasi baru, 0 operasi hilang (total 3659).
-- Spesifikasi diperbarui dari SIAKAD: 27 operasi baru, 0 operasi hilang. Pengumuman lintas aplikasi (/v1/notif/pita: tayang, tutup, kelola, hak, tautan konten portal, perkiraan penerima), pemicu notifikasi per peran/unit (/v1/notif/pemicu), obrolan (foto grup, bersihkan, hapus obrolan, hapus untuk saya, pindah ke enkripsi server), daftar pegawai ringkas untuk gaji/honor (/v1/gaji/pegawai), pengaturan dan statistik honor (/v1/sdm/honor), tunjangan jabatan (/v1/sdm/master/jabatan/{id}/tunjangan); scope honor kini gaji:*.
+- Spesifikasi diperbarui dari SIAKAD: 54 operasi baru, 0 operasi hilang (total 3659). Di antaranya pengumuman lintas aplikasi (/v1/notif/pita: tayang, tutup, kelola, hak, tautan konten portal, perkiraan penerima), pemicu notifikasi per peran/unit (/v1/notif/pemicu), obrolan (foto grup, bersihkan, hapus obrolan, hapus untuk saya, pindah ke enkripsi server), daftar pegawai ringkas untuk gaji/honor (/v1/gaji/pegawai), pengaturan dan statistik honor (/v1/sdm/honor), tunjangan jabatan (/v1/sdm/master/jabatan/{id}/tunjangan); scope honor kini gaji:*.
 
 ## 1.17.0 (2026-11-17)
 
