@@ -320,4 +320,67 @@ final class Sistem extends Resource
     {
         return $this->send('POST', '/v1/sistem/jadwal/jalan/{id}/hentikan', ['id' => $id], $query, null, $options, false, false);
     }
+
+    /**
+     * Pekerjaan antrean database yang gagal
+     *
+     * Pekerjaan antrean database (tabel `antrean_gagal`, docs/ANTREAN.md) yang melewati batas percobaan, terbaru dulu: `antrean`, `nama`, `data`, `percobaan`, `galat` (2.000 karakter pertama), `gagal_pada`. `page`, `per_page` (maks. 100).
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+     *
+     * `GET /v1/sistem/jadwal/antrean/gagal`
+     *
+     * scope: `penjadwal:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalAntreanGagal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sistem/jadwal/antrean/gagal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Coba ulang pekerjaan gagal
+     *
+     * Body `{"id": [1, 2]}` atau `{"semua": true}`. Pekerjaan dikembalikan ke antreannya dengan percobaan dari nol. Jawaban: `diulang`.
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `POST /v1/sistem/jadwal/antrean/gagal/ulang`
+     *
+     * scope: `penjadwal:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalAntreanGagalUlang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sistem/jadwal/antrean/gagal/ulang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus pekerjaan gagal
+     *
+     * Body `{"id": [1, 2]}` atau `{"semua": true}`. Jawaban: `dihapus`.
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `POST /v1/sistem/jadwal/antrean/gagal/hapus`
+     *
+     * scope: `penjadwal:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalAntreanGagalHapus(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sistem/jadwal/antrean/gagal/hapus', [], $query, null, $options, false, false);
+    }
 }

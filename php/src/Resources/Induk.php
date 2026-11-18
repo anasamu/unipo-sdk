@@ -466,13 +466,13 @@ final class Induk extends Resource
     /**
      * Antrean usulan organisasi
      *
-     * Usulan dari aplikasi unit (Fakultas): sub-unit baru (laboratorium, pusat studi) dan pejabat pimpinan (Dekan/Wakil Dekan). ?status=diajukan,disetujui,ditolak,batal. Pengelola organisasi melihat semua; petugas SDM ber-izin sdm.pejabat.kelola hanya usulan pejabat.
+     * Usulan dari aplikasi unit (Fakultas): sub-unit baru (laboratorium, pusat studi) dan pejabat pimpinan (Dekan/Wakil Dekan). ?status=diajukan,disetujui,ditolak,batal. Pengelola organisasi (Pustikom) dan petugas SDM (sdm.pejabat.kelola) melihat semua. Biro SDM memverifikasi usulan sub-unit dan menetapkan/menolak usulan pejabat; Pustikom membuat unit sesudah verifikasi, menyelesaikan atau mencabut hak akses pejabat. Usulan pejabat adalah indeks jalur tunggal sdm_usulan_pejabat (`usulan_pejabat_id`, `status_usulan`). Tiap baris memuat `pemeriksa` (alur per tahap: tahap, unit, peran, status menunggu|sedang|selesai|ditolak|dilewati, diproses_oleh, waktu, catatan), `pemeriksa_label`, dan `aksi_boleh` {verifikasi, putus, setujui, hak_akses, cabut}. ?tahap=hak_akses = antrean hak akses Pustikom.
      *
      * `GET /v1/induk/organisasi/usulan`
      *
      * scope: `induk:read` · hanya token pengguna
      *
-     * @param array{status?: string, ...} $query
+     * @param array{status?: string, tahap?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -485,7 +485,7 @@ final class Induk extends Resource
     /**
      * Setujui usulan
      *
-     * Unit (pengelola organisasi): unit dibuat aktif di bawah unit pengusul; body boleh menimpa kode, nama, singkatan, jenis. Pejabat (pengelola organisasi/SDM): tetapkan dulu lewat tambah pejabat, lalu body {"pejabat_id"}. Pengusul mendapat notifikasi.
+     * Unit (Pustikom, pengelola organisasi): unit dibuat aktif di bawah unit pengusul; body boleh menimpa kode, nama, singkatan, jenis. Pejabat (Biro SDM, izin sdm.pejabat.kelola; Pustikom tidak memutus): tetapkan dulu lewat tambah pejabat dengan SK, lalu body {"pejabat_id"}. Pengusul mendapat notifikasi; bila jabatan belum dipetakan ke peran, Pustikom mendapat notifikasi tahap hak akses.
      *
      * `POST /v1/induk/organisasi/usulan/{id}/setujui`
      *
@@ -503,9 +503,69 @@ final class Induk extends Resource
     }
 
     /**
+     * Verifikasi usulan sub-unit (Biro SDM)
+     *
+     * Tahap 1 usulan sub-unit: Biro SDM (sdm.pejabat.kelola) memverifikasi; sesudahnya Pustikom membuat unit (setujui). Body: {"catatan"} opsional. Pustikom mendapat notifikasi.
+     *
+     * `POST /v1/induk/organisasi/usulan/{id}/verifikasi`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUsulanByIdVerifikasi(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/usulan/{id}/verifikasi', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cabut hak akses pejabat hasil usulan
+     *
+     * Pustikom mencabut peran yang diberikan jabatan untuk pejabat hasil usulan ini (rbac_jabatan_cabut; berlaku langsung, jabatan dan SK tetap). Body: {"alasan"} wajib. Tercatat di log; alur menampilkan "Hak akses dicabut Pustikom"; pengusul, calon, dan Biro SDM mendapat notifikasi. Admin Pustikom, rbac:admin, administrator.
+     *
+     * `POST /v1/induk/organisasi/usulan/{id}/cabut-hak-akses`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUsulanByIdCabutHakAkses(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/usulan/{id}/cabut-hak-akses', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Selesaikan tahap hak akses usulan pejabat
+     *
+     * Untuk usulan pejabat yang sudah disetujui Biro SDM dan jabatannya belum dipetakan ke peran (tahap hak_akses sedang). Body: {"catatan"} opsional. Memetakan peran jabatan tetap lewat PUT /v1/induk/organisasi/jabatan/{id}/peran (tahap selesai otomatis). Admin Pustikom (pustikom.organisasi.kelola), admin hak akses (rbac:admin), administrator.
+     *
+     * `POST /v1/induk/organisasi/usulan/{id}/hak-akses`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUsulanByIdHakAkses(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/usulan/{id}/hak-akses', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Tolak usulan
      *
-     * Body: {"catatan": "alasan"} (wajib). Pengusul mendapat notifikasi.
+     * Body: {"catatan": "alasan"} (wajib). Unit: Pustikom; pejabat: Biro SDM. Pengusul mendapat notifikasi.
      *
      * `POST /v1/induk/organisasi/usulan/{id}/tolak`
      *

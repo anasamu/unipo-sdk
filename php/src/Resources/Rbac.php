@@ -530,13 +530,13 @@ final class Rbac extends Resource
      * Permintaan API terbaru lebih dulu: waktu, metode, path, query (tanpa nilai rahasia), status, durasi (ms), client_id,
      * username, level, lingkungan database, dan IP. Bawaan hari ini; `dari`/`sampai` (Y-m-d) paling lebar 31 hari.
      * Saring dengan `client_id` (log satu aplikasi), `username`, `status` (`sukses`, `galat`, `4xx`, `5xx`, atau kode),
-     * `method`, dan `path` (potongan). Isi body, token, dan secret tidak pernah dicatat.
+     * `method`, `path` (potongan), dan `request_id` (kode laporan dari jawaban galat). Isi body, token, dan secret tidak pernah dicatat.
      *
      * `GET /v1/rbac/log-api`
      *
      * scope: `rbac:admin` · hanya token pengguna
      *
-     * @param array{client_id?: string, username?: string, status?: string, method?: string, path?: string, dari?: string, sampai?: string, ...} $query
+     * @param array{client_id?: string, request_id?: string, username?: string, status?: string, method?: string, path?: string, dari?: string, sampai?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

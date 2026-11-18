@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3874 endpoint).
+ * Akses ke semua modul API (4088 endpoint).
  */
 trait GeneratedResources
 {
@@ -121,7 +121,7 @@ trait GeneratedResources
         return $this->resource(Resources\Gaji::class);
     }
 
-    /** Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket (27 endpoint) */
+    /** Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket (30 endpoint) */
     public function helpdesk(): Resources\Helpdesk
     {
         return $this->resource(Resources\Helpdesk::class);
@@ -139,7 +139,7 @@ trait GeneratedResources
         return $this->resource(Resources\Iku::class);
     }
 
-    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (77 endpoint) */
+    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (80 endpoint) */
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
@@ -169,7 +169,7 @@ trait GeneratedResources
         return $this->resource(Resources\JadwalUjian::class);
     }
 
-    /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan (34 endpoint) */
+    /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kegiatan (43 endpoint) */
     public function kalender(): Resources\Kalender
     {
         return $this->resource(Resources\Kalender::class);
@@ -227,6 +227,12 @@ trait GeneratedResources
     public function kurikulum(): Resources\Kurikulum
     {
         return $this->resource(Resources\Kurikulum::class);
+    }
+
+    /** Kurikulum: Aturan berversi, Kurikulum: Kerangka (data), Kurikulum: Perangkat MK, Kurikulum: Asesmen & RPS, Kurikulum: Evaluasi & peninjauan (51 endpoint) */
+    public function kurikulumAturan(): Resources\KurikulumAturan
+    {
+        return $this->resource(Resources\KurikulumAturan::class);
     }
 
     /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
@@ -289,7 +295,7 @@ trait GeneratedResources
         return $this->resource(Resources\Mbkm::class);
     }
 
-    /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (40 endpoint) */
+    /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (43 endpoint) */
     public function notif(): Resources\Notif
     {
         return $this->resource(Resources\Notif::class);
@@ -311,6 +317,18 @@ trait GeneratedResources
     public function pddikti(): Resources\Pddikti
     {
         return $this->resource(Resources\Pddikti::class);
+    }
+
+    /** Pedoman & peraturan (49 endpoint) */
+    public function pedoman(): Resources\Pedoman
+    {
+        return $this->resource(Resources\Pedoman::class);
+    }
+
+    /** Pemeriksa: Alur pemeriksa usulan (2 endpoint) */
+    public function pemeriksa(): Resources\Pemeriksa
+    {
+        return $this->resource(Resources\Pemeriksa::class);
     }
 
     /** Event domain (7 endpoint) */
@@ -355,7 +373,7 @@ trait GeneratedResources
         return $this->resource(Resources\Presensi::class);
     }
 
-    /** Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (94 endpoint) */
+    /** Profil: Profil saya, Profil: Pemutakhiran saya, Profil: Akun saya, Profil: Pemutakhiran (unit pemilik data), Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (119 endpoint) */
     public function profil(): Resources\Profil
     {
         return $this->resource(Resources\Profil::class);
@@ -397,13 +415,13 @@ trait GeneratedResources
         return $this->resource(Resources\Sarpras::class);
     }
 
-    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: Usulan pejabat, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (296 endpoint) */
+    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (362 endpoint) */
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);
     }
 
-    /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
+    /** Sistem: Log terpadu, Sistem: Tugas terjadwal (17 endpoint) */
     public function sistem(): Resources\Sistem
     {
         return $this->resource(Resources\Sistem::class);

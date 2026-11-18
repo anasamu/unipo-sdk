@@ -95,7 +95,7 @@ final class Fakultas extends Resource
     /**
      * Ringkasan struktur organisasi fakultas
      *
-     * Unit fakultas dan turunannya (datar, `kelola` = boleh dikelola pengguna ini), kampus, semua pejabat (status, sisa_hari, sk, `terkunci` = Dekan/Wakil Dekan), usulan ke Pustikom, dan hak (kelola, unit_kelola, administrator).
+     * Unit fakultas dan turunannya (datar, `kelola` = boleh dikelola pengguna ini), kampus, semua pejabat (status, sisa_hari, sk, `terkunci` = Dekan/Wakil Dekan), usulan (dengan `pemeriksa`: alur pemeriksa per tahap, mis. Biro SDM lalu hak akses Pustikom), dan hak (kelola, unit_kelola, administrator).
      *
      * `GET /v1/fakultas/{kode}/organisasi`
      *
@@ -280,7 +280,7 @@ final class Fakultas extends Resource
     /**
      * Tetapkan pejabat
      *
-     * Body sama dengan /v1/induk/organisasi/pejabat (sk_id WAJIB dari registri SK). Unit harus dalam kewenangan; Dekan/Wakil Dekan 403 perlu_usulan. Pustikom dan SDM mendapat notifikasi.
+     * Body sama dengan /v1/induk/organisasi/pejabat (sk_id WAJIB dari registri SK). Unit harus dalam kewenangan; Dekan/Wakil Dekan 403 perlu_usulan. Biro SDM dan Pustikom mendapat notifikasi.
      *
      * `POST /v1/fakultas/{kode}/organisasi/pejabat`
      *
@@ -319,9 +319,9 @@ final class Fakultas extends Resource
     }
 
     /**
-     * Ajukan usulan ke Pustikom
+     * Ajukan usulan struktur organisasi
      *
-     * Body unit: {"jenis": "unit", "induk_id", "nama", "singkatan", "kategori": "laboratorium|pusat_studi|gugus|lainnya", "alasan"} (status diajukan sampai Pustikom menyetujui). Body pejabat pimpinan: {"jenis": "pejabat", "unit_id", "jabatan_id", "calon": {nama, nidn, nik_karyawan, username}, "mulai", "sk_id", "alasan"}.
+     * Body unit: {"jenis": "unit", "induk_id", "nama", "singkatan", "kategori": "laboratorium|pusat_studi|gugus|lainnya", "alasan"} (diperiksa Pustikom, master unit). Body pejabat pimpinan (diperiksa Biro SDM, lalu tahap hak akses Pustikom): {"jenis": "pejabat", "unit_id", "jabatan_id", "calon": {nama, nidn, nik_karyawan, username}, "mulai", "sk_id", "alasan"}.
      *
      * `POST /v1/fakultas/{kode}/organisasi/usulan`
      *

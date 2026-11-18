@@ -11077,7 +11077,7 @@ export class FakultasResource {
   /**
    * Ringkasan struktur organisasi fakultas
    *
-   * Unit fakultas dan turunannya (datar, `kelola` = boleh dikelola pengguna ini), kampus, semua pejabat (status, sisa_hari, sk, `terkunci` = Dekan/Wakil Dekan), usulan ke Pustikom, dan hak (kelola, unit_kelola, administrator).
+   * Unit fakultas dan turunannya (datar, `kelola` = boleh dikelola pengguna ini), kampus, semua pejabat (status, sisa_hari, sk, `terkunci` = Dekan/Wakil Dekan), usulan (dengan `pemeriksa`: alur pemeriksa per tahap, mis. Biro SDM lalu hak akses Pustikom), dan hak (kelola, unit_kelola, administrator).
    *
    * `GET /v1/fakultas/{kode}/organisasi`
    *
@@ -11223,7 +11223,7 @@ export class FakultasResource {
   /**
    * Tetapkan pejabat
    *
-   * Body sama dengan /v1/induk/organisasi/pejabat (sk_id WAJIB dari registri SK). Unit harus dalam kewenangan; Dekan/Wakil Dekan 403 perlu_usulan. Pustikom dan SDM mendapat notifikasi.
+   * Body sama dengan /v1/induk/organisasi/pejabat (sk_id WAJIB dari registri SK). Unit harus dalam kewenangan; Dekan/Wakil Dekan 403 perlu_usulan. Biro SDM dan Pustikom mendapat notifikasi.
    *
    * `POST /v1/fakultas/{kode}/organisasi/pejabat`
    *
@@ -11254,9 +11254,9 @@ export class FakultasResource {
   }
 
   /**
-   * Ajukan usulan ke Pustikom
+   * Ajukan usulan struktur organisasi
    *
-   * Body unit: {"jenis": "unit", "induk_id", "nama", "singkatan", "kategori": "laboratorium|pusat_studi|gugus|lainnya", "alasan"} (status diajukan sampai Pustikom menyetujui). Body pejabat pimpinan: {"jenis": "pejabat", "unit_id", "jabatan_id", "calon": {nama, nidn, nik_karyawan, username}, "mulai", "sk_id", "alasan"}.
+   * Body unit: {"jenis": "unit", "induk_id", "nama", "singkatan", "kategori": "laboratorium|pusat_studi|gugus|lainnya", "alasan"} (diperiksa Pustikom, master unit). Body pejabat pimpinan (diperiksa Biro SDM, lalu tahap hak akses Pustikom): {"jenis": "pejabat", "unit_id", "jabatan_id", "calon": {nama, nidn, nik_karyawan, username}, "mulai", "sk_id", "alasan"}.
    *
    * `POST /v1/fakultas/{kode}/organisasi/usulan`
    *
@@ -14378,7 +14378,7 @@ export class GajiResource {
   }
 }
 
-/** Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket */
+/** Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket */
 export class HelpdeskResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -14438,6 +14438,57 @@ export class HelpdeskResource {
    */
   postPublikLacakByKodeNilai(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/helpdesk/publik/lacak/{kode}/nilai', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Laporan bug saya
+   *
+   * Tiket laporan bug milik pemanggil (terbaru dulu): nomor, judul, status, request_id, aplikasi. Token pengguna aplikasi mana pun; tanpa scope khusus.
+   *
+   * `GET /v1/helpdesk/galat`
+   *
+   * hanya token pengguna · berhalaman
+   */
+  getGalat(query?: {
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/helpdesk/galat', query }, options);
+  }
+
+  /**
+   * Laporkan kode galat
+   *
+   * Buat tiket kategori "Laporan bug aplikasi" (Pustikom) yang terhubung ke kode galat. Body: `request_id` (wajib), `judul`
+   * (kosong = saran otomatis), `uraian` (apa yang sedang dilakukan), `url` (query rahasia seperti token/code dibuang),
+   * `status_http`, `kode_galat`, `pesan`, `perangkat`, `waktu`. Tangkapan layar opsional (maks 5 MB): kirim sebagai
+   * multipart/form-data dengan field file `lampiran` (body JSON dibatasi API_MAX_BODY), atau `lampiran_base64` + `nama_file`
+   * untuk gambar kecil. Pelapor = pengguna token; token aplikasi tanpa pengguna butuh `helpdesk:write` dan wajib `pelapor` atau
+   * `nama_pelapor`. Kode yang sama dari pelapor yang sama tidak membuat tiket baru: `uraian` ditambahkan sebagai komentar
+   * (200, `baru: false`). Pengguna lain yang melaporkan kode yang sama mendapat tiket sendiri yang dikaitkan ke tiket pertama.
+   * Petugas helpdesk Pustikom mendapat satu notifikasi per kode.
+   *
+   * `POST /v1/helpdesk/galat`
+   */
+  postGalat(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/helpdesk/galat', query }, options);
+  }
+
+  /**
+   * Periksa kode galat
+   *
+   * Untuk panel lapor: aplikasi pemanggil (dari client_id token), tiket pemanggil untuk kode ini bila sudah pernah dilaporkan, dan jumlah laporan pengguna lain. Token pengguna aplikasi mana pun.
+   *
+   * `GET /v1/helpdesk/galat/{request_id}`
+   *
+   * hanya token pengguna
+   *
+   * @param request_id Kode laporan (request_id)
+   */
+  getGalatByRequestId(request_id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/helpdesk/galat/{request_id}', query: { ...query, request_id } }, options);
   }
 
   /**
@@ -17029,7 +17080,7 @@ export class IndukResource {
   /**
    * Antrean usulan organisasi
    *
-   * Usulan dari aplikasi unit (Fakultas): sub-unit baru (laboratorium, pusat studi) dan pejabat pimpinan (Dekan/Wakil Dekan). ?status=diajukan,disetujui,ditolak,batal. Pengelola organisasi melihat semua; petugas SDM ber-izin sdm.pejabat.kelola hanya usulan pejabat.
+   * Usulan dari aplikasi unit (Fakultas): sub-unit baru (laboratorium, pusat studi) dan pejabat pimpinan (Dekan/Wakil Dekan). ?status=diajukan,disetujui,ditolak,batal. Pengelola organisasi (Pustikom) dan petugas SDM (sdm.pejabat.kelola) melihat semua. Biro SDM memverifikasi usulan sub-unit dan menetapkan/menolak usulan pejabat; Pustikom membuat unit sesudah verifikasi, menyelesaikan atau mencabut hak akses pejabat. Usulan pejabat adalah indeks jalur tunggal sdm_usulan_pejabat (`usulan_pejabat_id`, `status_usulan`). Tiap baris memuat `pemeriksa` (alur per tahap: tahap, unit, peran, status menunggu|sedang|selesai|ditolak|dilewati, diproses_oleh, waktu, catatan), `pemeriksa_label`, dan `aksi_boleh` {verifikasi, putus, setujui, hak_akses, cabut}. ?tahap=hak_akses = antrean hak akses Pustikom.
    *
    * `GET /v1/induk/organisasi/usulan`
    *
@@ -17038,6 +17089,8 @@ export class IndukResource {
   getOrganisasiUsulan(query?: {
     /** Dipisah koma */
     status?: string;
+    /** Kode tahap yang sedang berjalan, mis. verifikasi atau hak_akses */
+    tahap?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/induk/organisasi/usulan', query }, options);
   }
@@ -17045,7 +17098,7 @@ export class IndukResource {
   /**
    * Setujui usulan
    *
-   * Unit (pengelola organisasi): unit dibuat aktif di bawah unit pengusul; body boleh menimpa kode, nama, singkatan, jenis. Pejabat (pengelola organisasi/SDM): tetapkan dulu lewat tambah pejabat, lalu body {"pejabat_id"}. Pengusul mendapat notifikasi.
+   * Unit (Pustikom, pengelola organisasi): unit dibuat aktif di bawah unit pengusul; body boleh menimpa kode, nama, singkatan, jenis. Pejabat (Biro SDM, izin sdm.pejabat.kelola; Pustikom tidak memutus): tetapkan dulu lewat tambah pejabat dengan SK, lalu body {"pejabat_id"}. Pengusul mendapat notifikasi; bila jabatan belum dipetakan ke peran, Pustikom mendapat notifikasi tahap hak akses.
    *
    * `POST /v1/induk/organisasi/usulan/{id}/setujui`
    *
@@ -17059,9 +17112,57 @@ export class IndukResource {
   }
 
   /**
+   * Verifikasi usulan sub-unit (Biro SDM)
+   *
+   * Tahap 1 usulan sub-unit: Biro SDM (sdm.pejabat.kelola) memverifikasi; sesudahnya Pustikom membuat unit (setujui). Body: {"catatan"} opsional. Pustikom mendapat notifikasi.
+   *
+   * `POST /v1/induk/organisasi/usulan/{id}/verifikasi`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID usulan
+   * @param body
+   */
+  postOrganisasiUsulanByIdVerifikasi(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/usulan/{id}/verifikasi', query: { id }, body }, options);
+  }
+
+  /**
+   * Cabut hak akses pejabat hasil usulan
+   *
+   * Pustikom mencabut peran yang diberikan jabatan untuk pejabat hasil usulan ini (rbac_jabatan_cabut; berlaku langsung, jabatan dan SK tetap). Body: {"alasan"} wajib. Tercatat di log; alur menampilkan "Hak akses dicabut Pustikom"; pengusul, calon, dan Biro SDM mendapat notifikasi. Admin Pustikom, rbac:admin, administrator.
+   *
+   * `POST /v1/induk/organisasi/usulan/{id}/cabut-hak-akses`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID usulan
+   * @param body
+   */
+  postOrganisasiUsulanByIdCabutHakAkses(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/usulan/{id}/cabut-hak-akses', query: { id }, body }, options);
+  }
+
+  /**
+   * Selesaikan tahap hak akses usulan pejabat
+   *
+   * Untuk usulan pejabat yang sudah disetujui Biro SDM dan jabatannya belum dipetakan ke peran (tahap hak_akses sedang). Body: {"catatan"} opsional. Memetakan peran jabatan tetap lewat PUT /v1/induk/organisasi/jabatan/{id}/peran (tahap selesai otomatis). Admin Pustikom (pustikom.organisasi.kelola), admin hak akses (rbac:admin), administrator.
+   *
+   * `POST /v1/induk/organisasi/usulan/{id}/hak-akses`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID usulan
+   * @param body
+   */
+  postOrganisasiUsulanByIdHakAkses(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/usulan/{id}/hak-akses', query: { id }, body }, options);
+  }
+
+  /**
    * Tolak usulan
    *
-   * Body: {"catatan": "alasan"} (wajib). Pengusul mendapat notifikasi.
+   * Body: {"catatan": "alasan"} (wajib). Unit: Pustikom; pejabat: Biro SDM. Pengusul mendapat notifikasi.
    *
    * `POST /v1/induk/organisasi/usulan/{id}/tolak`
    *
@@ -19977,14 +20078,14 @@ export class JadwalUjianResource {
   }
 }
 
-/** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan */
+/** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kegiatan */
 export class KalenderResource {
   constructor(private readonly client: SiakadCore) {}
 
   /**
    * Kalender terpadu
    *
-   * Gabungan kegiatan kalender yang terbit (sesuai level pengguna), tahapan tahun akademik di `m_tahun`, batas waktu per prodi di `m_bataskrs*`/`m_batas_*`, agenda portal yang terbit, dan jadwal PMB. Tabel lama hanya dibaca. Bawaan rentang: 30 hari lalu s.d. 180 hari ke depan, maksimal 400 hari.
+   * Gabungan kegiatan kalender yang terbit (sesuai level pengguna), tahapan tahun akademik di `m_tahun`, batas waktu per prodi di `m_bataskrs*`/`m_batas_*`, agenda portal yang terbit, dan jadwal PMB. Tabel lama hanya dibaca. Bawaan rentang: 30 hari lalu s.d. 180 hari ke depan, maksimal 400 hari. `kode_fakultas` (tanpa kode_prodi): tahapan kalender yang khusus fakultas/prodi lain dilewati.
    *
    * `GET /v1/kalender/terpadu`
    *
@@ -20237,6 +20338,21 @@ export class KalenderResource {
   }
 
   /**
+   * Bentuk aturan batas waktu
+   *
+   * Bentuk atau samakan aturan batas waktu turunan dari tahapan yang ada (mis. periode yang disalin dari tahun akademik lama) tanpa mengubah tahapan. Aturan baru berstatus draf sampai kalender diajukan. Atas nama pengelola kalender (izin kalender.periode.kelola), tanpa izin aturan:<kategori> terpisah. Jawaban memuat sinkron.aturan (dibuat, diperbarui, galat per langkah).
+   *
+   * `POST /v1/kalender/periode/{tahun}/bentuk-aturan`
+   *
+   * scope: `akademik:write`
+   *
+   * @param tahun Periode (tahun_id 5 digit)
+   */
+  postPeriodeByTahunBentukAturan(tahun: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kalender/periode/{tahun}/bentuk-aturan', query: { ...query, tahun } }, options);
+  }
+
+  /**
    * Ajukan kalender
    *
    * SK kalender wajib. Semua aturan turunan diperbarui, diberi SK kalender, dan diajukan sekaligus ke alur persetujuan aturan (telaah SPMI, penyetuju bidang). Body: {"catatan"?}.
@@ -20335,9 +20451,9 @@ export class KalenderResource {
   }
 
   /**
-   * Tutup lebih awal per prodi
+   * Tutup lebih awal per prodi (dihentikan, 410)
    *
-   * Body: {"tahun_id", "titik", "prodi": [...], "sampai"?: "YYYY-MM-DD[ HH:MM]", "segera"?: true (tutup sekarang), "darurat"?: true (izin aturan.darurat: langsung berlaku), "alasan", "dasar": {"nomor", "tanggal", "berkas_id"}}. Per prodi: aturan batas_waktu penyempitan (cakupan prodi, selesai = tanggal baru) dengan SK/memo, diajukan ke alur persetujuan aturan (atau jalur darurat). Tabel lama tidak disentuh. Jawaban {berhasil, gagal}.
+   * DIHENTIKAN 2026-11-18 (keputusan pemilik): selalu 410 dihentikan; Pengecualian waktu hanya perpanjang dan buka kembali. Data lama tetap di riwayat dan bisa dicabut. Dulu: Body: {"tahun_id", "titik", "prodi": [...], "sampai"?: "YYYY-MM-DD[ HH:MM]", "segera"?: true (tutup sekarang), "darurat"?: true (izin aturan.darurat: langsung berlaku), "alasan", "dasar": {"nomor", "tanggal", "berkas_id"}}. Per prodi: aturan batas_waktu penyempitan (cakupan prodi, selesai = tanggal baru) dengan SK/memo, diajukan ke alur persetujuan aturan (atau jalur darurat). Tabel lama tidak disentuh. Jawaban {berhasil, gagal}.
    *
    * `POST /v1/kalender/batas/tutup`
    *
@@ -20376,6 +20492,127 @@ export class KalenderResource {
     tahun_id?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/kalender/batas/riwayat', query }, options);
+  }
+
+  /**
+   * Status buka/tutup periode
+   *
+   * Untuk pemilih periode semua aplikasi. Per periode: keadaan aktif|dibuka|ditutup|dibuka_kembali, sejak, oleh, alasan, buka_kembali yang berlaku (fitur, prodi, sampai). Aturan: semua periode sebelum periode aktif (m_tahun.buka) ditutup; perubahan data periode ditutup ditolak 423 periode_ditutup untuk semua peran. meta: aktif, modul (fitur yang bisa dibuka kembali), boleh_buka_kembali.
+   *
+   * `GET /v1/kalender/kunci`
+   *
+   * scope: `kalender:read`
+   */
+  getKunci(query?: {
+    /** 1-200, bawaan 40 */
+    batas?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kalender/kunci', query }, options);
+  }
+
+  /**
+   * Pantauan SIAKAD lama
+   *
+   * Perubahan data periode ditutup yang ditemukan pemantau harian kalender:pantau-siakad-lama (sidik tabel inti per periode × prodi). saat_buka_kembali = ada buka kembali berlaku (mungkin sah). meta.diperiksa_at.
+   *
+   * `GET /v1/kalender/kunci/siakad-lama`
+   *
+   * scope: `akademik:read`
+   */
+  getKunciSiakadLama(query?: {
+    /** Satu periode (kosong = semua) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kalender/kunci/siakad-lama', query }, options);
+  }
+
+  /**
+   * Tandai perubahan ditinjau
+   *
+   * Izin kalender.periode.kelola.
+   *
+   * `POST /v1/kalender/kunci/siakad-lama/{id}/tinjau`
+   *
+   * scope: `akademik:write`
+   *
+   * @param id ID perubahan
+   */
+  postKunciSiakadLamaByIdTinjau(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kalender/kunci/siakad-lama/{id}/tinjau', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Detail kunci periode
+   *
+   * Status, riwayat Pengecualian waktu (semua jenis), dan 50 catatan terakhir (ditolak 423, pengecualian resmi, lolos karena buka kembali).
+   *
+   * `GET /v1/kalender/kunci/{tahun}`
+   *
+   * scope: `akademik:read`
+   *
+   * @param tahun Periode (tahun_id 5 digit)
+   */
+  getKunciByTahun(tahun: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kalender/kunci/{tahun}', query: { ...query, tahun } }, options);
+  }
+
+  /**
+   * Riwayat Pengecualian waktu
+   *
+   * Perpanjang dan buka kembali untuk satu periode (data lama "tutup lebih awal" tampil sebagai jenis lama, jenis_lama: true); buka kembali "semua prodi" ikut tampil.
+   *
+   * `GET /v1/kalender/pengecualian-waktu`
+   *
+   * scope: `akademik:read`
+   */
+  getPengecualianWaktu(query?: {
+    /** Bawaan tahun aktif */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kalender/pengecualian-waktu', query }, options);
+  }
+
+  /**
+   * Tambah Pengecualian waktu
+   *
+   * Body {jenis: perpanjang|buka_kembali, ...}. perpanjang: sama dengan /batas/perpanjang, hanya untuk periode yang dibuka (periode ditutup: 409 periode_ditutup, saran_jenis buka_kembali). buka_kembali: {tahun_id, modul: ["nilai", …] | ["*"], prodi: ["55201", …] | ["*"], mulai?, sampai (maks. 180 hari), alasan (min. 10), sk_id (registri SK) | dasar: {nomor, tanggal, berkas_id}}; izin akademik.periode.buka_kembali, hanya untuk periode yang ditutup, tercatat, otomatis terkunci lagi lewat tanggal sampai.
+   *
+   * `POST /v1/kalender/pengecualian-waktu`
+   *
+   * scope: `akademik:write`
+   */
+  postPengecualianWaktu(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kalender/pengecualian-waktu', query }, options);
+  }
+
+  /**
+   * Cabut Pengecualian waktu
+   *
+   * Perpanjang (dan data lama tutup lebih awal): seperti /batas/perpanjangan/{id}/cabut. Buka kembali: langsung terkunci lagi (izin akademik.periode.buka_kembali).
+   *
+   * `POST /v1/kalender/pengecualian-waktu/{id}/cabut`
+   *
+   * scope: `akademik:write`
+   *
+   * @param id UUID
+   */
+  postPengecualianWaktuByIdCabut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kalender/pengecualian-waktu/{id}/cabut', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tutup periode (manual)
+   *
+   * Body {alasan}. Periode selain periode aktif. Periode sebelum periode aktif sudah ditutup otomatis; ini menambah catatan alasan, atau menutup periode sesudah periode aktif. Izin akademik.periode.buka.
+   *
+   * `POST /v1/kalender/periode/{tahun}/tutup`
+   *
+   * scope: `akademik:write`
+   *
+   * @param tahun Periode (tahun_id 5 digit)
+   */
+  postPeriodeByTahunTutup(tahun: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kalender/periode/{tahun}/tutup', query: { ...query, tahun } }, options);
   }
 
   /**
@@ -31794,6 +32031,803 @@ export class KurikulumResource {
   }
 }
 
+/** Kurikulum: Aturan berversi, Kurikulum: Kerangka (data), Kurikulum: Perangkat MK, Kurikulum: Asesmen & RPS, Kurikulum: Evaluasi & peninjauan */
+export class KurikulumAturanResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Versi aturan kurikulum
+   *
+   * Semua versi (universitas, turunan fakultas/prodi, versi prodi hasil impor kurikulum lama) dengan kerangka, lingkup, angkatan/periode berlaku, SK registri, jumlah mahasiswa aktif yang membacanya, dan penanda berlaku sekarang. Filter ?lingkup=, ?prodi= (versi universitas + versi prodi itu), ?fakultas=.
+   *
+   * `GET /v1/kurikulum-aturan`
+   *
+   * scope: `kurikulum:read`
+   */
+  list(query?: {
+    /** universitas|fakultas|prodi */
+    lingkup?: string;
+    /** Kode prodi */
+    prodi?: string;
+    /** Kode fakultas */
+    fakultas?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan', query }, options);
+  }
+
+  /**
+   * Draf aturan kurikulum baru
+   *
+   * Body: nama, kerangka, lingkup (universitas|fakultas|prodi), kode_fakultas/kode_prodi, induk_universitas_id (turunan), angkatan_mulai, angkatan_selesai, berlaku_mulai, berlaku_selesai (tahun_id), kurikulum_id (kurikulum OBE prodi), dasar_hukum, sk_id (registri SK), catatan_perubahan, isi {struktur, penilaian, mbkm, kelulusan, obe, turunan}. Nilai kosong = ketentuan lama.
+   *
+   * `POST /v1/kurikulum-aturan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  create(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan', body }, options);
+  }
+
+  /**
+   * Referensi editor aturan kurikulum
+   *
+   * Kerangka (dinamis), bagian yang boleh diturunkan, komponen nilai SIAKAD, fakultas, prodi, periode, hak pemilik token (universitas, prodi), dan isi bawaan (kosong = ketentuan lama).
+   *
+   * `GET /v1/kurikulum-aturan/referensi`
+   *
+   * scope: `kurikulum:read`
+   */
+  getReferensi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/referensi', query }, options);
+  }
+
+  /**
+   * Impor kurikulum lama menjadi versi
+   *
+   * Body: {kode_prodi, tahun_id: ["20231","20232"], nama, kerangka, angkatan_mulai, angkatan_selesai, dasar_hukum, impor_mk, jalankan}. Membaca m_program_studi, m_kurikulum, m_nilai, m_mata_kuliah (tidak diubah); impor_mk memakai impor Kurikulum OBE (butuh kurikulum:migrasi). Tanpa jalankan = pratinjau.
+   *
+   * `POST /v1/kurikulum-aturan/impor-lama`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postImporLama(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/impor-lama', body }, options);
+  }
+
+  /**
+   * Kerangka kurikulum
+   *
+   * KBK, KKNI, MBKM, OBE, dan kerangka tambahan.
+   *
+   * `GET /v1/kurikulum-aturan/kerangka`
+   *
+   * scope: `kurikulum:read`
+   */
+  getKerangka(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/kerangka', query }, options);
+  }
+
+  /**
+   * Tambah/ubah kerangka kurikulum
+   *
+   * Body: {kode, nama, keterangan, urutan, aktif}. BAAK.
+   *
+   * `POST /v1/kurikulum-aturan/kerangka`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postKerangka(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka', body }, options);
+  }
+
+  /**
+   * Ketercapaian CPL
+   *
+   * Dihitung dari nilai komponen (Harian/Tugas/UTS/UAS) lewat rencana evaluasi RPS -> CPMK -> CPL; MK tanpa pemetaan komponen memakai nilai akhir x 25 dan matriks CPL-MK. Ambang dari CPL atau aturan kurikulum yang berlaku.
+   *
+   * `GET /v1/kurikulum-aturan/ketercapaian`
+   *
+   * scope: `kurikulum:read`
+   */
+  getKetercapaian(query: {
+    /** ID kurikulum OBE */
+    kurikulum_id: number;
+    /** Tahun angkatan */
+    angkatan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/ketercapaian', query }, options);
+  }
+
+  /**
+   * Statistik mata kuliah
+   *
+   * Per periode (8 terakhir) dan per kelas: peserta, sebaran huruf, rata-rata bobot, persen lulus; kehadiran; capaian CPMK dari komponen nilai (rencana evaluasi RPS); kontribusi MK ke CPL; kelengkapan perangkat.
+   *
+   * `GET /v1/kurikulum-aturan/statistik/mk`
+   *
+   * scope: `kurikulum:read`
+   */
+  getStatistikMk(query: {
+    /** Kode prodi */
+    prodi: string;
+    /** Kode MK */
+    kode_mk: string;
+    /** Periode */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/statistik/mk', query }, options);
+  }
+
+  /**
+   * Tren ketercapaian CPL
+   *
+   * Rekap per periode (tugas terjadwal kurikulum:capaian).
+   *
+   * `GET /v1/kurikulum-aturan/ketercapaian/tren`
+   *
+   * scope: `kurikulum:read`
+   */
+  getKetercapaianTren(query: {
+    /** ID kurikulum OBE */
+    kurikulum_id: number;
+    /** Angkatan */
+    angkatan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/ketercapaian/tren', query }, options);
+  }
+
+  /**
+   * Ekspor ketercapaian CPL (LED/borang, SPMI)
+   *
+   * CSV per CPL x angkatan + rujukan pedoman.
+   *
+   * `GET /v1/kurikulum-aturan/ketercapaian/ekspor`
+   *
+   * scope: `kurikulum:read`
+   */
+  getKetercapaianEkspor(query: {
+    /** ID kurikulum OBE */
+    kurikulum_id: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/ketercapaian/ekspor', query }, options);
+  }
+
+  /**
+   * Ketercapaian CPL satu mahasiswa
+   *
+   * Kurikulum OBE dari aturan kurikulum yang berlaku (atau ?kurikulum_id=).
+   *
+   * `GET /v1/kurikulum-aturan/ketercapaian/mahasiswa/{nim}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param nim NIM
+   */
+  getKetercapaianMahasiswaByNim(nim: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/ketercapaian/mahasiswa/{nim}', query: { ...query, nim } }, options);
+  }
+
+  /**
+   * Versi definisi kerangka
+   *
+   * Definisi kerangka (bagian, isian, isian MK, perangkat, taksonomi, templat RPS, aturan bawaan) berversi.
+   *
+   * `GET /v1/kurikulum-aturan/kerangka-versi`
+   *
+   * scope: `kurikulum:read`
+   */
+  getKerangkaVersi(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/kerangka-versi', query }, options);
+  }
+
+  /**
+   * Definisi kerangka baru (draf)
+   *
+   * Body: nama, dasar_hukum, isi {kode, bagian, isian_mk, perangkat, taksonomi, rps, aturan_bawaan}. BAAK.
+   *
+   * `POST /v1/kurikulum-aturan/kerangka-versi`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postKerangkaVersi(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka-versi', body }, options);
+  }
+
+  /**
+   * Detail definisi kerangka
+   *
+   * Isi, primitif yang tersedia, jenis isian, fakta validasi RPS, jumlah versi aturan yang mengunci definisi ini.
+   *
+   * `GET /v1/kurikulum-aturan/kerangka-versi/{id}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getKerangkaVersiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/kerangka-versi/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah draf definisi kerangka
+   *
+   * `PUT /v1/kurikulum-aturan/kerangka-versi/{id}`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  putKerangkaVersiById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-aturan/kerangka-versi/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Salin definisi kerangka
+   *
+   * Body: nama, kode (isi kode = kerangka baru; kosong = revisi kerangka yang sama).
+   *
+   * `POST /v1/kurikulum-aturan/kerangka-versi/{id}/salin`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKerangkaVersiByIdSalin(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka-versi/{id}/salin', query: { id }, body }, options);
+  }
+
+  /**
+   * Banding definisi kerangka
+   *
+   * `GET /v1/kurikulum-aturan/kerangka-versi/{id}/banding`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getKerangkaVersiByIdBanding(id: string | number, query?: {
+    /** ID pembanding */
+    dengan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/kerangka-versi/{id}/banding', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Definisi kerangka: terbitkan
+   *
+   * `POST /v1/kurikulum-aturan/kerangka-versi/{id}/terbitkan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postKerangkaVersiByIdTerbitkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka-versi/{id}/terbitkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Definisi kerangka: arsipkan
+   *
+   * `POST /v1/kurikulum-aturan/kerangka-versi/{id}/arsipkan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postKerangkaVersiByIdArsipkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka-versi/{id}/arsipkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Definisi kerangka: hapus
+   *
+   * `POST /v1/kurikulum-aturan/kerangka-versi/{id}/hapus`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postKerangkaVersiByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/kerangka-versi/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Perangkat satu MK
+   *
+   * Perangkat wajib menurut aturan kurikulum versi MK (per jenis MK), bukti, status (belum/dinyatakan/diunggah/diverifikasi/ditolak), lengkap, nilai PDDikti dihitung dari bukti.
+   *
+   * `GET /v1/kurikulum-aturan/perangkat/mk`
+   *
+   * scope: `kurikulum:read`
+   */
+  getPerangkatMk(query: {
+    /** Kode prodi */
+    prodi: string;
+    /** Kode MK */
+    kode_mk: string;
+    /** Periode */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/perangkat/mk', query }, options);
+  }
+
+  /**
+   * Unggah bukti perangkat
+   *
+   * Body: {kode_prodi, kode_mk, tahun_id, perangkat, berkas_id (unggah dulu ke /v1/berkas), catatan}. Dosen koordinator atau pengelola kurikulum prodi. Versi bukti naik.
+   *
+   * `POST /v1/kurikulum-aturan/perangkat/unggah`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postPerangkatUnggah(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/perangkat/unggah', body }, options);
+  }
+
+  /**
+   * Verifikasi bukti perangkat
+   *
+   * Body: {keputusan: setuju|tolak, catatan}. Oleh peran yang ditentukan aturan (kaprodi, gpm, upm, baak). Setuju mengisi kolom PDDikti lama periode itu.
+   *
+   * `POST /v1/kurikulum-aturan/perangkat/bukti/{id}/verifikasi`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID bukti
+   * @param body
+   */
+  postPerangkatBuktiByIdVerifikasi(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/perangkat/bukti/{id}/verifikasi', query: { id }, body }, options);
+  }
+
+  /**
+   * Rekap kelengkapan perangkat
+   *
+   * Per MK periode: persen, perangkat kurang, menunggu verifikasi, koordinator.
+   *
+   * `GET /v1/kurikulum-aturan/perangkat/rekap`
+   *
+   * scope: `kurikulum:read`
+   */
+  getPerangkatRekap(query: {
+    /** Kode prodi */
+    prodi: string;
+    /** Periode */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/perangkat/rekap', query }, options);
+  }
+
+  /**
+   * Kirim pengingat ke dosen koordinator
+   *
+   * Body: {kode_prodi, tahun_id}. Notifikasi ke koordinator MK yang belum lengkap.
+   *
+   * `POST /v1/kurikulum-aturan/perangkat/pengingat`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postPerangkatPengingat(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/perangkat/pengingat', body }, options);
+  }
+
+  /**
+   * Tanda kurikulum beberapa butir
+   *
+   * Query: entitas, ids=1,2,3.
+   *
+   * `GET /v1/kurikulum-aturan/asesmen/tanda`
+   *
+   * scope: `kurikulum:read`
+   */
+  getAsesmenTanda(query?: {
+    /** Jenis butir */
+    entitas?: string;
+    /** ID dipisah koma */
+    ids?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/asesmen/tanda', query }, options);
+  }
+
+  /**
+   * Tandai butir asesmen
+   *
+   * Body: {entitas: lms_bank_soal|cbt_soal|lms_tugas|lms_kuis|lms_kuis_soal, entitas_id, cpmk_id, sub_cpmk_id, kognitif (taksonomi kerangka), bentuk}.
+   *
+   * `POST /v1/kurikulum-aturan/asesmen/tanda`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postAsesmenTanda(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/asesmen/tanda', body }, options);
+  }
+
+  /**
+   * Pilihan penanda MK
+   *
+   * CPMK, sub-CPMK, taksonomi kognitif (definisi kerangka), dan metode asesmen versi aturan MK.
+   *
+   * `GET /v1/kurikulum-aturan/asesmen/pilihan`
+   *
+   * scope: `kurikulum:read`
+   */
+  getAsesmenPilihan(query: {
+    /** Kode prodi */
+    prodi: string;
+    /** Kode MK */
+    kode_mk: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/asesmen/pilihan', query }, options);
+  }
+
+  /**
+   * Siapkan kelas LMS dari RPS
+   *
+   * Topik per pertemuan RPS dan tugas dari rencana evaluasi komponen Tugas (bertanda CPMK). Tanpa "jalankan": true = pratinjau. Kunci periode modul lms.
+   *
+   * `POST /v1/kurikulum-aturan/lms/kelas/{id}/dari-rps`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID kelas LMS
+   * @param body
+   */
+  postLmsKelasByIdDariRps(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/lms/kelas/{id}/dari-rps', query: { id }, body }, options);
+  }
+
+  /**
+   * Kisi-kisi ujian CBT
+   *
+   * Proporsi poin soal per CPMK dibanding rencana evaluasi RPS (komponen UTS/UAS/Harian), sebaran tingkat kognitif, peringatan.
+   *
+   * `GET /v1/kurikulum-aturan/asesmen/cbt/{id}/kisi`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID ujian CBT
+   */
+  getAsesmenCbtByIdKisi(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/asesmen/cbt/{id}/kisi', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Periksa RPS dengan templat kerangka
+   *
+   * Validasi berparameter (total bobot, jumlah pertemuan, CPMK teruji, ...) dari definisi kerangka versi MK.
+   *
+   * `GET /v1/kurikulum-aturan/rps/{id}/periksa`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID RPS
+   */
+  getRpsByIdPeriksa(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/rps/{id}/periksa', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Isian dinamis kerangka
+   *
+   * Skema + nilai: entitas=kurikulum&kunci=<id kurikulum OBE> (bagian non-primitif) atau entitas=mk&kunci=<prodi>:<kode_mk> (isian MK tambahan).
+   *
+   * `GET /v1/kurikulum-aturan/isian`
+   *
+   * scope: `kurikulum:read`
+   */
+  getIsian(query: {
+    /** kurikulum|mk */
+    entitas: string;
+    /** Kunci */
+    kunci: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/isian', query }, options);
+  }
+
+  /**
+   * Simpan isian dinamis
+   *
+   * Body: {entitas, kunci, bagian, nilai: {isian: nilai}}; diperiksa menurut skema kerangka.
+   *
+   * `PUT /v1/kurikulum-aturan/isian`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  putIsian(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-aturan/isian', body }, options);
+  }
+
+  /**
+   * Jenis evaluasi prodi
+   *
+   * Dari definisi kerangka versi aturan yang berlaku: portofolio MK, evaluasi CPL, peninjauan (siklus, instrumen, masukan otomatis, tahap & peran, PPEPP).
+   *
+   * `GET /v1/kurikulum-aturan/evaluasi/definisi`
+   *
+   * scope: `kurikulum:read`
+   */
+  getEvaluasiDefinisi(query: {
+    /** Kode prodi */
+    prodi: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/evaluasi/definisi', query }, options);
+  }
+
+  /**
+   * Daftar evaluasi prodi
+   *
+   * `GET /v1/kurikulum-aturan/evaluasi`
+   *
+   * scope: `kurikulum:read`
+   */
+  getEvaluasi(query: {
+    /** Kode prodi */
+    prodi: string;
+    /** Kode jenis */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/evaluasi', query }, options);
+  }
+
+  /**
+   * Mulai evaluasi
+   *
+   * Body: {jenis, kode_prodi, kode_mk (tingkat MK), periode (tahun_id/tahun), tim: [username]}. Masukan otomatis ditarik.
+   *
+   * `POST /v1/kurikulum-aturan/evaluasi`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param body
+   */
+  postEvaluasi(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/evaluasi', body }, options);
+  }
+
+  /**
+   * Detail evaluasi
+   *
+   * Definisi, instrumen terisi, masukan otomatis, alur tahap (bentuk AlurPemeriksa), hak tahap sekarang.
+   *
+   * `GET /v1/kurikulum-aturan/evaluasi/{id}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getEvaluasiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/evaluasi/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Isi instrumen evaluasi
+   *
+   * `PUT /v1/kurikulum-aturan/evaluasi/{id}/isian`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  putEvaluasiByIdIsian(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-aturan/evaluasi/{id}/isian', query: { id }, body }, options);
+  }
+
+  /**
+   * Jalankan tahap evaluasi
+   *
+   * Body: {keputusan: lanjut|kembalikan, catatan, nilai}. Tahap terakhir = disahkan; peninjauan yang disahkan membuat draf versi aturan baru dari rekomendasi.
+   *
+   * `POST /v1/kurikulum-aturan/evaluasi/{id}/proses`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postEvaluasiByIdProses(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/evaluasi/{id}/proses', query: { id }, body }, options);
+  }
+
+  /**
+   * Aturan kurikulum yang berlaku untuk mahasiswa
+   *
+   * Versi dasar + turunan yang dibaca otomatis menurut angkatan/periode/prodi (atau timpaan), isi efektif, skala nilai, batas SKS semester ini, syarat lulus (sumber kurikulum/lama) dan pemenuhannya.
+   *
+   * `GET /v1/kurikulum-aturan/mahasiswa/{nim}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param nim NIM
+   */
+  getMahasiswaByNim(nim: string | number, query?: {
+    /** Periode (bawaan periode aktif) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/mahasiswa/{nim}', query: { ...query, nim } }, options);
+  }
+
+  /**
+   * Pindahkan mahasiswa ke versi lain
+   *
+   * Body: {versi_id, alasan}. Untuk mahasiswa pindah kurikulum (pakai ekuivalensi MK di kurikulum OBE).
+   *
+   * `PUT /v1/kurikulum-aturan/mahasiswa/{nim}`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param nim NIM
+   * @param body
+   */
+  putMahasiswaByNim(nim: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-aturan/mahasiswa/{nim}', query: { nim }, body }, options);
+  }
+
+  /**
+   * Kembalikan mahasiswa ke versi otomatis
+   *
+   * `DELETE /v1/kurikulum-aturan/mahasiswa/{nim}`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param nim NIM
+   */
+  deleteMahasiswaByNim(nim: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/kurikulum-aturan/mahasiswa/{nim}', query: { ...query, nim } }, options);
+  }
+
+  /**
+   * Detail aturan kurikulum
+   *
+   * Isi lengkap, pelengkap (kerangka, lingkup, angkatan), turunan, induk universitas, kurikulum OBE, mahasiswa aktif per prodi, perubahan dari versi asal, riwayat, hak.
+   *
+   * `GET /v1/kurikulum-aturan/{id}`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah draf aturan kurikulum
+   *
+   * Versi terbit dikunci; salin untuk mengubah. Turunan hanya mengubah bagian yang diizinkan universitas.
+   *
+   * `PUT /v1/kurikulum-aturan/{id}`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  putById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/kurikulum-aturan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Salin menjadi versi baru (draf)
+   *
+   * `POST /v1/kurikulum-aturan/{id}/salin`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postByIdSalin(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/{id}/salin', query: { id }, body }, options);
+  }
+
+  /**
+   * Buat turunan fakultas/prodi
+   *
+   * Body: {lingkup: fakultas|prodi, kode_fakultas|kode_prodi, nama, kurikulum_id}. Dari versi universitas yang mengizinkan bagian turunan.
+   *
+   * `POST /v1/kurikulum-aturan/{id}/turunkan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   * @param body
+   */
+  postByIdTurunkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/{id}/turunkan', query: { id }, body }, options);
+  }
+
+  /**
+   * Banding dua versi
+   *
+   * Bawaan dibanding versi asal salinan.
+   *
+   * `GET /v1/kurikulum-aturan/{id}/banding`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getByIdBanding(id: string | number, query?: {
+    /** ID versi pembanding */
+    dengan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/{id}/banding', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau dampak
+   *
+   * Mahasiswa aktif yang aturan kurikulumnya berubah bila versi ini terbit: per prodi, SKS lulus dan skala nilai yang berubah, status lulus akademik sebelum/sesudah. Tidak menyimpan.
+   *
+   * `GET /v1/kurikulum-aturan/{id}/pratinjau`
+   *
+   * scope: `kurikulum:read`
+   *
+   * @param id ID
+   */
+  getByIdPratinjau(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/kurikulum-aturan/{id}/pratinjau', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan kurikulum: Terbitkan (draf -> terbit; periode yang ditutup butuh buka kembali)
+   *
+   * `POST /v1/kurikulum-aturan/{id}/terbitkan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postByIdTerbitkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/{id}/terbitkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan kurikulum: Arsipkan versi terbit
+   *
+   * `POST /v1/kurikulum-aturan/{id}/arsipkan`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postByIdArsipkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/{id}/arsipkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan kurikulum: Hapus draf
+   *
+   * `POST /v1/kurikulum-aturan/{id}/hapus`
+   *
+   * scope: `kurikulum:write`
+   *
+   * @param id ID
+   */
+  postByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/kurikulum-aturan/{id}/hapus', query: { ...query, id } }, options);
+  }
+}
+
 /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS */
 export class KurikulumObeResource {
   constructor(private readonly client: SiakadCore) {}
@@ -39823,6 +40857,8 @@ export class NotifResource {
   /**
    * Jumlah belum dibaca
    *
+   * belum_dibaca (tanpa label yang dibisukan), username pemilik kotak, label: [{modul, total, belum, bisu}], bisu: [modul].
+   *
    * `GET /v1/notif/ringkas`
    *
    * scope: `notif:read` · hanya token pengguna
@@ -39834,12 +40870,53 @@ export class NotifResource {
   /**
    * Tandai semua dibaca
    *
+   * Milik pemanggil. Body opsional {modul} (satu label) atau {id: [..]} (beberapa notifikasi).
+   *
    * `POST /v1/notif/kotak/baca-semua`
    *
    * scope: `notif:write` · hanya token pengguna
    */
   postKotakBacaSemua(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/notif/kotak/baca-semua', query }, options);
+  }
+
+  /**
+   * Bersihkan notifikasi
+   *
+   * Hapus lunak milik pemanggil. Body {cakupan: dibaca|semua|pilih, modul?, id?: [..]}. Jawaban {dibersihkan, id} untuk urungkan.
+   *
+   * `POST /v1/notif/kotak/bersihkan`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  postKotakBersihkan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/kotak/bersihkan', query }, options);
+  }
+
+  /**
+   * Urungkan bersihkan
+   *
+   * Body {id: [..]}: pulihkan milik pemanggil yang dibersihkan dalam 24 jam terakhir.
+   *
+   * `POST /v1/notif/kotak/pulihkan`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  postKotakPulihkan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/kotak/pulihkan', query }, options);
+  }
+
+  /**
+   * Bisukan label
+   *
+   * Body {modul, bisu: bool}. Label yang dibisukan tidak dihitung di lencana dan tidak tampil di tab Semua; notifikasinya tetap ada di tab labelnya.
+   *
+   * `POST /v1/notif/kotak/bisu`
+   *
+   * scope: `notif:write` · hanya token pengguna
+   */
+  postKotakBisu(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/notif/kotak/bisu', query }, options);
   }
 
   /**
@@ -40061,7 +41138,7 @@ export class NotifResource {
   /**
    * Kotak masuk: daftar
    *
-   * Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+   * Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
    *
    * `GET /v1/notif/kotak`
    *
@@ -40089,7 +41166,7 @@ export class NotifResource {
   /**
    * Kotak masuk: detail
    *
-   * Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+   * Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
    *
    * `GET /v1/notif/kotak/{id}`
    *
@@ -40119,7 +41196,7 @@ export class NotifResource {
   /**
    * Kotak masuk: riwayat status
    *
-   * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+   * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
    *
    * `GET /v1/notif/kotak/{id}/riwayat`
    *
@@ -41927,6 +43004,765 @@ export class PddiktiResource {
    */
   getJadwalByIdRiwayat(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/pddikti/jadwal/{id}/riwayat', query: { ...query, id } }, options);
+  }
+}
+
+/** Pedoman & peraturan */
+export class PedomanResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Pedoman publik
+   *
+   * Pedoman berlaku berakses publik; q = cari isi pasal.
+   *
+   * `GET /v1/pedoman/publik`
+   *
+   * publik (tanpa token)
+   */
+  getPublik(query?: {
+    /** Kata kunci (min. 3 huruf) */
+    q?: string;
+    /** Kode jenis */
+    jenis?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/publik', query, public: true }, options);
+  }
+
+  /**
+   * PDF pedoman publik
+   *
+   * PDF resmi versi berlaku.
+   *
+   * `GET /v1/pedoman/publik/{kode}/pdf`
+   *
+   * publik (tanpa token)
+   *
+   * @param kode
+   */
+  getPublikByKodePdf(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/publik/{kode}/pdf', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Teks pedoman publik
+   *
+   * Teks lengkap versi berlaku (kode dokumen).
+   *
+   * `GET /v1/pedoman/publik/{kode}`
+   *
+   * publik (tanpa token)
+   *
+   * @param kode
+   */
+  getPublikByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/publik/{kode}', query: { ...query, kode }, public: true }, options);
+  }
+
+  /**
+   * Hak pedoman saya
+   *
+   * Izin pedoman.* pengguna dan unit pembaca.
+   *
+   * `GET /v1/pedoman/saya`
+   *
+   * scope: `pedoman:read` · hanya token pengguna
+   */
+  getSaya(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/saya', query }, options);
+  }
+
+  /**
+   * Baca pedoman
+   *
+   * Pedoman berlaku untuk pembaca: universitas + fakultas/prodinya; q = cari isi.
+   *
+   * `GET /v1/pedoman/baca`
+   *
+   * scope: `pedoman:read`
+   */
+  getBaca(query?: {
+    /** Kata kunci */
+    q?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/baca', query }, options);
+  }
+
+  /**
+   * Teks pedoman
+   *
+   * Teks lengkap versi berlaku (kode/uuid dokumen) atau versi tertentu (id) bagi penyusun/peninjau.
+   *
+   * `GET /v1/pedoman/baca/{kode}`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param kode
+   */
+  getBacaByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/baca/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Jenis dokumen
+   *
+   * Jenis pedoman/peraturan (data).
+   *
+   * `GET /v1/pedoman/jenis`
+   *
+   * scope: `pedoman:read`
+   */
+  getJenis(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/jenis', query }, options);
+  }
+
+  /**
+   * Tambah jenis dokumen
+   *
+   * Hanya pengelola (LPM).
+   *
+   * `POST /v1/pedoman/jenis`
+   *
+   * scope: `pedoman:write`
+   */
+  postJenis(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/jenis', query }, options);
+  }
+
+  /**
+   * Ubah jenis dokumen
+   *
+   * Unit pemilik, peninjau, alur pengesahan per lingkup, akses baca, ketegasan.
+   *
+   * `PUT /v1/pedoman/jenis/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  putJenisById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pedoman/jenis/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Katalog parameter
+   *
+   * Kunci -> unit pemilik aturan -> target aturan.
+   *
+   * `GET /v1/pedoman/katalog`
+   *
+   * scope: `pedoman:read`
+   */
+  getKatalog(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/katalog', query }, options);
+  }
+
+  /**
+   * Tambah parameter katalog
+   *
+   * Hanya pengelola (LPM).
+   *
+   * `POST /v1/pedoman/katalog`
+   *
+   * scope: `pedoman:write`
+   */
+  postKatalog(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/katalog', query }, options);
+  }
+
+  /**
+   * Ubah parameter katalog
+   *
+   * Hanya pengelola (LPM).
+   *
+   * `PUT /v1/pedoman/katalog/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  putKatalogById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pedoman/katalog/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengaturan pedoman
+   *
+   * Ketegasan per kategori aturan, batas hari darurat/deviasi.
+   *
+   * `GET /v1/pedoman/pengaturan`
+   *
+   * scope: `pedoman:read`
+   */
+  getPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/pengaturan', query }, options);
+  }
+
+  /**
+   * Ubah pengaturan pedoman
+   *
+   * Hanya pengelola (LPM).
+   *
+   * `PUT /v1/pedoman/pengaturan`
+   *
+   * scope: `pedoman:write`
+   */
+  putPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pedoman/pengaturan', query }, options);
+  }
+
+  /**
+   * Daftar pedoman
+   *
+   * Per jenis/lingkup/fakultas dengan versi berlaku dan versi terakhir.
+   *
+   * `GET /v1/pedoman/dokumen`
+   *
+   * scope: `pedoman:read`
+   */
+  getDokumen(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/dokumen', query }, options);
+  }
+
+  /**
+   * Pedoman baru
+   *
+   * Dokumen + versi 1 draf (opsional salin dari versi lain).
+   *
+   * `POST /v1/pedoman/dokumen`
+   *
+   * scope: `pedoman:write`
+   */
+  postDokumen(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/dokumen', query }, options);
+  }
+
+  /**
+   * Detail pedoman
+   *
+   * Dokumen dan daftar versinya.
+   *
+   * `GET /v1/pedoman/dokumen/{id}`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getDokumenById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/dokumen/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * PDF pedoman
+   *
+   * PDF resmi (berlaku: kode verifikasi) atau pratinjau draf.
+   *
+   * `GET /v1/pedoman/versi/{id}/pdf`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getVersiByIdPdf(id: string | number, query?: {
+    /** 1 = lampiran */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/versi/{id}/pdf', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Banding versi
+   *
+   * Perubahan per pasal dan parameter.
+   *
+   * `GET /v1/pedoman/versi/{id}/banding`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getVersiByIdBanding(id: string | number, query?: {
+    /** ID versi pembanding */
+    dengan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/versi/{id}/banding', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Periksa konflik
+   *
+   * Batas timpa pedoman induk, parameter ganda.
+   *
+   * `GET /v1/pedoman/versi/{id}/periksa`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getVersiByIdPeriksa(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/versi/{id}/periksa', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Komentar tinjauan
+   *
+   * Per pasal.
+   *
+   * `GET /v1/pedoman/versi/{id}/komentar`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getVersiByIdKomentar(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/versi/{id}/komentar', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tambah komentar
+   *
+   * butir_kunci, isi.
+   *
+   * `POST /v1/pedoman/versi/{id}/komentar`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdKomentar(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/komentar', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tambah butir
+   *
+   * tipe bab|bagian|pasal|ayat|lampiran|definisi, induk_id, judul, isi (blok).
+   *
+   * `POST /v1/pedoman/versi/{id}/butir`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdButir(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/butir', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Urut/pindah butir
+   *
+   * induk_id, urutan [id].
+   *
+   * `POST /v1/pedoman/versi/{id}/urut`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdUrut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/urut', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Simpan parameter
+   *
+   * butir_id, kunci (katalog), nilai, catatan.
+   *
+   * `POST /v1/pedoman/versi/{id}/parameter`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdParameter(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/parameter', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Versi baru
+   *
+   * Salin versi menjadi draf berikutnya.
+   *
+   * `POST /v1/pedoman/versi/{id}/salin`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdSalin(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/salin', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: ajukan
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/ajukan`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/ajukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: tarik
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/tarik`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdTarik(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/tarik', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: tinjau
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/tinjau`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdTinjau(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/tinjau', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: setujui
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/setujui`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdSetujui(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/setujui', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: kembalikan
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/kembalikan`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdKembalikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/kembalikan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: sahkan
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/sahkan`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdSahkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/sahkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: berlakukan
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/berlakukan`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdBerlakukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/berlakukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pengesahan: cabut
+   *
+   * Alur pengesahan pedoman (catatan; tinjau: tahap, keputusan setuju|minta_ubah; sahkan: sk_id, berlaku_mulai; cabut: alasan).
+   *
+   * `POST /v1/pedoman/versi/{id}/cabut`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postVersiByIdCabut(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/versi/{id}/cabut', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Versi pedoman
+   *
+   * Butir bernomor, parameter, alur pemeriksa, aksi yang boleh.
+   *
+   * `GET /v1/pedoman/versi/{id}`
+   *
+   * scope: `pedoman:read`
+   *
+   * @param id
+   */
+  getVersiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/versi/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah versi
+   *
+   * judul, pembukaan, catatan_perubahan (draf).
+   *
+   * `PUT /v1/pedoman/versi/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  putVersiById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pedoman/versi/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah butir
+   *
+   * judul, isi (draf).
+   *
+   * `PUT /v1/pedoman/butir/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  putButirById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'PUT', path: '/v1/pedoman/butir/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus butir
+   *
+   * Beserta turunan dan parameternya (draf).
+   *
+   * `DELETE /v1/pedoman/butir/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  deleteButirById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/pedoman/butir/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus parameter
+   *
+   * Draf.
+   *
+   * `DELETE /v1/pedoman/parameter/{id}`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  deleteParameterById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/pedoman/parameter/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Selesaikan komentar
+   *
+   * `POST /v1/pedoman/komentar/{id}/selesai`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postKomentarByIdSelesai(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/komentar/{id}/selesai', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Usulan penerapan
+   *
+   * Per unit pemilik (unit=BAAK,SDM), status, versi.
+   *
+   * `GET /v1/pedoman/penerapan`
+   *
+   * scope: `pedoman:read`
+   */
+  getPenerapan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/penerapan', query }, options);
+  }
+
+  /**
+   * Setujui usulan penerapan
+   *
+   * ids[], catatan: versi aturan baru dibuat lewat mekanisme aturan pemiliknya.
+   *
+   * `POST /v1/pedoman/penerapan/setujui`
+   *
+   * scope: `pedoman:write`
+   */
+  postPenerapanSetujui(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/penerapan/setujui', query }, options);
+  }
+
+  /**
+   * Tolak usulan penerapan
+   *
+   * ids[], catatan (wajib).
+   *
+   * `POST /v1/pedoman/penerapan/tolak`
+   *
+   * scope: `pedoman:write`
+   */
+  postPenerapanTolak(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/penerapan/tolak', query }, options);
+  }
+
+  /**
+   * Dasar pedoman aturan
+   *
+   * target_jenis mesin_aturan|aturan_versi, target_ref (uuid/kode aturan, jenis aturan berversi).
+   *
+   * `GET /v1/pedoman/dasar`
+   *
+   * scope: `pedoman:read`
+   */
+  getDasar(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/dasar', query }, options);
+  }
+
+  /**
+   * Dasbor kepatuhan
+   *
+   * Aturan menyimpang, tanpa dasar pedoman, deviasi.
+   *
+   * `GET /v1/pedoman/kepatuhan`
+   *
+   * scope: `pedoman:read`
+   */
+  getKepatuhan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/kepatuhan', query }, options);
+  }
+
+  /**
+   * Deviasi
+   *
+   * status (koma), target_ref.
+   *
+   * `GET /v1/pedoman/deviasi`
+   *
+   * scope: `pedoman:read`
+   */
+  getDeviasi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/pedoman/deviasi', query }, options);
+  }
+
+  /**
+   * Ajukan deviasi / darurat
+   *
+   * kunci, nilai, alasan, fakultas?, darurat?
+   *
+   * `POST /v1/pedoman/deviasi`
+   *
+   * scope: `pedoman:write`
+   */
+  postDeviasi(query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/deviasi', query }, options);
+  }
+
+  /**
+   * Telaah deviasi (SPMI)
+   *
+   * keputusan lanjut|tolak, catatan.
+   *
+   * `POST /v1/pedoman/deviasi/{id}/telaah`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postDeviasiByIdTelaah(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/deviasi/{id}/telaah', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Putus deviasi
+   *
+   * keputusan setujui|tolak, tindak sementara|revisi, sampai, catatan.
+   *
+   * `POST /v1/pedoman/deviasi/{id}/putus`
+   *
+   * scope: `pedoman:write`
+   *
+   * @param id
+   */
+  postDeviasiByIdPutus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'POST', path: '/v1/pedoman/deviasi/{id}/putus', query: { ...query, id } }, options);
+  }
+}
+
+/** Pemeriksa: Alur pemeriksa usulan */
+export class PemeriksaResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Katalog alur pemeriksa
+   *
+   * Setiap jenis usulan/pengajuan beserta tahapan pemeriksanya (urut, judul, unit, peran, izin, opsional, otomatis, keterangan). Token pengguna aplikasi mana pun; tanpa scope khusus. ?kelompok= menyaring (mis. Mahasiswa, Kepegawaian, Struktur organisasi).
+   *
+   * `GET /v1/pemeriksa/alur`
+   *
+   * hanya token pengguna
+   */
+  getAlur(query?: {
+    /** Kelompok jenis */
+    kelompok?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/pemeriksa/alur', query }, options);
+  }
+
+  /**
+   * Alur pemeriksa satu jenis
+   *
+   * Untuk pratinjau di formulir sebelum dikirim, mis. organisasi.pejabat: 1. Biro SDM (verifikasi dan penetapan) 2. Pustikom (hak akses, otomatis bila jabatan sudah dipetakan ke peran).
+   *
+   * `GET /v1/pemeriksa/alur/{jenis}`
+   *
+   * hanya token pengguna
+   *
+   * @param jenis Kunci jenis, mis. organisasi.pejabat, akademik.pengajuan
+   */
+  getAlurByJenis(jenis: string | number, query?: {
+    /** Konteks: langsung | berjenjang (sdm.kenaikan) */
+    alur?: string;
+    /** Konteks: internal | lldikti (sdm.kenaikan) */
+    penetapan?: string;
+    /** Konteks: tidak_perlu | menunggu (lppm.usulan) */
+    persetujuan_fakultas?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/pemeriksa/alur/{jenis}', query: { ...query, jenis } }, options);
   }
 }
 
@@ -48319,7 +50155,7 @@ export class PresensiResource {
   }
 }
 
-/** Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data */
+/** Profil: Profil saya, Profil: Pemutakhiran saya, Profil: Akun saya, Profil: Pemutakhiran (unit pemilik data), Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data */
 export class ProfilResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -48334,6 +50170,392 @@ export class ProfilResource {
    */
   getSayaOrganisasiMahasiswa(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'GET', path: '/v1/profil/saya/organisasi-mahasiswa', query }, options);
+  }
+
+  /**
+   * Bagian data saya
+   *
+   * Bagian data pemilik token per sasaran (pegawai: identitas, kontak, alamat, kepegawaian, keuangan; mahasiswa: identitas,
+   * kontak, alamat, akademik, orang tua & wali, keuangan). Tiap isian: nilai, tampilan, `mode` (`langsung` tersimpan
+   * seketika, `verifikasi` diperiksa petugas dalam periode pemutakhiran, `ajukan` pengajuan biasa, `baca`), `bukti` wajib,
+   * `rahasia` (tersamar; nilai utuh lewat /saya/rahasia/{kode}), `menunggu` (pengajuan belum diputus). Juga kelengkapan per
+   * bagian dan total, serta periode pemutakhiran yang sedang aktif.
+   *
+   * `GET /v1/profil/saya/bagian`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   */
+  getSayaBagian(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/bagian', query }, options);
+  }
+
+  /**
+   * Simpan satu bagian
+   *
+   * Satu panel sekaligus. JSON `{isian: {kode: nilai}, alasan?}` atau multipart (`isian` = JSON teks, `alasan`, file
+   * `bukti_<kode>` per isian yang wajib bukti). Semua isian divalidasi dulu (422 per isian; tidak ada yang tersimpan bila
+   * ada yang salah). Isian `langsung` ditulis ke data induk; isian `verifikasi`/`ajukan` menjadi SATU pengajuan berkelompok.
+   * Jawaban: `tersimpan[]`, `pengajuan` (atau null), `pesan`.
+   *
+   * `POST /v1/profil/saya/bagian/{bagian}`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param bagian identitas, kontak, alamat, kepegawaian, akademik, keluarga, keuangan
+   */
+  postSayaBagianByBagian(bagian: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/saya/bagian/{bagian}', query: { ...query, bagian } }, options);
+  }
+
+  /**
+   * Konfirmasi data sudah benar
+   *
+   * Mencatat bahwa data bagian ini sudah diperiksa pemiliknya tanpa perubahan (dihitung di progres periode pemutakhiran).
+   *
+   * `POST /v1/profil/saya/bagian/{bagian}/konfirmasi`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param bagian kode bagian
+   */
+  postSayaBagianByBagianKonfirmasi(bagian: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/saya/bagian/{bagian}/konfirmasi', query: { ...query, bagian } }, options);
+  }
+
+  /**
+   * Nilai utuh isian rahasia
+   *
+   * Nomor rekening, NPWP, BPJS, NIK milik sendiri (tombol "Tampilkan"). Pembacaan dicatat di jejak audit tanpa nilainya.
+   *
+   * `GET /v1/profil/saya/rahasia/{kode}`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param kode kode isian rahasia
+   */
+  getSayaRahasiaByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/rahasia/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Pengajuan saya
+   *
+   * Pengajuan perubahan data berkelompok milik sendiri, terbaru dulu, beserta status per isian (nilai rahasia tersamar).
+   *
+   * `GET /v1/profil/saya/pengajuan`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   */
+  getSayaPengajuan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/pengajuan', query }, options);
+  }
+
+  /**
+   * Rincian pengajuan saya
+   *
+   * `GET /v1/profil/saya/pengajuan/{id}`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param id ID atau UUID
+   */
+  getSayaPengajuanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/pengajuan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan pengajuan
+   *
+   * Hanya selama belum ada isian yang diputus.
+   *
+   * `POST /v1/profil/saya/pengajuan/{id}/batal`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param id ID atau UUID
+   */
+  postSayaPengajuanByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/saya/pengajuan/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Unduh bukti pengajuan saya
+   *
+   * Respons file.
+   *
+   * `GET /v1/profil/saya/pengajuan/{id}/bukti/{uuid}`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param id ID atau UUID
+   * @param uuid UUID berkas
+   */
+  getSayaPengajuanByIdBuktiByUuid(id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/pengajuan/{id}/bukti/{uuid}', query: { ...query, id, uuid } }, options);
+  }
+
+  /**
+   * Riwayat aktivitas saya
+   *
+   * Linimasa aktivitas akun sendiri dari log yang sudah ada: sesi aplikasi lewat SSO, login SIAKAD lama, ganti password,
+   * perubahan akun oleh petugas, "masuk sebagai Anda" oleh administrator, perubahan data Profil/pemutakhiran, pengajuan,
+   * dan perubahan kepegawaian dari SDM. Saringan `jenis` (masuk, keamanan, data, pengajuan, kepegawaian), `dari`, `sampai`
+   * (bawaan 90 hari terakhir), `q`; paginasi page/per_page. IP disamarkan; token dan isi rahasia tidak pernah dikirim.
+   *
+   * `GET /v1/profil/saya/aktivitas`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   */
+  getSayaAktivitas(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/aktivitas', query }, options);
+  }
+
+  /**
+   * Aplikasi dan hak akses saya
+   *
+   * Aplikasi yang bisa dibuka beserta peran di dalamnya, peran aktif (sumber, unit, masa berlaku, izin per modul dengan label), dan aplikasi yang sedang memegang sesi atas nama akun ini. Hanya baca.
+   *
+   * `GET /v1/profil/saya/akses`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   */
+  getSayaAkses(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/saya/akses', query }, options);
+  }
+
+  /**
+   * Katalog isian dan hak
+   *
+   * Bagian dan isian yang bisa diatur unit pemilik (sdm, baak, bauk), referensi fakultas/prodi/unit SDM, dan hak petugas (kelola, verifikasi, lingkup).
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/katalog`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  getPemutakhiranByPemilikKatalog(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/katalog', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Aturan verifikasi bawaan
+   *
+   * Aturan per isian dan per peran (`peran`: dosen, tendik, mahasiswa; bawaan peran pertama unit) milik unit (SDM:
+   * identitas, kontak, alamat, domisili, kepegawaian; BAAK: data mahasiswa; BAUK: data keuangan): `mode` (langsung, verifikasi, ajukan, baca), `bukti`, `wajib` (isian penting), `pemeriksa` (pusat, unit),
+   * `diatur` (berbeda dari bawaan), dan `bawaan` dari kode. Berlaku di luar periode pemutakhiran dan menjadi nilai awal
+   * periode baru. Izin <pemilik>.pemutakhiran.kelola; `boleh_ubah` hanya untuk petugas tanpa batas lingkup.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/aturan`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  getPemutakhiranByPemilikAturan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/aturan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Simpan aturan verifikasi
+   *
+   * Body `aturan` {"peran:kode": {mode, bukti, wajib, pemeriksa}}, opsional `peran` untuk jawaban. Isian yang sama dengan bawaan kode peran itu tidak disimpan. Tercatat di jejak audit.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/aturan`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  postPemutakhiranByPemilikAturan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/aturan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Kembalikan aturan ke bawaan
+   *
+   * Body opsional `peran` (dosen, tendik, mahasiswa); kosong = semua peran unit ini.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/aturan/kembalikan`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  postPemutakhiranByPemilikAturanKembalikan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/aturan/kembalikan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Daftar periode pemutakhiran
+   *
+   * Beserta ringkasan progres (total, sudah, belum, persen, pengajuan menunggu). Izin <pemilik>.pemutakhiran.kelola.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  getPemutakhiranByPemilikPengaturan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Buat periode pemutakhiran
+   *
+   * Body: `judul`, `keterangan`, `aktif`, `mulai`, `selesai`, `peran[]`, `cakupan` {fakultas, prodi, unit, angkatan}, `isian` {kode: {mode: langsung|verifikasi, bukti}}.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  postPemutakhiranByPemilikPengaturan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Ubah periode pemutakhiran
+   *
+   * Isian yang tidak dikirim tetap.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/ubah`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID periode
+   */
+  postPemutakhiranByPemilikPengaturanByIdUbah(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/ubah', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Hapus periode pemutakhiran
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/hapus`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID periode
+   */
+  postPemutakhiranByPemilikPengaturanByIdHapus(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/hapus', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Progres pemutakhiran
+   *
+   * Daftar sasaran dengan status sudah/belum memperbarui (saringan `status`, `q`), meta.ringkas berisi angka ringkasan.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID periode
+   */
+  getPemutakhiranByPemilikPengaturanByIdProgres(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Unduh progres (CSV)
+   *
+   * Saringan sama dengan progres. Respons file CSV (pemisah titik koma).
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres.csv`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID periode
+   */
+  getPemutakhiranByPemilikPengaturanByIdProgresCsv(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres.csv', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Kirim pengingat
+   *
+   * Notifikasi ke semua sasaran yang belum memperbarui (maks 5000). Body opsional `pesan`.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/pengingat`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID periode
+   */
+  postPemutakhiranByPemilikPengaturanByIdPengingat(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/pengingat', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Antrean verifikasi
+   *
+   * Pengajuan berkelompok di lingkup petugas. Saringan `status` (bawaan diajukan; semua), `q`, `kode_fakultas`, `kode_prodi`, `bagian`, `pengaturan_id`, `dari`, `sampai`. meta.hitung = jumlah per status.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   */
+  getPemutakhiranByPemilikPengajuan(pemilik: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengajuan', query: { ...query, pemilik } }, options);
+  }
+
+  /**
+   * Rincian pengajuan
+   *
+   * Sebelum → sesudah per isian (nilai utuh), bukti, status per isian.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID atau UUID
+   */
+  getPemutakhiranByPemilikPengajuanById(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Putus pengajuan per isian
+   *
+   * Body `keputusan` {isian_id: {status: diterima|ditolak, alasan}}; "terima semua" = kirim semua isian diterima. Isian diterima langsung ditulis ke data induk dan tercatat di jejak audit; pengaju mendapat notifikasi.
+   *
+   * `POST /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/putus`
+   *
+   * scope: `profil:write` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID atau UUID
+   */
+  postPemutakhiranByPemilikPengajuanByIdPutus(pemilik: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/putus', query: { ...query, pemilik, id } }, options);
+  }
+
+  /**
+   * Unduh bukti
+   *
+   * Respons file.
+   *
+   * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/bukti/{uuid}`
+   *
+   * scope: `profil:read` · hanya token pengguna
+   *
+   * @param pemilik sdm, baak, atau bauk
+   * @param id ID atau UUID
+   * @param uuid UUID berkas
+   */
+  getPemutakhiranByPemilikPengajuanByIdBuktiByUuid(pemilik: string | number, id: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/bukti/{uuid}', query: { ...query, pemilik, id, uuid } }, options);
   }
 
   /**
@@ -50433,7 +52655,7 @@ export class RbacResource {
    * Permintaan API terbaru lebih dulu: waktu, metode, path, query (tanpa nilai rahasia), status, durasi (ms), client_id,
    * username, level, lingkungan database, dan IP. Bawaan hari ini; `dari`/`sampai` (Y-m-d) paling lebar 31 hari.
    * Saring dengan `client_id` (log satu aplikasi), `username`, `status` (`sukses`, `galat`, `4xx`, `5xx`, atau kode),
-   * `method`, dan `path` (potongan). Isi body, token, dan secret tidak pernah dicatat.
+   * `method`, `path` (potongan), dan `request_id` (kode laporan dari jawaban galat). Isi body, token, dan secret tidak pernah dicatat.
    *
    * `GET /v1/rbac/log-api`
    *
@@ -50442,6 +52664,8 @@ export class RbacResource {
   getLogApi(query?: {
     /** client_id klien API */
     client_id?: string;
+    /** Kode laporan (request_id) satu permintaan */
+    request_id?: string;
     /** Username */
     username?: string;
     /** sukses|galat|2xx|4xx|5xx|kode */
@@ -54842,7 +57066,7 @@ export class SarprasResource {
   }
 }
 
-/** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: Usulan pejabat, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER */
+/** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar */
 export class SdmResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -55694,8 +57918,10 @@ export class SdmResource {
     kategori?: string;
     /** Status kepegawaian */
     status_kepegawaian?: string;
-    /** Status aktif, atau `bekerja` */
+    /** Status aktif, atau `bekerja` / `tidak_bekerja` */
     status_aktif?: string;
+    /** nama | unit | tmt_masuk | tanggal_lahir | jabatan_akademik (awalan - = menurun) */
+    urut?: string;
     /** Unit (termasuk turunan) */
     unit_id?: string;
     /** Kode prodi SIAKAD */
@@ -55731,6 +57957,40 @@ export class SdmResource {
    */
   postPegawai(body: S.SdmPegawaiInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.SdmPegawai>> {
     return this.client.request({ method: 'POST', path: '/v1/sdm/pegawai', body }, options);
+  }
+
+  /**
+   * Ringkasan daftar pegawai
+   *
+   * Untuk kepala daftar pegawai, dalam cakupan yang boleh Anda lihat: `total`, `bekerja`, `tidak_bekerja`, `dosen`/`tendik` (yang bekerja), `kelengkapan_rata` (persen kolom data terisi, rata-rata yang bekerja), dan `pensiun` (perkiraan pensiun dalam `bulan` ke depan, bawaan 12).
+   *
+   * `GET /v1/sdm/pegawai-ringkas`
+   *
+   * scope: `sdm:read`
+   */
+  getPegawaiRingkas(query?: {
+    /** Rentang pensiun (bulan), bawaan 12 */
+    bulan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai-ringkas', query }, options);
+  }
+
+  /**
+   * Pratinjau data SIAKAD untuk tambah pegawai
+   *
+   * Tanpa menulis. Baris m_dosen (`nidn`) atau m_karyawan (`nik_karyawan`) yang cocok: `sumber`, `isian` yang akan dilengkapi otomatis saat POST /pegawai (kolom kosong saja), `nama_prodi`, dan `pegawai_ada` bila NIDN/NIK sudah dipakai pegawai SDM. Admin/operator SDM.
+   *
+   * `GET /v1/sdm/pegawai-siakad`
+   *
+   * scope: `sdm:write`
+   */
+  getPegawaiSiakad(query?: {
+    /** NIDN dosen */
+    nidn?: string;
+    /** NIK karyawan SIAKAD */
+    nik_karyawan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai-siakad', query }, options);
   }
 
   /**
@@ -58311,6 +60571,661 @@ export class SdmResource {
   }
 
   /**
+   * Dasbor BKD saya
+   *
+   * Periode BKD yang dibuka (belum dimulai), laporan per semester dengan ringkasan per bidang, tahap, dan pembebasan.
+   *
+   * `GET /v1/sdm/bkd/saya`
+   *
+   * scope: `sdm:read`
+   */
+  getBkdSaya(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/saya', query }, options);
+  }
+
+  /**
+   * Antrean BKD saya
+   *
+   * menilai (asesor), mengetahui (Kaprodi/Dekan), menetapkan (Biro SDM).
+   *
+   * `GET /v1/sdm/bkd/antrean`
+   *
+   * scope: `sdm:read`
+   */
+  getBkdAntrean(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/antrean', query }, options);
+  }
+
+  /**
+   * Asesor eksternal: lihat laporan (tanpa login)
+   *
+   * Lewat tautan bertoken dari Biro SDM: identitas dosen, kegiatan, bukti, hasil hitung, penilaian asesor ini.
+   *
+   * `GET /v1/sdm/bkd/tamu/{token}`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   */
+  getBkdTamuByToken(token: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/tamu/{token}', query: { ...query, token }, public: true }, options);
+  }
+
+  /**
+   * Asesor eksternal: simpan/kirim penilaian (tanpa login)
+   *
+   * Isi sama dengan /laporan/{id}/nilai (item M/TM, catatan, selesai).
+   *
+   * `POST /v1/sdm/bkd/tamu/{token}`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   * @param body
+   */
+  postBkdTamuByToken(token: string | number, body: S.SdmBkdNilai, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/tamu/{token}', query: { token }, body, public: true }, options);
+  }
+
+  /**
+   * Asesor eksternal: unduh bukti (tanpa login)
+   *
+   * Hanya berkas kegiatan laporan tautan ini.
+   *
+   * `GET /v1/sdm/bkd/tamu/{token}/berkas/{uuid}`
+   *
+   * publik (tanpa token)
+   *
+   * @param token Token tautan
+   * @param uuid UUID file
+   */
+  getBkdTamuByTokenBerkasByUuid(token: string | number, uuid: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/tamu/{token}/berkas/{uuid}', query: { ...query, token, uuid }, public: true }, options);
+  }
+
+  /**
+   * Status BKD dosen per semester
+   *
+   * N periode BKD terakhir: hasil per semester (memenuhi, tidak_memenuhi, dibebaskan, belum_ditetapkan, tidak_ada_laporan), jumlah memenuhi, berturut-turut memenuhi dari yang terbaru. Hanya laporan yang ditetapkan SDM dihitung. Dipakai syarat karier (fungsi BkdService::statusBkdDosen).
+   *
+   * `GET /v1/sdm/bkd/dosen/{id}/status`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getBkdDosenByIdStatus(id: string | number, query?: {
+    /** Jumlah periode terakhir (bawaan 4, maks 20) */
+    semester?: string;
+    /** tahun_id terakhir yang dihitung */
+    sampai?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/dosen/{id}/status', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Periode BKD
+   *
+   * Dengan versi aturan, jadwal tahap, dan tahap hari ini.
+   *
+   * `GET /v1/sdm/bkd/periode`
+   *
+   * scope: `sdm:read`
+   */
+  getBkdPeriode(query?: {
+    /** draft | buka | tutup */
+    status?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/periode', query }, options);
+  }
+
+  /**
+   * Buka periode BKD
+   *
+   * `POST /v1/sdm/bkd/periode`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postBkdPeriode(body: S.SdmBkdPeriodeInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/periode', body }, options);
+  }
+
+  /**
+   * Detail periode BKD
+   *
+   * `GET /v1/sdm/bkd/periode/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID periode
+   */
+  getBkdPeriodeById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/periode/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah periode BKD
+   *
+   * `PUT /v1/sdm/bkd/periode/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID periode
+   * @param body
+   */
+  putBkdPeriodeById(id: string | number, body: S.SdmBkdPeriodeInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/bkd/periode/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Rekap BKD periode
+   *
+   * Setiap dosen dalam cakupan (Biro SDM: unitnya; Kaprodi/Dekan: prodi/fakultasnya): tahap, SKS, kesimpulan; jumlah per tahap, kesimpulan, prodi, fakultas.
+   *
+   * `GET /v1/sdm/bkd/periode/{id}/rekap`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID periode
+   */
+  getBkdPeriodeByIdRekap(id: string | number, query?: {
+    /** Unit SDM */
+    unit_id?: string;
+    /** Prodi */
+    kode_prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/periode/{id}/rekap', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tugaskan asesor otomatis
+   *
+   * Asesor terdaftar dengan beban terkecil yang lolos aturan (bukan diri sendiri, bukan satu prodi bila dilarang, kuota).
+   *
+   * `POST /v1/sdm/bkd/periode/{id}/tugaskan-asesor`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID periode
+   */
+  postBkdPeriodeByIdTugaskanAsesor(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/periode/{id}/tugaskan-asesor', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tetapkan banyak laporan
+   *
+   * `POST /v1/sdm/bkd/periode/{id}/tetapkan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID periode
+   * @param body
+   */
+  postBkdPeriodeByIdTetapkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/periode/{id}/tetapkan', query: { id }, body }, options);
+  }
+
+  /**
+   * Asesor BKD terdaftar
+   *
+   * Dengan beban penilaian pada periode_id.
+   *
+   * `GET /v1/sdm/bkd/asesor`
+   *
+   * scope: `sdm:read`
+   */
+  getBkdAsesor(query?: {
+    /** Periode */
+    periode_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/asesor', query }, options);
+  }
+
+  /**
+   * Daftarkan asesor
+   *
+   * `POST /v1/sdm/bkd/asesor`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postBkdAsesor(body: S.SdmBkdAsesor, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/asesor', body }, options);
+  }
+
+  /**
+   * Ubah asesor
+   *
+   * `PUT /v1/sdm/bkd/asesor/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  putBkdAsesorById(id: string | number, body: S.SdmBkdAsesor, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/bkd/asesor/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus asesor
+   *
+   * `DELETE /v1/sdm/bkd/asesor/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  deleteBkdAsesorById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/sdm/bkd/asesor/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Versi aturan BKD
+   *
+   * Paket persyaratan BKD berversi per dasar hukum, dengan SK registri dan jumlah periode pemakai.
+   *
+   * `GET /v1/sdm/bkd/aturan`
+   *
+   * scope: `sdm:read`
+   */
+  getBkdAturan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/aturan', query }, options);
+  }
+
+  /**
+   * Draf aturan BKD baru
+   *
+   * `POST /v1/sdm/bkd/aturan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postBkdAturan(body: S.SdmBkdAturan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan', body }, options);
+  }
+
+  /**
+   * Detail aturan BKD
+   *
+   * Isi lengkap, perubahan terhadap versi asal, periode pemakai, riwayat perubahan.
+   *
+   * `GET /v1/sdm/bkd/aturan/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getBkdAturanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/aturan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah draf aturan BKD
+   *
+   * Versi terbit dikunci; salin untuk mengubah.
+   *
+   * `PUT /v1/sdm/bkd/aturan/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  putBkdAturanById(id: string | number, body: S.SdmBkdAturan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/bkd/aturan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Salin menjadi versi baru
+   *
+   * `POST /v1/sdm/bkd/aturan/{id}/salin`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  postBkdAturanByIdSalin(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan/{id}/salin', query: { id }, body }, options);
+  }
+
+  /**
+   * Banding dua versi aturan
+   *
+   * `GET /v1/sdm/bkd/aturan/{id}/banding`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getBkdAturanByIdBanding(id: string | number, query?: {
+    /** ID versi pembanding */
+    dengan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/aturan/{id}/banding', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau dampak ke periode
+   *
+   * Kesimpulan setiap laporan periode dengan aturan sekarang vs versi ini, tanpa menyimpan.
+   *
+   * `GET /v1/sdm/bkd/aturan/{id}/pratinjau`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  getBkdAturanByIdPratinjau(id: string | number, query: {
+    /** Periode */
+    periode_id: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/aturan/{id}/pratinjau', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Terapkan versi ke periode
+   *
+   * Kunci versi ini untuk periode dan hitung ulang laporan yang belum ditetapkan.
+   *
+   * `POST /v1/sdm/bkd/aturan/{id}/terapkan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  postBkdAturanByIdTerapkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan/{id}/terapkan', query: { id }, body }, options);
+  }
+
+  /**
+   * Aturan BKD: Terbitkan draf
+   *
+   * `POST /v1/sdm/bkd/aturan/{id}/terbitkan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postBkdAturanByIdTerbitkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan/{id}/terbitkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan BKD: Arsipkan versi terbit
+   *
+   * `POST /v1/sdm/bkd/aturan/{id}/arsipkan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postBkdAturanByIdArsipkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan/{id}/arsipkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan BKD: Hapus draf
+   *
+   * `POST /v1/sdm/bkd/aturan/{id}/hapus`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postBkdAturanByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/aturan/{id}/hapus', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Mulai laporan BKD
+   *
+   * Dosen sendiri, atau petugas untuk dosen (pegawai_id). Versi aturan mengikuti periode.
+   *
+   * `POST /v1/sdm/bkd/laporan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param body
+   */
+  postBkdLaporan(body: S.SdmKinerjaInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan', body }, options);
+  }
+
+  /**
+   * Ubah kegiatan BKD
+   *
+   * `PUT /v1/sdm/bkd/kegiatan/{id}`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID butir
+   * @param body
+   */
+  putBkdKegiatanById(id: string | number, body: S.SdmBkdKegiatan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/bkd/kegiatan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Hapus kegiatan BKD
+   *
+   * `DELETE /v1/sdm/bkd/kegiatan/{id}`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID butir
+   */
+  deleteBkdKegiatanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'DELETE', path: '/v1/sdm/bkd/kegiatan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Detail laporan BKD
+   *
+   * Kegiatan + kategori + penilaian asesor, hasil hitung per bidang dan syarat aturan, pemeriksaan sebelum kirim, alur pemeriksa, dan hak.
+   *
+   * `GET /v1/sdm/bkd/laporan/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID atau UUID
+   */
+  getBkdLaporanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/bkd/laporan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Tambah kegiatan BKD
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/kegiatan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdKegiatan(id: string | number, body: S.SdmBkdKegiatan, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/kegiatan', query: { id }, body }, options);
+  }
+
+  /**
+   * Impor kegiatan dari SIAKAD
+   *
+   * Kelas diampu, bimbingan dan pengujian TA, penelitian/pengabdian LPPM, tugas tambahan (riwayat jabatan, Organisasi). `sumber` (opsional): mengajar, bimbingan, penguji, penelitian, pengabdian, tugas_tambahan.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/impor`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdImpor(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/impor', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Kembali ke penyusunan rencana
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/fase-rencana`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   */
+  postBkdLaporanByIdFaseRencana(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/fase-rencana', query: { ...query, id } }, options);
+  }
+
+  /**
+   * BKD: Rencana selesai, isi realisasi dan bukti
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/fase-pelaksanaan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   */
+  postBkdLaporanByIdFasePelaksanaan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/fase-pelaksanaan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * BKD: Kirim ke asesor
+   *
+   * Ditolak bila ada blokir (bukti wajib, SKS kosong, fase). Aturan kepegawaian titik sdm.kinerja.ajukan tetap ditegakkan. Asesor ditugaskan otomatis bila periode otomatis.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/kirim`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdKirim(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/kirim', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Penilaian asesor (M/TM per kegiatan)
+   *
+   * Simpan sementara atau kirim (selesai=true). Setelah semua asesor selesai: status dinilai, kesimpulan dihitung dari aturan.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/nilai`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdNilai(id: string | number, body: S.SdmBkdNilai, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/nilai', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Kembalikan untuk diperbaiki
+   *
+   * Asesor (saat dinilai asesor), Kaprodi/Dekan atau Biro SDM (sesudah dinilai). Wajib `catatan`.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/kembalikan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdKembalikan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/kembalikan', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Kaprodi/Dekan mengetahui
+   *
+   * `sebagai` kaprodi | dekan, `catatan` opsional.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/mengetahui`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdMengetahui(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/mengetahui', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: SDM menetapkan
+   *
+   * Setelah dinilai dan diketahui Kaprodi/Dekan (bila diwajibkan aturan).
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/tetapkan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdTetapkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/tetapkan', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Tugaskan asesor
+   *
+   * `penilai1_id`, `penilai2_id` (pegawai). Dicek: bukan diri sendiri, terdaftar, tidak satu prodi bila dilarang.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/asesor`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdAsesor(id: string | number, body: S.SdmKinerjaUbah, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/asesor', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Tindak lanjut tidak memenuhi
+   *
+   * `tindak_lanjut` (Biro SDM).
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/tindak-lanjut`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdTindakLanjut(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/tindak-lanjut', query: { id }, body }, options);
+  }
+
+  /**
+   * BKD: Tautan penilaian asesor eksternal
+   *
+   * `asesor_ke` 1|2, `hari` (bawaan 14, maks 30). Token acak, hanya hash disimpan, tautan lama slot itu dicabut; token tampil sekali.
+   *
+   * `POST /v1/sdm/bkd/laporan/{id}/tautan-asesor`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID atau UUID
+   * @param body
+   */
+  postBkdLaporanByIdTautanAsesor(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/bkd/laporan/{id}/tautan-asesor', query: { id }, body }, options);
+  }
+
+  /**
    * Daftar usulan
    *
    * Kenaikan jabatan akademik, pangkat, KGB, sertifikasi dosen, dll. `antrean=1`: hanya usulan berjenjang yang tahapnya bisa diputus pengguna ini (Kaprodi, Dekan, Tim PAK, Biro SDM). `tahap=siap_sk`: siap ditetapkan dengan SK (antrean Rektorat). Setiap baris memuat `status_label` untuk alur berjenjang.
@@ -58680,6 +61595,164 @@ export class SdmResource {
    */
   postUsulanPejabatByIdBatal(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/sdm/usulan-pejabat/{id}/batal', query: { id }, body }, options);
+  }
+
+  /**
+   * Versi aturan karier
+   *
+   * Syarat kenaikan jabatan fungsional, pangkat/golongan, dan sertifikasi dosen berversi per dasar hukum (sdm_aturan_versi jenis karier), dengan SK registri, tanggal berlaku, penanda versi yang berlaku sekarang, dan jumlah usulan yang mengunci versi itu.
+   *
+   * `GET /v1/sdm/karier/aturan`
+   *
+   * scope: `sdm:read`
+   */
+  getKarierAturan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/karier/aturan', query }, options);
+  }
+
+  /**
+   * Draf aturan karier baru
+   *
+   * Body: nama, dasar_hukum, berlaku_tanggal, catatan_perubahan, isi (bawaan dari master), sk_id. Admin SDM.
+   *
+   * `POST /v1/sdm/karier/aturan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param body
+   */
+  postKarierAturan(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/karier/aturan', body }, options);
+  }
+
+  /**
+   * Aturan karier yang berlaku sekarang
+   *
+   * Isi lengkap versi terbit yang berlaku hari ini (null bila belum ada).
+   *
+   * `GET /v1/sdm/karier/aturan/berlaku`
+   *
+   * scope: `sdm:read`
+   */
+  getKarierAturanBerlaku(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/karier/aturan/berlaku', query }, options);
+  }
+
+  /**
+   * Detail aturan karier
+   *
+   * Isi lengkap, perubahan terhadap versi asal, usulan yang mengunci versi ini, riwayat perubahan, referensi (jabatan akademik, golongan, jenis luaran LPPM).
+   *
+   * `GET /v1/sdm/karier/aturan/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getKarierAturanById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/karier/aturan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ubah draf aturan karier
+   *
+   * Versi terbit dikunci; salin untuk mengubah.
+   *
+   * `PUT /v1/sdm/karier/aturan/{id}`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  putKarierAturanById(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/sdm/karier/aturan/{id}', query: { id }, body }, options);
+  }
+
+  /**
+   * Salin menjadi versi baru (draf)
+   *
+   * `POST /v1/sdm/karier/aturan/{id}/salin`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   * @param body
+   */
+  postKarierAturanByIdSalin(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/karier/aturan/{id}/salin', query: { id }, body }, options);
+  }
+
+  /**
+   * Banding dua versi
+   *
+   * Bawaan dibanding versi yang berlaku sekarang.
+   *
+   * `GET /v1/sdm/karier/aturan/{id}/banding`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID
+   */
+  getKarierAturanByIdBanding(id: string | number, query?: {
+    /** ID versi pembanding */
+    dengan?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/karier/aturan/{id}/banding', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pratinjau dampak
+   *
+   * Berapa dosen aktif yang memenuhi syarat kenaikan jabatan fungsional berikutnya dengan aturan sekarang vs versi ini, tanpa menyimpan.
+   *
+   * `GET /v1/sdm/karier/aturan/{id}/pratinjau`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  getKarierAturanByIdPratinjau(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/karier/aturan/{id}/pratinjau', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan karier: Terbitkan (draf -> terbit; berlaku mulai berlaku_tanggal)
+   *
+   * `POST /v1/sdm/karier/aturan/{id}/terbitkan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postKarierAturanByIdTerbitkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/karier/aturan/{id}/terbitkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan karier: Arsipkan versi terbit
+   *
+   * `POST /v1/sdm/karier/aturan/{id}/arsipkan`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postKarierAturanByIdArsipkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/karier/aturan/{id}/arsipkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aturan karier: Hapus draf
+   *
+   * `POST /v1/sdm/karier/aturan/{id}/hapus`
+   *
+   * scope: `sdm:admin`
+   *
+   * @param id ID
+   */
+  postKarierAturanByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/karier/aturan/{id}/hapus', query: { ...query, id } }, options);
   }
 
   /**
@@ -59638,6 +62711,148 @@ export class SdmResource {
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/sister/{jenis}', query: { ...query, id, jenis } }, options);
   }
+
+  /**
+   * Daftar pemberhentian
+   *
+   * Pemberhentian pegawai (terjadwal, diproses, gagal, dibatalkan, dipulihkan). Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `GET /v1/sdm/pemberhentian`
+   *
+   * scope: `sdm:read` · berhalaman
+   */
+  getPemberhentian(query?: {
+    /** terjadwal | diproses | gagal | dibatalkan | dipulihkan */
+    status?: string;
+    /** Cari nama/NIDN/NIK/username */
+    q?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pemberhentian', query }, options);
+  }
+
+  /**
+   * Alat sapu: kandidat
+   *
+   * Pegawai yang di data lama sudah keluar/nonaktif (status SDM, status m_dosen/m_karyawan, tanggal pensiun, batas usia pensiun) tetapi masih punya akun aktif, peran, jabatan, atau petugas: alasan deteksi dan pratinjau dampak. Tidak mengubah data. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `GET /v1/sdm/pemberhentian/kandidat`
+   *
+   * scope: `sdm:read`
+   */
+  getPemberhentianKandidat(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pemberhentian/kandidat', query }, options);
+  }
+
+  /**
+   * Alat sapu: proses massal
+   *
+   * Memproses kandidat yang dipilih (wajib konfirmasi: true). Setiap pegawai dicatat sebagai pemberhentian sumber sapu dengan jenis dan tanggal usulan, lalu langsung diproses. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `POST /v1/sdm/pemberhentian/sapu`
+   *
+   * scope: `sdm:write`
+   *
+   * @param body
+   */
+  postPemberhentianSapu(body: S.SdmPemberhentianSapu, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/pemberhentian/sapu', body }, options);
+  }
+
+  /**
+   * Detail pemberhentian
+   *
+   * Termasuk keadaan sebelum diproses dan hasil tiap langkah. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `GET /v1/sdm/pemberhentian/{id}`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID pemberhentian
+   */
+  getPemberhentianById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pemberhentian/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Proses sekarang
+   *
+   * Proses pemberhentian yang tanggal efektifnya sudah tiba (terjadwal atau gagal; aman diulang). Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `POST /v1/sdm/pemberhentian/{id}/proses`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID pemberhentian
+   */
+  postPemberhentianByIdProses(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/pemberhentian/{id}/proses', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Batalkan pemberhentian terjadwal
+   *
+   * Body opsional {alasan}. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `POST /v1/sdm/pemberhentian/{id}/batal`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID pemberhentian
+   */
+  postPemberhentianByIdBatal(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/pemberhentian/{id}/batal', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aktifkan kembali
+   *
+   * Akun dan status pegawai dipulihkan; peran TIDAK otomatis dipulihkan: kirim `penugasan` (ID penugasan sebelumnya) dan `petugas` yang dipilih ulang. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `POST /v1/sdm/pemberhentian/{id}/pulihkan`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID pemberhentian
+   * @param body
+   */
+  postPemberhentianByIdPulihkan(id: string | number, body: S.SdmPemberhentianPulih, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/pemberhentian/{id}/pulihkan', query: { id }, body }, options);
+  }
+
+  /**
+   * Keluar/nonaktif: ringkasan pegawai
+   *
+   * Pemberhentian berjalan dan riwayatnya, pratinjau dampak (akun, sesi API, peran, jabatan, petugas), dan daftar serah terima (PA, TA, penguji, kelas, LMS) dengan tautan ke fitur pengalihan. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `GET /v1/sdm/pegawai/{id}/pemberhentian`
+   *
+   * scope: `sdm:read`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   */
+  getPegawaiByIdPemberhentian(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/pemberhentian', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Proses keluar/nonaktif
+   *
+   * Catat pemberhentian (jenis, tanggal efektif, SK registri, catatan). Tanggal efektif hari ini/lampau langsung diproses: semua penugasan peran dan jabatan berakhir, petugas dinonaktifkan, akun SIAKAD/SSO nonaktif, token dan sesi dicabut, Pustikom dan pimpinan dinotifikasi. Admin SDM atau izin sdm.pemberhentian.kelola.
+   *
+   * `POST /v1/sdm/pegawai/{id}/pemberhentian`
+   *
+   * scope: `sdm:write`
+   *
+   * @param id ID angka, UUID, atau `saya`
+   * @param body
+   */
+  postPegawaiByIdPemberhentian(id: string | number, body: S.SdmPemberhentianInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sdm/pegawai/{id}/pemberhentian', query: { id }, body }, options);
+  }
 }
 
 /** Sistem: Log terpadu, Sistem: Tugas terjadwal */
@@ -59908,6 +63123,51 @@ export class SistemResource {
    */
   postJadwalJalanByIdHentikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/jalan/{id}/hentikan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Pekerjaan antrean database yang gagal
+   *
+   * Pekerjaan antrean database (tabel `antrean_gagal`, docs/ANTREAN.md) yang melewati batas percobaan, terbaru dulu: `antrean`, `nama`, `data`, `percobaan`, `galat` (2.000 karakter pertama), `gagal_pada`. `page`, `per_page` (maks. 100).
+   *
+   * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+   *
+   * `GET /v1/sistem/jadwal/antrean/gagal`
+   *
+   * scope: `penjadwal:read` · hanya token pengguna
+   */
+  getJadwalAntreanGagal(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/jadwal/antrean/gagal', query }, options);
+  }
+
+  /**
+   * Coba ulang pekerjaan gagal
+   *
+   * Body `{"id": [1, 2]}` atau `{"semua": true}`. Pekerjaan dikembalikan ke antreannya dengan percobaan dari nol. Jawaban: `diulang`.
+   *
+   * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+   *
+   * `POST /v1/sistem/jadwal/antrean/gagal/ulang`
+   *
+   * scope: `penjadwal:write` · hanya token pengguna
+   */
+  postJadwalAntreanGagalUlang(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/antrean/gagal/ulang', query }, options);
+  }
+
+  /**
+   * Hapus pekerjaan gagal
+   *
+   * Body `{"id": [1, 2]}` atau `{"semua": true}`. Jawaban: `dihapus`.
+   *
+   * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+   *
+   * `POST /v1/sistem/jadwal/antrean/gagal/hapus`
+   *
+   * scope: `penjadwal:write` · hanya token pengguna
+   */
+  postJadwalAntreanGagalHapus(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sistem/jadwal/antrean/gagal/hapus', query }, options);
   }
 }
 
@@ -64439,6 +67699,8 @@ export class TemaResource {
    *   fontJudul, teks, bayangan, gerak, ... Objek kosong = bawaan unipo-ui.
    * - `tata`: tata letak milik aplikasi (mis. aplikasi fakultas: hero, navbar, mode, bagian[]).
    * - `sendiri`: isi lapis ini saja (untuk formulir pengaturan), `warisan`: gabungan lapis di atasnya, `sumber`: lapis yang terisi.
+   * - `berkas`: peta `uuid → URL tampil` untuk nilai `tata` berbentuk `berkas:<uuid>` (gambar halaman masuk unggahan).
+   *   Hanya berkas publik bergambar; tautan berlaku 1 hari.
    *
    * Aplikasi cukup memasang `<TemaAplikasi aplikasi="..." lingkup="...">` dari unipo-ui/siakad, atau membaca endpoint ini
    * lalu `buatTema(tema)`. Boleh disimpan di cache browser; `versi` naik setiap perubahan.

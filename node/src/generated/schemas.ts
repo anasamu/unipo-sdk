@@ -14388,6 +14388,20 @@ export type SdmPegawaiInput = {
   hp?: string | null;
   alamat?: string | null;
   kewarganegaraan?: string | null;
+  rt?: string | null;
+  rw?: string | null;
+  dusun?: string | null;
+  desa?: string | null;
+  kode_kecamatan?: string | null;
+  kode_pos?: string | null;
+  domisili_sama?: boolean;
+  domisili_alamat?: string | null;
+  domisili_rt?: string | null;
+  domisili_rw?: string | null;
+  domisili_dusun?: string | null;
+  domisili_desa?: string | null;
+  domisili_kode_kecamatan?: string | null;
+  domisili_kode_pos?: string | null;
   /** ID sdm_unit */
   unit_id?: number | null;
   /** Kode fakultas SIAKAD (m_fakultas) */
@@ -14806,6 +14820,91 @@ export type SdmKinerjaProses = {
   catatan_penilai?: string | null;
   /** SKP; kosong = dihitung dari rata-rata capaian */
   predikat?: "sangat_baik" | "baik" | "butuh_perbaikan" | "kurang" | "sangat_kurang";
+  [key: string]: any;
+};
+
+/** Ganti versi aturan periode berjalan lewat /v1/sdm/bkd/aturan/{id}/terapkan (dengan pratinjau dampak). */
+export type SdmBkdPeriodeInput = {
+  /** Mis. BKD Ganjil 2026/2027 */
+  nama: string | null;
+  /** m_tahun.tahun_id */
+  tahun_id?: string | null;
+  mulai: string | null;
+  selesai: string | null;
+  status?: "draft" | "buka" | "tutup";
+  /** Versi aturan BKD terbit; kosong = yang berlaku untuk semester ini */
+  aturan_id?: number | null;
+  rencana_selesai?: string | null;
+  kirim_selesai?: string | null;
+  penilaian_selesai?: string | null;
+  penetapan_selesai?: string | null;
+  penugasan_asesor?: "otomatis" | "manual";
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+/** SKS dihitung dari rumus kategori (per SKS, per volume, tetap, jabatan); manual = isi sks_rencana/sks_realisasi. */
+export type SdmBkdKegiatan = {
+  /** Kode kategori di aturan BKD periode */
+  kategori?: string | null;
+  kegiatan?: string | null;
+  uraian?: string | null;
+  /** Jumlah satuan (mahasiswa, kelas, judul) */
+  volume?: number | null;
+  /** SKS kelas/kegiatan untuk rumus per SKS */
+  sks_dasar?: number | null;
+  /** Diisi bila rumus kategori manual */
+  sks_rencana?: number | null;
+  sks_realisasi?: number | null;
+  /** Tautan/keterangan bukti */
+  bukti?: string | null;
+  /** Tautan kegiatan di SISTER */
+  sister_url?: string | null;
+  /** Masa penugasan */
+  masa?: string | null;
+  [key: string]: any;
+};
+
+/** selesai=true mengirim penilaian asesor ini (semua kegiatan wajib dinilai). */
+export type SdmBkdNilai = {
+  item: Array<{
+    id: number | null;
+    hasil: "M" | "TM";
+    sks_diakui?: number | null;
+    /** Wajib untuk TM */
+    catatan?: string | null;
+    [key: string]: any;
+  }>;
+  catatan?: string | null;
+  selesai?: boolean;
+  /** Admin SDM saja: menilai atas nama asesor 1/2 */
+  asesor_ke?: number | null;
+  [key: string]: any;
+};
+
+export type SdmBkdAturan = {
+  nama?: string | null;
+  dasar_hukum?: string | null;
+  /** tahun_id */
+  berlaku_mulai?: string | null;
+  catatan_perubahan?: string | null;
+  /** UUID SK registri (PilihSK) */
+  sk_id?: string | null;
+  /** bidang, kategori, batas, kombinasi, kewajiban_khusus, pembebasan, tugas_tambahan, asesor, tahap, tenggat (docs/BKD.md) */
+  isi?: JsonObject;
+  [key: string]: any;
+};
+
+export type SdmBkdAsesor = {
+  pegawai_id: number | null;
+  nira?: string | null;
+  asal?: "internal" | "luar";
+  pt_asal?: string | null;
+  kode_prodi?: string | null;
+  bidang_ilmu?: string | null;
+  berlaku_sampai?: string | null;
+  kuota?: number | null;
+  aktif?: boolean;
   [key: string]: any;
 };
 
@@ -15359,6 +15458,43 @@ export type SdmHonorProses = {
   id: Array<number>;
   /** Untuk bayar */
   nomor_bukti?: string | null;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SdmPemberhentianInput = {
+  jenis: "mengundurkan_diri" | "pensiun" | "meninggal" | "diberhentikan" | "kontrak_berakhir" | "tugas_belajar" | "cuti_luar_tanggungan" | "pindah_instansi";
+  /** Hari pertama tidak bekerja/aktif. Hari ini atau lampau = langsung diproses; tanggal depan = terjadwal (tugas sdm-pemberhentian) */
+  tanggal_efektif: string | null;
+  /** Rencana kembali (tugas belajar/cuti di luar tanggungan) */
+  tanggal_kembali?: string | null;
+  /** UUID SK registri (PilihSK). Wajib, kecuali meninggal dunia dengan bukti */
+  sk_id?: string | null;
+  /** Bukti lain bila tanpa SK (meninggal dunia) */
+  bukti?: string | null;
+  catatan?: string | null;
+  /** Tugas belajar/cuti di luar tanggungan: akun tetap aktif tanpa peran (Profil/email saja) */
+  pertahankan_akun?: boolean;
+  [key: string]: any;
+};
+
+export type SdmPemberhentianPulih = {
+  /** Wajib */
+  alasan: string | null;
+  /** Pemberhentian keliru dicatat: riwayat statusnya dihapus */
+  keliru?: boolean;
+  /** ID penugasan sebelumnya yang diberikan ulang (peran tidak dipulihkan otomatis) */
+  penugasan?: Array<number>;
+  /** "tabel#id" petugas sebelumnya yang diaktifkan ulang */
+  petugas?: Array<string>;
+  [key: string]: any;
+};
+
+export type SdmPemberhentianSapu = {
+  /** Pegawai kandidat yang dipilih (1-500) */
+  pegawai_id: Array<number>;
+  /** true setelah memeriksa pratinjau dampak */
+  konfirmasi: boolean;
   catatan?: string | null;
   [key: string]: any;
 };

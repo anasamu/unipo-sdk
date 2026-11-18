@@ -112,7 +112,7 @@ export class Siakad extends SiakadCore {
     return this.resource('gaji', () => new R.GajiResource(this));
   }
 
-  /** Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket (27 endpoint) */
+  /** Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket (30 endpoint) */
   get helpdesk(): R.HelpdeskResource {
     return this.resource('helpdesk', () => new R.HelpdeskResource(this));
   }
@@ -127,7 +127,7 @@ export class Siakad extends SiakadCore {
     return this.resource('iku', () => new R.IkuResource(this));
   }
 
-  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (77 endpoint) */
+  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (80 endpoint) */
   get induk(): R.IndukResource {
     return this.resource('induk', () => new R.IndukResource(this));
   }
@@ -152,7 +152,7 @@ export class Siakad extends SiakadCore {
     return this.resource('jadwalUjian', () => new R.JadwalUjianResource(this));
   }
 
-  /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan (34 endpoint) */
+  /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kegiatan (43 endpoint) */
   get kalender(): R.KalenderResource {
     return this.resource('kalender', () => new R.KalenderResource(this));
   }
@@ -200,6 +200,11 @@ export class Siakad extends SiakadCore {
   /** Akademik (1 endpoint) */
   get kurikulum(): R.KurikulumResource {
     return this.resource('kurikulum', () => new R.KurikulumResource(this));
+  }
+
+  /** Kurikulum: Aturan berversi, Kurikulum: Kerangka (data), Kurikulum: Perangkat MK, Kurikulum: Asesmen & RPS, Kurikulum: Evaluasi & peninjauan (51 endpoint) */
+  get kurikulumAturan(): R.KurikulumAturanResource {
+    return this.resource('kurikulumAturan', () => new R.KurikulumAturanResource(this));
   }
 
   /** Kurikulum OBE, Kurikulum OBE: migrasi dari kurikulum lama, Kurikulum OBE: evaluasi & capaian, Kurikulum OBE: profil, CPL, bahan kajian, Kurikulum OBE: mata kuliah & CPMK, Kurikulum OBE: RPS (73 endpoint) */
@@ -252,7 +257,7 @@ export class Siakad extends SiakadCore {
     return this.resource('mbkm', () => new R.MbkmResource(this));
   }
 
-  /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (40 endpoint) */
+  /** Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean (43 endpoint) */
   get notif(): R.NotifResource {
     return this.resource('notif', () => new R.NotifResource(this));
   }
@@ -270,6 +275,16 @@ export class Siakad extends SiakadCore {
   /** PDDikti: Pelaporan, PDDikti: Kirim dan sinkronisasi, PDDikti: Sinkronisasi otomatis, PDDikti: Relay Feeder Desktop, PDDikti: Evaluasi data (30 endpoint) */
   get pddikti(): R.PddiktiResource {
     return this.resource('pddikti', () => new R.PddiktiResource(this));
+  }
+
+  /** Pedoman & peraturan (49 endpoint) */
+  get pedoman(): R.PedomanResource {
+    return this.resource('pedoman', () => new R.PedomanResource(this));
+  }
+
+  /** Pemeriksa: Alur pemeriksa usulan (2 endpoint) */
+  get pemeriksa(): R.PemeriksaResource {
+    return this.resource('pemeriksa', () => new R.PemeriksaResource(this));
   }
 
   /** Event domain (7 endpoint) */
@@ -307,7 +322,7 @@ export class Siakad extends SiakadCore {
     return this.resource('presensi', () => new R.PresensiResource(this));
   }
 
-  /** Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (94 endpoint) */
+  /** Profil: Profil saya, Profil: Pemutakhiran saya, Profil: Akun saya, Profil: Pemutakhiran (unit pemilik data), Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data (119 endpoint) */
   get profil(): R.ProfilResource {
     return this.resource('profil', () => new R.ProfilResource(this));
   }
@@ -342,12 +357,12 @@ export class Siakad extends SiakadCore {
     return this.resource('sarpras', () => new R.SarprasResource(this));
   }
 
-  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: Usulan, SDM: Usulan pejabat, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER (296 endpoint) */
+  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (362 endpoint) */
   get sdm(): R.SdmResource {
     return this.resource('sdm', () => new R.SdmResource(this));
   }
 
-  /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
+  /** Sistem: Log terpadu, Sistem: Tugas terjadwal (17 endpoint) */
   get sistem(): R.SistemResource {
     return this.resource('sistem', () => new R.SistemResource(this));
   }

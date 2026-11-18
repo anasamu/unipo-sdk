@@ -16,6 +16,8 @@ final class Notif extends Resource
     /**
      * Jumlah belum dibaca
      *
+     * belum_dibaca (tanpa label yang dibisukan), username pemilik kotak, label: [{modul, total, belum, bisu}], bisu: [modul].
+     *
      * `GET /v1/notif/ringkas`
      *
      * scope: `notif:read` · hanya token pengguna
@@ -33,6 +35,8 @@ final class Notif extends Resource
     /**
      * Tandai semua dibaca
      *
+     * Milik pemanggil. Body opsional {modul} (satu label) atau {id: [..]} (beberapa notifikasi).
+     *
      * `POST /v1/notif/kotak/baca-semua`
      *
      * scope: `notif:write` · hanya token pengguna
@@ -45,6 +49,63 @@ final class Notif extends Resource
     public function postKotakBacaSemua(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/notif/kotak/baca-semua', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bersihkan notifikasi
+     *
+     * Hapus lunak milik pemanggil. Body {cakupan: dibaca|semua|pilih, modul?, id?: [..]}. Jawaban {dibersihkan, id} untuk urungkan.
+     *
+     * `POST /v1/notif/kotak/bersihkan`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKotakBersihkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/kotak/bersihkan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Urungkan bersihkan
+     *
+     * Body {id: [..]}: pulihkan milik pemanggil yang dibersihkan dalam 24 jam terakhir.
+     *
+     * `POST /v1/notif/kotak/pulihkan`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKotakPulihkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/kotak/pulihkan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bisukan label
+     *
+     * Body {modul, bisu: bool}. Label yang dibisukan tidak dihitung di lencana dan tidak tampil di tab Semua; notifikasinya tetap ada di tab labelnya.
+     *
+     * `POST /v1/notif/kotak/bisu`
+     *
+     * scope: `notif:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKotakBisu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/kotak/bisu', [], $query, null, $options, false, false);
     }
 
     /**
@@ -337,7 +398,7 @@ final class Notif extends Resource
     /**
      * Kotak masuk: daftar
      *
-     * Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/notif/kotak`
      *
@@ -356,7 +417,7 @@ final class Notif extends Resource
     /**
      * Kotak masuk: detail
      *
-     * Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/notif/kotak/{id}`
      *
@@ -396,7 +457,7 @@ final class Notif extends Resource
     /**
      * Kotak masuk: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Notifikasi milik pemilik token (pengelola melihat semua). Filter `belum=1` untuk yang belum dibaca. Dibuat oleh modul lain atau POST /notif/kirim. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Notifikasi milik pemilik token. Pengelola melihat kotak orang lain hanya dengan `username=<u>` atau `semua=1`. Filter `belum=1` untuk yang belum dibaca, `modul=<label>` untuk satu label, `kecuali=a,b` menyembunyikan label. Dibuat oleh modul lain atau POST /notif/kirim. Hapus = hapus lunak (deleted_at). Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
      *
      * `GET /v1/notif/kotak/{id}/riwayat`
      *

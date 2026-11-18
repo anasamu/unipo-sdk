@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Profil: Profil saya, Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data
+ * Profil: Profil saya, Profil: Pemutakhiran saya, Profil: Akun saya, Profil: Pemutakhiran (unit pemilik data), Profil: Saya, Profil: Verifikasi, Profil: Riwayat, Profil: Dokumen, Profil: Permohonan perubahan data
  */
 final class Profil extends Resource
 {
@@ -30,6 +30,521 @@ final class Profil extends Resource
     public function getSayaOrganisasiMahasiswa(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/profil/saya/organisasi-mahasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bagian data saya
+     *
+     * Bagian data pemilik token per sasaran (pegawai: identitas, kontak, alamat, kepegawaian, keuangan; mahasiswa: identitas,
+     * kontak, alamat, akademik, orang tua & wali, keuangan). Tiap isian: nilai, tampilan, `mode` (`langsung` tersimpan
+     * seketika, `verifikasi` diperiksa petugas dalam periode pemutakhiran, `ajukan` pengajuan biasa, `baca`), `bukti` wajib,
+     * `rahasia` (tersamar; nilai utuh lewat /saya/rahasia/{kode}), `menunggu` (pengajuan belum diputus). Juga kelengkapan per
+     * bagian dan total, serta periode pemutakhiran yang sedang aktif.
+     *
+     * `GET /v1/profil/saya/bagian`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaBagian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/bagian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan satu bagian
+     *
+     * Satu panel sekaligus. JSON `{isian: {kode: nilai}, alasan?}` atau multipart (`isian` = JSON teks, `alasan`, file
+     * `bukti_<kode>` per isian yang wajib bukti). Semua isian divalidasi dulu (422 per isian; tidak ada yang tersimpan bila
+     * ada yang salah). Isian `langsung` ditulis ke data induk; isian `verifikasi`/`ajukan` menjadi SATU pengajuan berkelompok.
+     * Jawaban: `tersimpan[]`, `pengajuan` (atau null), `pesan`.
+     *
+     * `POST /v1/profil/saya/bagian/{bagian}`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $bagian identitas, kontak, alamat, kepegawaian, akademik, keluarga, keuangan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaBagianByBagian(int|string $bagian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/saya/bagian/{bagian}', ['bagian' => $bagian], $query, null, $options, false, false);
+    }
+
+    /**
+     * Konfirmasi data sudah benar
+     *
+     * Mencatat bahwa data bagian ini sudah diperiksa pemiliknya tanpa perubahan (dihitung di progres periode pemutakhiran).
+     *
+     * `POST /v1/profil/saya/bagian/{bagian}/konfirmasi`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $bagian kode bagian
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaBagianByBagianKonfirmasi(int|string $bagian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/saya/bagian/{bagian}/konfirmasi', ['bagian' => $bagian], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai utuh isian rahasia
+     *
+     * Nomor rekening, NPWP, BPJS, NIK milik sendiri (tombol "Tampilkan"). Pembacaan dicatat di jejak audit tanpa nilainya.
+     *
+     * `GET /v1/profil/saya/rahasia/{kode}`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $kode kode isian rahasia
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaRahasiaByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/rahasia/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan saya
+     *
+     * Pengajuan perubahan data berkelompok milik sendiri, terbaru dulu, beserta status per isian (nilai rahasia tersamar).
+     *
+     * `GET /v1/profil/saya/pengajuan`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaPengajuan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/pengajuan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rincian pengajuan saya
+     *
+     * `GET /v1/profil/saya/pengajuan/{id}`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaPengajuanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/pengajuan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan pengajuan
+     *
+     * Hanya selama belum ada isian yang diputus.
+     *
+     * `POST /v1/profil/saya/pengajuan/{id}/batal`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaPengajuanByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/saya/pengajuan/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh bukti pengajuan saya
+     *
+     * Respons file.
+     *
+     * `GET /v1/profil/saya/pengajuan/{id}/bukti/{uuid}`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $id ID atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaPengajuanByIdBuktiByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/pengajuan/{id}/bukti/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat aktivitas saya
+     *
+     * Linimasa aktivitas akun sendiri dari log yang sudah ada: sesi aplikasi lewat SSO, login SIAKAD lama, ganti password,
+     * perubahan akun oleh petugas, "masuk sebagai Anda" oleh administrator, perubahan data Profil/pemutakhiran, pengajuan,
+     * dan perubahan kepegawaian dari SDM. Saringan `jenis` (masuk, keamanan, data, pengajuan, kepegawaian), `dari`, `sampai`
+     * (bawaan 90 hari terakhir), `q`; paginasi page/per_page. IP disamarkan; token dan isi rahasia tidak pernah dikirim.
+     *
+     * `GET /v1/profil/saya/aktivitas`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaAktivitas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/aktivitas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aplikasi dan hak akses saya
+     *
+     * Aplikasi yang bisa dibuka beserta peran di dalamnya, peran aktif (sumber, unit, masa berlaku, izin per modul dengan label), dan aplikasi yang sedang memegang sesi atas nama akun ini. Hanya baca.
+     *
+     * `GET /v1/profil/saya/akses`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaAkses(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/akses', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Katalog isian dan hak
+     *
+     * Bagian dan isian yang bisa diatur unit pemilik (sdm, baak, bauk), referensi fakultas/prodi/unit SDM, dan hak petugas (kelola, verifikasi, lingkup).
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/katalog`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikKatalog(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/katalog', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Aturan verifikasi bawaan
+     *
+     * Aturan per isian dan per peran (`peran`: dosen, tendik, mahasiswa; bawaan peran pertama unit) milik unit (SDM:
+     * identitas, kontak, alamat, domisili, kepegawaian; BAAK: data mahasiswa; BAUK: data keuangan): `mode` (langsung, verifikasi, ajukan, baca), `bukti`, `wajib` (isian penting), `pemeriksa` (pusat, unit),
+     * `diatur` (berbeda dari bawaan), dan `bawaan` dari kode. Berlaku di luar periode pemutakhiran dan menjadi nilai awal
+     * periode baru. Izin <pemilik>.pemutakhiran.kelola; `boleh_ubah` hanya untuk petugas tanpa batas lingkup.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/aturan`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikAturan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/aturan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan aturan verifikasi
+     *
+     * Body `aturan` {"peran:kode": {mode, bukti, wajib, pemeriksa}}, opsional `peran` untuk jawaban. Isian yang sama dengan bawaan kode peran itu tidak disimpan. Tercatat di jejak audit.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/aturan`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikAturan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/aturan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kembalikan aturan ke bawaan
+     *
+     * Body opsional `peran` (dosen, tendik, mahasiswa); kosong = semua peran unit ini.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/aturan/kembalikan`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikAturanKembalikan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/aturan/kembalikan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar periode pemutakhiran
+     *
+     * Beserta ringkasan progres (total, sudah, belum, persen, pengajuan menunggu). Izin <pemilik>.pemutakhiran.kelola.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengaturan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengaturan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat periode pemutakhiran
+     *
+     * Body: `judul`, `keterangan`, `aktif`, `mulai`, `selesai`, `peran[]`, `cakupan` {fakultas, prodi, unit, angkatan}, `isian` {kode: {mode: langsung|verifikasi, bukti}}.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikPengaturan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/pengaturan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah periode pemutakhiran
+     *
+     * Isian yang tidak dikirim tetap.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/ubah`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikPengaturanByIdUbah(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/ubah', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus periode pemutakhiran
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/hapus`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikPengaturanByIdHapus(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/hapus', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Progres pemutakhiran
+     *
+     * Daftar sasaran dengan status sudah/belum memperbarui (saringan `status`, `q`), meta.ringkas berisi angka ringkasan.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengaturanByIdProgres(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh progres (CSV)
+     *
+     * Saringan sama dengan progres. Respons file CSV (pemisah titik koma).
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres.csv`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengaturanByIdProgresCsv(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/progres.csv', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kirim pengingat
+     *
+     * Notifikasi ke semua sasaran yang belum memperbarui (maks 5000). Body opsional `pesan`.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/pengingat`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikPengaturanByIdPengingat(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/pengaturan/{id}/pengingat', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean verifikasi
+     *
+     * Pengajuan berkelompok di lingkup petugas. Saringan `status` (bawaan diajukan; semua), `q`, `kode_fakultas`, `kode_prodi`, `bagian`, `pengaturan_id`, `dari`, `sampai`. meta.hitung = jumlah per status.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengajuan(int|string $pemilik, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengajuan', ['pemilik' => $pemilik], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rincian pengajuan
+     *
+     * Sebelum → sesudah per isian (nilai utuh), bukti, status per isian.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengajuanById(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Putus pengajuan per isian
+     *
+     * Body `keputusan` {isian_id: {status: diterima|ditolak, alasan}}; "terima semua" = kirim semua isian diterima. Isian diterima langsung ditulis ke data induk dan tercatat di jejak audit; pengaju mendapat notifikasi.
+     *
+     * `POST /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/putus`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPemutakhiranByPemilikPengajuanByIdPutus(int|string $pemilik, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/putus', ['pemilik' => $pemilik, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh bukti
+     *
+     * Respons file.
+     *
+     * `GET /v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/bukti/{uuid}`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param int|string $pemilik sdm, baak, atau bauk
+     * @param int|string $id ID atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPemutakhiranByPemilikPengajuanByIdBuktiByUuid(int|string $pemilik, int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/pemutakhiran/{pemilik}/pengajuan/{id}/bukti/{uuid}', ['pemilik' => $pemilik, 'id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
     }
 
     /**

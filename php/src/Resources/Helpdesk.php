@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Helpdesk: Publik, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket
+ * Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket
  */
 final class Helpdesk extends Resource
 {
@@ -90,6 +90,69 @@ final class Helpdesk extends Resource
     public function postPublikLacakByKodeNilai(int|string $kode, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/helpdesk/publik/lacak/{kode}/nilai', ['kode' => $kode], $query, null, $options, false, true);
+    }
+
+    /**
+     * Laporan bug saya
+     *
+     * Tiket laporan bug milik pemanggil (terbaru dulu): nomor, judul, status, request_id, aplikasi. Token pengguna aplikasi mana pun; tanpa scope khusus.
+     *
+     * `GET /v1/helpdesk/galat`
+     *
+     * hanya token pengguna · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getGalat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/galat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporkan kode galat
+     *
+     * Buat tiket kategori "Laporan bug aplikasi" (Pustikom) yang terhubung ke kode galat. Body: `request_id` (wajib), `judul`
+     * (kosong = saran otomatis), `uraian` (apa yang sedang dilakukan), `url` (query rahasia seperti token/code dibuang),
+     * `status_http`, `kode_galat`, `pesan`, `perangkat`, `waktu`. Tangkapan layar opsional (maks 5 MB): kirim sebagai
+     * multipart/form-data dengan field file `lampiran` (body JSON dibatasi API_MAX_BODY), atau `lampiran_base64` + `nama_file`
+     * untuk gambar kecil. Pelapor = pengguna token; token aplikasi tanpa pengguna butuh `helpdesk:write` dan wajib `pelapor` atau
+     * `nama_pelapor`. Kode yang sama dari pelapor yang sama tidak membuat tiket baru: `uraian` ditambahkan sebagai komentar
+     * (200, `baru: false`). Pengguna lain yang melaporkan kode yang sama mendapat tiket sendiri yang dikaitkan ke tiket pertama.
+     * Petugas helpdesk Pustikom mendapat satu notifikasi per kode.
+     *
+     * `POST /v1/helpdesk/galat`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postGalat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/galat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periksa kode galat
+     *
+     * Untuk panel lapor: aplikasi pemanggil (dari client_id token), tiket pemanggil untuk kode ini bila sudah pernah dilaporkan, dan jumlah laporan pengguna lain. Token pengguna aplikasi mana pun.
+     *
+     * `GET /v1/helpdesk/galat/{request_id}`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $request_id Kode laporan (request_id)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getGalatByRequestId(int|string $request_id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/galat/{request_id}', ['request_id' => $request_id], $query, null, $options, false, false);
     }
 
     /**

@@ -41,6 +41,8 @@ final class Tema extends Resource
      *   fontJudul, teks, bayangan, gerak, ... Objek kosong = bawaan unipo-ui.
      * - `tata`: tata letak milik aplikasi (mis. aplikasi fakultas: hero, navbar, mode, bagian[]).
      * - `sendiri`: isi lapis ini saja (untuk formulir pengaturan), `warisan`: gabungan lapis di atasnya, `sumber`: lapis yang terisi.
+     * - `berkas`: peta `uuid → URL tampil` untuk nilai `tata` berbentuk `berkas:<uuid>` (gambar halaman masuk unggahan).
+     *   Hanya berkas publik bergambar; tautan berlaku 1 hari.
      *
      * Aplikasi cukup memasang `<TemaAplikasi aplikasi="..." lingkup="...">` dari unipo-ui/siakad, atau membaca endpoint ini
      * lalu `buatTema(tema)`. Boleh disimpan di cache browser; `versi` naik setiap perubahan.

@@ -9,14 +9,14 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan
+ * Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kegiatan
  */
 final class Kalender extends Resource
 {
     /**
      * Kalender terpadu
      *
-     * Gabungan kegiatan kalender yang terbit (sesuai level pengguna), tahapan tahun akademik di `m_tahun`, batas waktu per prodi di `m_bataskrs*`/`m_batas_*`, agenda portal yang terbit, dan jadwal PMB. Tabel lama hanya dibaca. Bawaan rentang: 30 hari lalu s.d. 180 hari ke depan, maksimal 400 hari.
+     * Gabungan kegiatan kalender yang terbit (sesuai level pengguna), tahapan tahun akademik di `m_tahun`, batas waktu per prodi di `m_bataskrs*`/`m_batas_*`, agenda portal yang terbit, dan jadwal PMB. Tabel lama hanya dibaca. Bawaan rentang: 30 hari lalu s.d. 180 hari ke depan, maksimal 400 hari. `kode_fakultas` (tanpa kode_prodi): tahapan kalender yang khusus fakultas/prodi lain dilewati.
      *
      * `GET /v1/kalender/terpadu`
      *
@@ -307,6 +307,26 @@ final class Kalender extends Resource
     }
 
     /**
+     * Bentuk aturan batas waktu
+     *
+     * Bentuk atau samakan aturan batas waktu turunan dari tahapan yang ada (mis. periode yang disalin dari tahun akademik lama) tanpa mengubah tahapan. Aturan baru berstatus draf sampai kalender diajukan. Atas nama pengelola kalender (izin kalender.periode.kelola), tanpa izin aturan:<kategori> terpisah. Jawaban memuat sinkron.aturan (dibuat, diperbarui, galat per langkah).
+     *
+     * `POST /v1/kalender/periode/{tahun}/bentuk-aturan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $tahun Periode (tahun_id 5 digit)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByTahunBentukAturan(int|string $tahun, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/periode/{tahun}/bentuk-aturan', ['tahun' => $tahun], $query, null, $options, false, false);
+    }
+
+    /**
      * Ajukan kalender
      *
      * SK kalender wajib. Semua aturan turunan diperbarui, diberi SK kalender, dan diajukan sekaligus ke alur persetujuan aturan (telaah SPMI, penyetuju bidang). Body: {"catatan"?}.
@@ -424,9 +444,9 @@ final class Kalender extends Resource
     }
 
     /**
-     * Tutup lebih awal per prodi
+     * Tutup lebih awal per prodi (dihentikan, 410)
      *
-     * Body: {"tahun_id", "titik", "prodi": [...], "sampai"?: "YYYY-MM-DD[ HH:MM]", "segera"?: true (tutup sekarang), "darurat"?: true (izin aturan.darurat: langsung berlaku), "alasan", "dasar": {"nomor", "tanggal", "berkas_id"}}. Per prodi: aturan batas_waktu penyempitan (cakupan prodi, selesai = tanggal baru) dengan SK/memo, diajukan ke alur persetujuan aturan (atau jalur darurat). Tabel lama tidak disentuh. Jawaban {berhasil, gagal}.
+     * DIHENTIKAN 2026-11-18 (keputusan pemilik): selalu 410 dihentikan; Pengecualian waktu hanya perpanjang dan buka kembali. Data lama tetap di riwayat dan bisa dicabut. Dulu: Body: {"tahun_id", "titik", "prodi": [...], "sampai"?: "YYYY-MM-DD[ HH:MM]", "segera"?: true (tutup sekarang), "darurat"?: true (izin aturan.darurat: langsung berlaku), "alasan", "dasar": {"nomor", "tanggal", "berkas_id"}}. Per prodi: aturan batas_waktu penyempitan (cakupan prodi, selesai = tanggal baru) dengan SK/memo, diajukan ke alur persetujuan aturan (atau jalur darurat). Tabel lama tidak disentuh. Jawaban {berhasil, gagal}.
      *
      * `POST /v1/kalender/batas/tutup`
      *
@@ -479,6 +499,162 @@ final class Kalender extends Resource
     public function getBatasRiwayat(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/kalender/batas/riwayat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status buka/tutup periode
+     *
+     * Untuk pemilih periode semua aplikasi. Per periode: keadaan aktif|dibuka|ditutup|dibuka_kembali, sejak, oleh, alasan, buka_kembali yang berlaku (fitur, prodi, sampai). Aturan: semua periode sebelum periode aktif (m_tahun.buka) ditutup; perubahan data periode ditutup ditolak 423 periode_ditutup untuk semua peran. meta: aktif, modul (fitur yang bisa dibuka kembali), boleh_buka_kembali.
+     *
+     * `GET /v1/kalender/kunci`
+     *
+     * scope: `kalender:read`
+     *
+     * @param array{batas?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunci(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pantauan SIAKAD lama
+     *
+     * Perubahan data periode ditutup yang ditemukan pemantau harian kalender:pantau-siakad-lama (sidik tabel inti per periode × prodi). saat_buka_kembali = ada buka kembali berlaku (mungkin sah). meta.diperiksa_at.
+     *
+     * `GET /v1/kalender/kunci/siakad-lama`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunciSiakadLama(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci/siakad-lama', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tandai perubahan ditinjau
+     *
+     * Izin kalender.periode.kelola.
+     *
+     * `POST /v1/kalender/kunci/siakad-lama/{id}/tinjau`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID perubahan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKunciSiakadLamaByIdTinjau(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/kunci/siakad-lama/{id}/tinjau', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail kunci periode
+     *
+     * Status, riwayat Pengecualian waktu (semua jenis), dan 50 catatan terakhir (ditolak 423, pengecualian resmi, lolos karena buka kembali).
+     *
+     * `GET /v1/kalender/kunci/{tahun}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $tahun Periode (tahun_id 5 digit)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunciByTahun(int|string $tahun, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci/{tahun}', ['tahun' => $tahun], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat Pengecualian waktu
+     *
+     * Perpanjang dan buka kembali untuk satu periode (data lama "tutup lebih awal" tampil sebagai jenis lama, jenis_lama: true); buka kembali "semua prodi" ikut tampil.
+     *
+     * `GET /v1/kalender/pengecualian-waktu`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengecualianWaktu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/pengecualian-waktu', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah Pengecualian waktu
+     *
+     * Body {jenis: perpanjang|buka_kembali, ...}. perpanjang: sama dengan /batas/perpanjang, hanya untuk periode yang dibuka (periode ditutup: 409 periode_ditutup, saran_jenis buka_kembali). buka_kembali: {tahun_id, modul: ["nilai", …] | ["*"], prodi: ["55201", …] | ["*"], mulai?, sampai (maks. 180 hari), alasan (min. 10), sk_id (registri SK) | dasar: {nomor, tanggal, berkas_id}}; izin akademik.periode.buka_kembali, hanya untuk periode yang ditutup, tercatat, otomatis terkunci lagi lewat tanggal sampai.
+     *
+     * `POST /v1/kalender/pengecualian-waktu`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengecualianWaktu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/pengecualian-waktu', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut Pengecualian waktu
+     *
+     * Perpanjang (dan data lama tutup lebih awal): seperti /batas/perpanjangan/{id}/cabut. Buka kembali: langsung terkunci lagi (izin akademik.periode.buka_kembali).
+     *
+     * `POST /v1/kalender/pengecualian-waktu/{id}/cabut`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengecualianWaktuByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/pengecualian-waktu/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tutup periode (manual)
+     *
+     * Body {alasan}. Periode selain periode aktif. Periode sebelum periode aktif sudah ditutup otomatis; ini menambah catatan alasan, atau menutup periode sesudah periode aktif. Izin akademik.periode.buka.
+     *
+     * `POST /v1/kalender/periode/{tahun}/tutup`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $tahun Periode (tahun_id 5 digit)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByTahunTutup(int|string $tahun, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/periode/{tahun}/tutup', ['tahun' => $tahun], $query, null, $options, false, false);
     }
 
     /**
