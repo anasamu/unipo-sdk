@@ -1530,7 +1530,7 @@ export class AdmisiResource {
   }
 }
 
-/** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status */
+/** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi */
 export class AkademikResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -2511,6 +2511,175 @@ export class AkademikResource {
   postPengajuanByIdBatalkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.AkademikPengajuan>> {
     return this.client.request({ method: 'POST', path: '/v1/akademik/pengajuan/{id}/batalkan', query: { ...query, id } }, options);
   }
+
+  /**
+   * Daftar periode
+   *
+   * m_tahun terbaru beserta tanggal tahapan, aturan KRS, dan jumlah status mahasiswa (A/C/N). meta.boleh_ubah = izin akademik.periode.buka (atau token admin).
+   *
+   * `GET /v1/akademik/periode`
+   *
+   * scope: `akademik:read`
+   */
+  getPeriode(query?: {
+    /** 1-100, bawaan 20 */
+    batas?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/akademik/periode', query }, options);
+  }
+
+  /**
+   * Tambah periode
+   *
+   * Body: {"tahun": "2027", "semester": "1", "nama_tahun"?, tanggal YYYY-MM-DD (krs_online_mulai, ..., cuti_selesai), syarat_krs, syarat_krs_ips, paket_krs, max_sks, min_presensi}. Lewat TahunRepository::tambah. Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+   *
+   * `POST /v1/akademik/periode`
+   *
+   * scope: `akademik:write`
+   */
+  postPeriode(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/periode', query }, options);
+  }
+
+  /**
+   * Ubah tanggal dan aturan periode
+   *
+   * Body: kolom yang diubah saja (tanggal kosong = dikosongkan). Lewat TahunRepository::ubah. Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+   *
+   * `POST /v1/akademik/periode/{id}`
+   *
+   * scope: `akademik:write`
+   *
+   * @param id Periode (tahun_id 5 digit)
+   */
+  postPeriodeById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/periode/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Buka periode
+   *
+   * Sama dengan m=tahun op=buka: periode ini dibuka, periode lain ditutup, status semua mahasiswa disinkronkan (CekStatusAllMhs: A dari KRS diterima, N untuk sisanya, DO melewati batas studi). Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+   *
+   * `POST /v1/akademik/periode/{id}/buka`
+   *
+   * scope: `akademik:write`
+   *
+   * @param id Periode (tahun_id 5 digit)
+   */
+  postPeriodeByIdBuka(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/periode/{id}/buka', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Status semester mahasiswa
+   *
+   * Mahasiswa yang semestinya terdaftar di periode (semester masuk s.d. batas studi, belum lulus/keluar) dengan status periode (A/C/N/null = belum tercatat), KRS, dan keuangan (syarat_bayar = cek_spp_persen; tagihan/dibayar/sisa periode). meta.ringkasan menghitung semua status. Hanya membaca.
+   *
+   * `GET /v1/akademik/registrasi`
+   *
+   * scope: `akademik:read` · berhalaman
+   */
+  getRegistrasi(query?: {
+    /** A|C|N|belum|belum_aktif */
+    status?: string;
+    /** NIM atau nama */
+    q?: string;
+    /** Tahun masuk */
+    angkatan?: string;
+    /** Nomor halaman, mulai 1. */
+    page?: number;
+    /** Jumlah data per halaman (maksimal 100). */
+    per_page?: number;
+    /** Satu prodi (kosong = semua prodi yang dikelola) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/akademik/registrasi', query }, options);
+  }
+
+  /**
+   * Her-registrasi (aktifkan)
+   *
+   * Body: {"nim": [...], "tahun_id"?, "abaikan_keuangan"?: true}. Per NIM lewat HerService::registrasi (m=mahasiswa.her). Mahasiswa yang syarat bayarnya belum terpenuhi dilewati kecuali abaikan_keuangan. Maks. 200 NIM. Jawaban {berhasil, gagal}.
+   *
+   * `POST /v1/akademik/registrasi/aktifkan`
+   *
+   * scope: `akademik:write`
+   */
+  postRegistrasiAktifkan(query?: {
+    /** Satu prodi (kosong = semua prodi yang dikelola) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/registrasi/aktifkan', query }, options);
+  }
+
+  /**
+   * Non-aktifkan
+   *
+   * Body: {"nim": [...], "tahun_id"?}. Per NIM lewat NonAktifService::validasi + simpan (m=mahasiswa.nonaktif). Maks. 200 NIM.
+   *
+   * `POST /v1/akademik/registrasi/nonaktifkan`
+   *
+   * scope: `akademik:write`
+   */
+  postRegistrasiNonaktifkan(query?: {
+    /** Satu prodi (kosong = semua prodi yang dikelola) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/registrasi/nonaktifkan', query }, options);
+  }
+
+  /**
+   * Pengaturan registrasi
+   *
+   * Pengaturan per kampus: {"aktif_kembali_otomatis": false, "aktif_kembali_hari_kerja": 3, "keterangan", "diubah_oleh", "diubah_at"}. meta.boleh_ubah = punya izin akademik.periode.buka (atau token admin).
+   *
+   * `GET /v1/akademik/registrasi/pengaturan`
+   *
+   * scope: `akademik:read`
+   */
+  getRegistrasiPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/akademik/registrasi/pengaturan', query }, options);
+  }
+
+  /**
+   * Ubah pengaturan registrasi
+   *
+   * Body: {"aktif_kembali_otomatis": true, "aktif_kembali_hari_kerja": 3} (sebagian boleh). Bila aktif, perintah `php artisan registrasi:otomatis` (cron harian) meng-her-registrasi pengajuan aktif kembali yang disetujui tetapi belum her-registrasi dalam N hari kerja, lewat HerService lama, tetap memeriksa syarat bayar dan aturan registrasi.aktifkan; reg_log pelaku sistem. Butuh izin akademik.periode.buka.
+   *
+   * `POST /v1/akademik/registrasi/pengaturan`
+   *
+   * scope: `akademik:write`
+   */
+  postRegistrasiPengaturan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/akademik/registrasi/pengaturan', query }, options);
+  }
+
+  /**
+   * Riwayat aksi
+   *
+   * Log aktifkan/nonaktifkan dan perubahan periode dari API (reg_log).
+   *
+   * `GET /v1/akademik/registrasi/riwayat`
+   *
+   * scope: `akademik:read`
+   */
+  getRegistrasiRiwayat(query?: {
+    /** 1-200 */
+    batas?: number;
+    /** Satu prodi (kosong = semua prodi yang dikelola) */
+    prodi?: string;
+    /** Bawaan tahun aktif (boleh juga di body) */
+    tahun_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/akademik/registrasi/riwayat', query }, options);
+  }
 }
 
 /** Akun pengguna */
@@ -2522,7 +2691,7 @@ export class AkunResource {
    *
    * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`.
    *
-   * Hak: level ADMIN atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
+   * Hak: administrator (peran superadmin) atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
    *
    * `GET /v1/akun`
    *
@@ -2554,10 +2723,11 @@ export class AkunResource {
    * hash password sama seperti aplikasi lama. Dosen/tendik yang belum ada di SIAKAD bisa dibuat sekaligus lewat `orang_baru`
    * (kolom sama dengan form tambah dosen/karyawan lama; tendik wajib punya prodi agar bisa login).
    *
-   * Level per jenis: dosen DOSEN/PROGDI/DIREKTUR/KEUANGAN/ADMIN (ADMIN hanya Pustikom), tendik OPERATOR/BAK/PUSTAKA/PANITIA,
+   * Level per jenis: dosen DOSEN/PROGDI/DIREKTUR/KEUANGAN, tendik OPERATOR/BAK/PUSTAKA/PANITIA,
    * mahasiswa MAHASISWA, pendaftar MABA. `sandi`: `bawaan` (ID + tanggal lahir 2 digit, rumus lama), `acak` (dikembalikan
    * sekali di `password_sementara`), atau `manual` (`password` min. 8 karakter). Peran RBAC diberikan terpisah lewat
-   * POST /v1/rbac/penugasan.
+   * POST /v1/rbac/penugasan. Level ADMIN ditolak 409 `level_admin_cli`: hanya lewat CLI
+   * `php artisan admin:buat` (akun administrator terpisah).
    *
    * `POST /v1/akun`
    *
@@ -5225,7 +5395,7 @@ export class ArsipResource {
   }
 }
 
-/** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian */
+/** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan */
 export class AturanResource {
   constructor(private readonly client: SiakadCore) {}
 
@@ -5236,12 +5406,168 @@ export class AturanResource {
    * kategori dan jenis aturan yang boleh di tiap titik, indikator yang bisa dipakai di kondisi (IPK, SKS lulus, nilai D/E,
    * tunggakan, persen bayar, bebas pustaka, ...), dan operator. Dipakai form "tambah aturan" di aplikasi admin.
    *
+   * Field untuk UI: titik `kelompok` (Akademik, Kelulusan, Keuangan, Kemahasiswaan, PMB, Akun, Kepegawaian, Mutu, Penelitian)
+   * dan `contoh` (templat aturan siap pakai `[{judul, keterangan, kategori, jenis, mode, kondisi?, parameter?}]`);
+   * indikator `kelompok`, `satuan` (SKS, %, Rp, tahun, hari), `pesan` bawaan, dan untuk tipe `pilihan` daftar `opsi`
+   * `[{nilai, label}]` (dropdown; dinilai seperti teks dengan =, !=, dalam, bukan_dalam). Titik `pmb.daftar_ulang`
+   * (subjek pendaftar) dan `akun.buat` (subjek calon akun) lihat docs/ATURAN.md.
+   *
    * `GET /v1/aturan/katalog`
    *
    * scope: `aturan:read`
    */
   getKatalog(query?: Query, options?: RequestOptions): Promise<ApiResult<S.AturanKatalog>> {
     return this.client.request({ method: 'GET', path: '/v1/aturan/katalog', query }, options);
+  }
+
+  /**
+   * Daftar titik penerapan (bawaan dan kustom)
+   *
+   * Gabungan titik bawaan (kode, tidak bisa dihapus) dan titik kustom (`kustom.*`). Tiap titik: `kode`, `judul`, `keterangan`,
+   * `unit`, `kelompok`, `kategori[]`, `subjek`, `jenis[]`, `konteks` = `[{kode, judul, tipe, opsi?}]`, `status_mahasiswa`,
+   * `contoh`, `penerapan`, `pengatur` (`[{jenis, kode, sumber}]`), `aktif`, `bawaan`, `kustom`, `ditimpa` (bawaan yang
+   * teksnya/aktifnya diubah), `jumlah_aturan_aktif`, `diubah_oleh`, `diubah_at`. Titik nonaktif: aturan di titik itu tidak
+   * diperiksa (prasyarat bawaan kode tetap).
+   *
+   * `GET /v1/aturan/titik`
+   *
+   * scope: `aturan:read`
+   */
+  getTitik(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/aturan/titik', query }, options);
+  }
+
+  /**
+   * Tambah titik kustom (admin)
+   *
+   * Body: `{"kode": "kustom.sertifikasi_toefl", "judul": "...", "keterangan": "...", "unit": "baak", "kelompok": "Akademik",
+   * "kategori": ["akademik"], "subjek": "mahasiswa" | "pegawai" | "pendaftar" | "umum", "jenis": ["syarat", "batas_waktu"],
+   * "konteks": [{"kode": "skor_toefl", "judul": "Skor TOEFL", "tipe": "angka"}, {"kode": "jenis_tes", "judul": "Jenis tes", "tipe": "pilihan", "opsi": [{"nilai": "itp", "label": "TOEFL ITP"}]}],
+   * "status_mahasiswa": ["A"], "contoh": [], "pengatur": [{"jenis": "peran", "kode": "bak"}], "aktif": true}`.
+   * Kode `^kustom\.[a-z0-9_.]{2,60}$`, unik (dibuat klien dari nama). Aplikasi lain memakai titik ini lewat `POST /v1/aturan/periksa`
+   * dengan konteks yang didefinisikan.
+   *
+   * `POST /v1/aturan/titik`
+   *
+   * scope: `aturan:admin` · hanya token pengguna
+   */
+  postTitik(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/titik', query }, options);
+  }
+
+  /**
+   * Detail titik
+   *
+   * Bentuk sama dengan butir daftar.
+   *
+   * `GET /v1/aturan/titik/{kode}`
+   *
+   * scope: `aturan:read`
+   *
+   * @param kode Kode titik, mis. krs.ambil atau kustom.skor_toefl
+   */
+  getTitikByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/aturan/titik/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Ubah titik (admin)
+   *
+   * Titik bawaan: hanya judul, keterangan, unit, kelompok, contoh, pengatur, aktif (timpaan; kode tetap sumber). Titik kustom: semua isian kecuali kode; subjek tidak bisa diubah bila sudah ada aturan. pengatur = daftar {jenis, kode} untuk semua kategori titik ([] = kembali ke pengatur kategori).
+   *
+   * `POST /v1/aturan/titik/{kode}`
+   *
+   * scope: `aturan:admin` · hanya token pengguna
+   *
+   * @param kode Kode titik, mis. krs.ambil atau kustom.skor_toefl
+   */
+  postTitikByKode(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/titik/{kode}', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Hapus titik kustom (admin)
+   *
+   * Soft delete. Titik bawaan tidak bisa dihapus (409). Ditolak 409 bila masih ada aturan aktif/diajukan di titik itu; details.aturan = [{id, nama, status}].
+   *
+   * `POST /v1/aturan/titik/{kode}/hapus`
+   *
+   * scope: `aturan:admin` · hanya token pengguna
+   *
+   * @param kode Kode titik, mis. krs.ambil atau kustom.skor_toefl
+   */
+  postTitikByKodeHapus(kode: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/titik/{kode}/hapus', query: { ...query, kode } }, options);
+  }
+
+  /**
+   * Daftar pengajuan pengecualian
+   *
+   * Pengajuan pengecualian yang bisa saya putus (pemutus: pengecualian_oleh aturan, bawaan pengatur titik) atau yang saya ajukan. Filter status (diajukan|disetujui|ditolak|dibatalkan), aturan (UUID), antrean=saya (hanya yang bisa saya putus), diajukan_saya=1. Tiap butir: {id, subjek_jenis, subjek, tahun_id, berlaku_sampai, alasan, dokumen: {berkas_id, jenis, nomor, tanggal, url_unduh}, status, diajukan_oleh, diajukan_at, diputus_oleh, diputus_at, catatan_putusan, aturan: {id, nama, titik, status}, boleh_putus}.
+   *
+   * `GET /v1/aturan/pengecualian/ajuan`
+   *
+   * scope: `aturan:read`
+   */
+  getPengecualianAjuan(query?: {
+    /** diajukan|disetujui|ditolak|dibatalkan */
+    status?: string;
+    /** UUID aturan */
+    aturan?: string;
+    /** saya */
+    antrean?: string;
+    /** 1 */
+    diajukan_saya?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/aturan/pengecualian/ajuan', query }, options);
+  }
+
+  /**
+   * Dokumen pengajuan pengecualian
+   *
+   * Isi berkas dokumen pengajuan (302 ke URL sementara bila disimpan di bucket), seperti unduh lampiran SK. Hanya pemutus pengecualian aturan itu, admin aturan, atau pengaju. Butir ajuan memuat dokumen.url_unduh (path API ini).
+   *
+   * `GET /v1/aturan/pengecualian/ajuan/{ajuan}/dokumen`
+   *
+   * scope: `aturan:read`
+   *
+   * @param ajuan UUID pengajuan
+   */
+  getPengecualianAjuanByAjuanDokumen(ajuan: string | number, query?: {
+    /** 1 = unduh, bukan tampil */
+    unduh?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/aturan/pengecualian/ajuan/{ajuan}/dokumen', query: { ...query, ajuan } }, options);
+  }
+
+  /**
+   * Setujui pengajuan pengecualian
+   *
+   * Pemutus pengecualian aturan itu. Membuat pengecualian (cakupan subjek, periode, masa berlaku, dokumen) dan mencatat riwayat. Body opsional {"catatan"}.
+   *
+   * `POST /v1/aturan/pengecualian/ajuan/{ajuan}/setujui`
+   *
+   * scope: `aturan:read` · hanya token pengguna
+   *
+   * @param ajuan UUID pengajuan
+   */
+  postPengecualianAjuanByAjuanSetujui(ajuan: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/pengecualian/ajuan/{ajuan}/setujui', query: { ...query, ajuan } }, options);
+  }
+
+  /**
+   * Tolak pengajuan pengecualian
+   *
+   * Body {"catatan"} wajib.
+   *
+   * `POST /v1/aturan/pengecualian/ajuan/{ajuan}/tolak`
+   *
+   * scope: `aturan:read` · hanya token pengguna
+   *
+   * @param ajuan UUID pengajuan
+   */
+  postPengecualianAjuanByAjuanTolak(ajuan: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/pengecualian/ajuan/{ajuan}/tolak', query: { ...query, ajuan } }, options);
   }
 
   /**
@@ -5288,10 +5614,38 @@ export class AturanResource {
   }
 
   /**
+   * Penyetuju aturan per kategori
+   *
+   * Untuk halaman "Pejabat penyetuju aturan". Per kategori: bidang pimpinan, jabatan_daftar (salah satu cukup), penyetuju.orang (yang saat ini bisa menyetujui), penyetuju.jabatan_rinci [{kode, nama, pejabat: [{username|null, nama, unit, plt, bisa_menyetujui}]}], penyetuju.bidang_rinci (pemegang peran bidang), siap (ada penyetuju), rektor (jatuh ke Rektor), isi_di (aplikasi, menu, path, api, langkah tempat mengisi pejabat), telaah_spmi.
+   *
+   * `GET /v1/aturan/penyetuju`
+   *
+   * scope: `aturan:read`
+   */
+  getPenyetuju(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/aturan/penyetuju', query }, options);
+  }
+
+  /**
+   * Atur penyetuju (admin)
+   *
+   * Body: {"penyetuju": [{"kategori": "akun", "bidang": "akademik", "jabatan": ["WR1", "REKTOR"], "keterangan": "..."}]}. Hanya kategori yang dikirim yang diubah. bidang = kode bidang pimpinan (/v1/pimpinan/bidang), jabatan = satu atau beberapa kode induk_jabatan (salah satu cukup); tanpa pejabat/pemegang = Rektor.
+   *
+   * `POST /v1/aturan/penyetuju`
+   *
+   * scope: `aturan:admin` · hanya token pengguna
+   */
+  postPenyetuju(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/penyetuju', query }, options);
+  }
+
+  /**
    * Periksa aturan di satu titik
    *
    * Body: `{"titik": "krs.ambil", "nim": "...", "tahun_id": "20261", "konteks": {"sks_diambil": 24}}` (titik kelas: `kode_prodi`, `kelas`; `dosen` untuk
-   * pengecualian dosen). Mahasiswa tanpa `nim` = dirinya sendiri. Hasil: `boleh` (tidak ada aturan blokir yang dilanggar),
+   * pengecualian dosen; titik pegawai: `pegawai_id`). Titik pendaftar (`pmb.daftar_ulang`): `{"titik": "pmb.daftar_ulang", "pendaftar": "<id/UUID pmb_pendaftaran atau no_pmb>"}`.
+   * Titik akun (`akun.buat`): `{"titik": "akun.buat", "username": "2201010001", "konteks": {"jenis_akun": "mahasiswa"}}`. Subjek pendaftar/akun
+   * hanya untuk petugas; angka indikatornya hanya tampil untuk pengatur titik itu. Mahasiswa tanpa `nim` = dirinya sendiri. Hasil: `boleh` (tidak ada aturan blokir yang dilanggar),
    * `pelanggaran` dan `peringatan` beserta pesannya, `batas` (mis. batas SKS dan masa buka yang berlaku), aturan yang
    * diterapkan dan yang dikecualikan, serta nilai indikator yang dipakai. Langkah bisnis SIAKAD memakai pemeriksaan yang sama
    * dan menolak dengan 409 `aturan_dilanggar`; aplikasi lain memakai endpoint ini untuk menampilkan syarat sebelum pengguna mencoba.
@@ -5334,6 +5688,14 @@ export class AturanResource {
     q?: string;
     /** 1 = aturan di sampah (admin) */
     terhapus?: string;
+    /** 1 = hanya aturan belum aktif tanpa SK (meta.bawaan_menunggu_sk = jumlah aturan bawaan draf tanpa SK) */
+    menunggu_sk?: string;
+    /** persetujuan_saya (aturan diajukan yang bisa saya setujui) | telaah (antrean telaah SPMI) */
+    antrean?: string;
+    /** 1 = hanya aturan bawaan kampus */
+    bawaan?: string;
+    /** Unit pemilik titik, mis. baak, bauk, pmb, sdm, spmi, lppm, pustikom (meta.bawaan: ringkasan aturan bawaan per kategori dan unit) */
+    unit?: string;
     /** Nomor halaman, mulai 1. */
     page?: number;
     /** Jumlah data per halaman (maksimal 100). */
@@ -5385,7 +5747,11 @@ export class AturanResource {
   /**
    * Ubah aturan
    *
-   * Body sebagian dari isian tambah (titik tidak bisa diubah), plus "catatan" perubahan. Versi naik dan isi lama tersimpan di riwayat. Aturan aktif langsung berlaku dengan isi baru (event aturan.diubah); batas_waktu aktif ditulis-tembus ke tabel batas lama.
+   * Body sebagian dari isian tambah (titik tidak bisa diubah), plus `catatan` perubahan dan `ajukan: true` (opsional, langsung ajukan).
+   * Aturan draf/nonaktif: versi naik, isi lama tersimpan di riwayat (aturan yang sedang diajukan kembali draf).
+   * Aturan **aktif**: disimpan sebagai usulan versi baru (detail `usulan`), versi lama tetap berlaku sampai disetujui.
+   * Wajib menyertakan SK: `"sk": {"berkas_id", "nomor", "tanggal", "perihal"}` (SK baru) atau `"lampiran_id"` (UUID SK yang
+   * sudah dilampirkan); tanpa itu 422.
    *
    * `POST /v1/aturan/{id}`
    *
@@ -5399,9 +5765,9 @@ export class AturanResource {
   }
 
   /**
-   * Aktifkan aturan
+   * Aktifkan aturan (tidak dipakai lagi)
    *
-   * Wajib sudah ada lampiran SK. Body opsional {"catatan"}. Event aturan.diaktifkan. Aturan batas_waktu dengan tahun_id ditulis-tembus ke tabel batas lama (tulis_tembus di respons).
+   * Sejak alur persetujuan dipasang, aturan tidak bisa diaktifkan langsung (juga oleh admin): 409 dengan details.ajukan. Pakai POST /v1/aturan/{id}/ajukan.
    *
    * `POST /v1/aturan/{id}/aktifkan`
    *
@@ -5411,6 +5777,88 @@ export class AturanResource {
    */
   postByIdAktifkan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
     return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/aktifkan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Ajukan aturan untuk disetujui
+   *
+   * Pengatur mengajukan aturan draf/nonaktif (wajib sudah ada SK) atau usulan versi baru aturan aktif (disimpan lewat
+   * `POST /v1/aturan/{id}` dengan SK). Body opsional `{"catatan"}`. Status aturan draf menjadi `diajukan`; aturan aktif tetap
+   * berlaku dengan versi lama. Penyetuju (pejabat bidang, lihat `/v1/aturan/penyetuju`) dan penelaah SPMI dikabari.
+   * Event `aturan.diajukan`.
+   *
+   * `POST /v1/aturan/{id}/ajukan`
+   *
+   * scope: `aturan:write` · hanya token pengguna
+   *
+   * @param id UUID aturan
+   */
+  postByIdAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/ajukan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Aktifkan lewat jalur darurat
+   *
+   * Hanya pemegang izin RBAC `aturan.darurat` (bawaan peran superadmin). Body: `{"alasan": "...", "sk": {"berkas_id", "nomor", "tanggal", "perihal"}}`
+   * atau `{"alasan", "lampiran_id"}`; keduanya wajib. Aturan draf/diajukan/nonaktif langsung aktif; aturan aktif dengan usulan
+   * versi baru: versi baru langsung berlaku. Aturan ditandai `darurat: true` ("Aktif lewat jalur darurat"), dicatat di riwayat,
+   * penyetuju bidang dan SPMI dikabari, dan masuk antrean persetujuan susulan: `/setujui` mengesahkan (tanda darurat hilang),
+   * `/kembalikan` mencabut (aturan nonaktif). Event `aturan.darurat`.
+   *
+   * `POST /v1/aturan/{id}/darurat`
+   *
+   * scope: `aturan:write` · hanya token pengguna
+   *
+   * @param id UUID aturan
+   */
+  postByIdDarurat(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/darurat', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Setujui aturan (penyetuju)
+   *
+   * Hanya penyetuju kategori aturan (pejabat bidang yang dipetakan, atau Rektor bila bidang tanpa pejabat) yang memegang izin aturan.setujui. Aturan langsung berlaku (atau versi baru menggantikan versi lama), SK didaftarkan sebagai dokumen kebijakan unit di SPMI. Body opsional {"catatan"}. Event aturan.disetujui + aturan.diaktifkan/aturan.diubah.
+   *
+   * `POST /v1/aturan/{id}/setujui`
+   *
+   * scope: `aturan:write` · hanya token pengguna
+   *
+   * @param id UUID aturan
+   */
+  postByIdSetujui(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/setujui', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Kembalikan aturan ke pengaju (penyetuju)
+   *
+   * Body {"catatan"} wajib. Aturan draf kembali draf; aturan aktif tetap pada versi lama. Event aturan.dikembalikan.
+   *
+   * `POST /v1/aturan/{id}/kembalikan`
+   *
+   * scope: `aturan:write` · hanya token pengguna
+   *
+   * @param id UUID aturan
+   */
+  postByIdKembalikan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/kembalikan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Catatan telaah SPMI
+   *
+   * Pemegang izin aturan.telaah (peran SPMI) memberi catatan atas aturan yang diajukan; tidak memblokir, tampil ke penyetuju dan pengaju. Aturan kategori mutu tidak ditelaah SPMI. Body {"catatan"} wajib. Event aturan.ditelaah.
+   *
+   * `POST /v1/aturan/{id}/telaah`
+   *
+   * scope: `aturan:read` · hanya token pengguna
+   *
+   * @param id UUID aturan
+   */
+  postByIdTelaah(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Aturan>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/telaah', query: { ...query, id } }, options);
   }
 
   /**
@@ -5476,7 +5924,7 @@ export class AturanResource {
   /**
    * Uji aturan (termasuk draf)
    *
-   * Body seperti /periksa tanpa titik (+ "waktu" untuk mencoba tanggal lain). Hanya aturan ini yang dinilai, walau masih draf atau di luar masa berlaku.
+   * Body seperti /periksa tanpa titik (+ "waktu" untuk mencoba tanggal lain). Hanya aturan ini yang dinilai, walau masih draf atau di luar masa berlaku. Subjek sesuai titik aturannya: `nim`, `pegawai_id`, `pendaftar` (id/UUID pmb_pendaftaran atau no_pmb, mis. `{"pendaftar": "123"}`), atau `username` + `konteks.jenis_akun` (mis. `{"username": "2201010001", "konteks": {"jenis_akun": "mahasiswa"}}`).
    *
    * `POST /v1/aturan/{id}/uji`
    *
@@ -5575,7 +6023,7 @@ export class AturanResource {
   /**
    * Beri pengecualian (dispensasi)
    *
-   * Body: {"subjek_jenis": "mahasiswa"|"dosen"|"prodi", "subjek": "NIM/NIDN/kode prodi", "alasan", "berlaku_sampai"?, "berkas_id"? (surat/SK dispensasi)}. Satu-satunya cara melonggarkan aturan untuk subjek tertentu. Event aturan.pengecualian_diberikan.
+   * Pemutus pengecualian langsung (tanpa pengajuan); hanya aturan boleh_pengecualian (ketat: 409). Body: {"subjek_jenis": "mahasiswa"|"dosen"|"prodi"|"pegawai"|"pendaftar"|"akun", "subjek": "NIM/NIDN/kode prodi/id pegawai/no_pmb/username", "tahun_id"? (periode), "alasan", "berlaku_sampai"?, "berkas_id"? (surat/SK dispensasi)}. Satu-satunya cara melonggarkan aturan untuk subjek tertentu. Event aturan.pengecualian_diberikan.
    *
    * `POST /v1/aturan/{id}/pengecualian`
    *
@@ -5586,6 +6034,25 @@ export class AturanResource {
    */
   postByIdPengecualian(id: string | number, body: S.AturanPengecualianInput, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.AturanPengecualian>>> {
     return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/pengecualian', query: { id }, body }, options);
+  }
+
+  /**
+   * Ajukan pengecualian (aturan boleh_pengecualian)
+   *
+   * Subjek atau operator mengajukan pengecualian berdokumen untuk aturan bersifat `boleh_pengecualian` (aturan `ketat`: 409).
+   * Body: `{"subjek_jenis": "mahasiswa"|"pegawai"|"pendaftar"|"akun"|"prodi"|"dosen", "subjek": "...", "tahun_id"?: "20261",
+   * "berlaku_sampai"?: "2027-01-31", "alasan": "...", "berkas_id": "<UUID /v1/berkas>", "dok_jenis": "sk"|"dokumen_kebijakan"|"bukti_bayar"|"dokumen",
+   * "dok_nomor": "...", "dok_tanggal"?: "2026-11-18"}`. Mahasiswa/MABA hanya untuk dirinya (subjek diisi otomatis). Dokumen wajib;
+   * nomor wajib untuk SK/dokumen kebijakan. Diputus di `/v1/aturan/pengecualian/ajuan/{ajuan}/setujui|tolak`.
+   *
+   * `POST /v1/aturan/{id}/pengecualian/ajukan`
+   *
+   * scope: `aturan:read`
+   *
+   * @param id UUID aturan
+   */
+  postByIdPengecualianAjukan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/aturan/{id}/pengecualian/ajukan', query: { ...query, id } }, options);
   }
 
   /**
@@ -56577,6 +57044,120 @@ export class SdmResource {
     per_page?: number;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sdm/pegawai/{id}/sister/{jenis}', query: { ...query, id, jenis } }, options);
+  }
+}
+
+/** Sistem: Log terpadu */
+export class SistemResource {
+  constructor(private readonly client: SiakadCore) {}
+
+  /**
+   * Log semua proses
+   *
+   * Log dari semua sumber (kelola akun, masuk sebagai pengguna, hak akses panitia, login SIAKAD lama, data induk & RBAC,
+   * riwayat aturan, tema, pengajuan API, kirim PDDikti, panggilan integrasi/berkas, webhook, AI, tugas terjadwal, kirim
+   * notifikasi, antrean event, akses rahasia, event domain, her-registrasi, SDM, SPMI, LPPM, arsip) dengan kolom seragam:
+   * `id` (`<sumber>:<kunci>`, null bila sumber tanpa kunci), `waktu`, `sumber`, `sumber_nama`, `kelompok`, `aksi`, `pelaku`,
+   * `sasaran`, `ringkasan`, `tingkat` (`info`/`peringatan`/`galat`), `ip` (disamarkan sebagian).
+   *
+   * Terbaru dulu, paginasi kursor: kirim `meta.berikut` sebagai `kursor` untuk halaman berikutnya (null = habis).
+   * `meta.sumber_galat` = sumber yang gagal dibaca (dilewati). Token, password, payload, dan isi pesan tidak pernah dikirim.
+   * Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLog(query?: {
+    /** Kode sumber, pisahkan dengan koma (lihat /v1/sistem/log/sumber) */
+    sumber?: string;
+    /** info, peringatan, galat (pisahkan dengan koma) */
+    tingkat?: string;
+    /** Username/klien pelaku (persis) */
+    pelaku?: string;
+    /** Cari teks (sasaran, aksi, catatan; maks 100 karakter) */
+    q?: string;
+    /** Y-m-d atau Y-m-d H:i[:s] */
+    dari?: string;
+    /** Y-m-d (sampai akhir hari) atau Y-m-d H:i[:s] */
+    sampai?: string;
+    /** Dari meta.berikut halaman sebelumnya */
+    kursor?: string;
+    /** Baris per halaman (1-200, bawaan 50) */
+    per_page?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log', query }, options);
+  }
+
+  /**
+   * Sumber log
+   *
+   * Semua sumber log beserta kelompok, keterangan, tabel asal, apakah tersedia di server ini, dan tingkat yang mungkin. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/sumber`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogSumber(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/sumber', query }, options);
+  }
+
+  /**
+   * Ringkasan log
+   *
+   * Jumlah baris per tingkat (total dan per sumber) dalam `jam` terakhir (bawaan 24, maks 744) dan 5 galat terbaru. Untuk beranda Pustikom. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/ringkasan`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogRingkasan(query?: {
+    /** Rentang jam ke belakang */
+    jam?: number;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/ringkasan', query }, options);
+  }
+
+  /**
+   * Ekspor log (CSV)
+   *
+   * Saringan sama dengan daftar; maks 10.000 baris terbaru, CSV titik koma UTF-8. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/ekspor`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   */
+  getLogEkspor(query?: {
+    /** Kode sumber, pisahkan dengan koma (lihat /v1/sistem/log/sumber) */
+    sumber?: string;
+    /** info, peringatan, galat (pisahkan dengan koma) */
+    tingkat?: string;
+    /** Username/klien pelaku (persis) */
+    pelaku?: string;
+    /** Cari teks (sasaran, aksi, catatan; maks 100 karakter) */
+    q?: string;
+    /** Y-m-d atau Y-m-d H:i[:s] */
+    dari?: string;
+    /** Y-m-d (sampai akhir hari) atau Y-m-d H:i[:s] */
+    sampai?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.JsonObject>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/ekspor', query }, options);
+  }
+
+  /**
+   * Detail baris log
+   *
+   * Kolom seragam ditambah `detail` (kolom tambahan sumber itu, JSON sudah dibersihkan dari kunci rahasia, URL tanpa query string). `ip_lengkap` hanya untuk administrator sistem. Hak: izin `pustikom.log` atau administrator sistem (peran superadmin). Token pengguna saja.
+   *
+   * `GET /v1/sistem/log/{sumber}/{id}`
+   *
+   * scope: `rbac:read` · hanya token pengguna
+   *
+   * @param sumber Kode sumber
+   * @param id Kunci baris
+   */
+  getLogBySumberById(sumber: string | number, id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sistem/log/{sumber}/{id}', query: { ...query, sumber, id } }, options);
   }
 }
 

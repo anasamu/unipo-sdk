@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status
+ * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi
  */
 final class Akademik extends Resource
 {
@@ -1137,5 +1137,197 @@ final class Akademik extends Resource
     public function postPengajuanByIdBatalkan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akademik/pengajuan/{id}/batalkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar periode
+     *
+     * m_tahun terbaru beserta tanggal tahapan, aturan KRS, dan jumlah status mahasiswa (A/C/N). meta.boleh_ubah = izin akademik.periode.buka (atau token admin).
+     *
+     * `GET /v1/akademik/periode`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{batas?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeriode(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/periode', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah periode
+     *
+     * Body: {"tahun": "2027", "semester": "1", "nama_tahun"?, tanggal YYYY-MM-DD (krs_online_mulai, ..., cuti_selesai), syarat_krs, syarat_krs_ips, paket_krs, max_sks, min_presensi}. Lewat TahunRepository::tambah. Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+     *
+     * `POST /v1/akademik/periode`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriode(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/periode', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah tanggal dan aturan periode
+     *
+     * Body: kolom yang diubah saja (tanggal kosong = dikosongkan). Lewat TahunRepository::ubah. Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+     *
+     * `POST /v1/akademik/periode/{id}`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id Periode (tahun_id 5 digit)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/periode/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buka periode
+     *
+     * Sama dengan m=tahun op=buka: periode ini dibuka, periode lain ditutup, status semua mahasiswa disinkronkan (CekStatusAllMhs: A dari KRS diterima, N untuk sisanya, DO melewati batas studi). Butuh izin RBAC akademik.periode.buka (peran superadmin, bak, staf-baak, kepala-baak) atau token admin.
+     *
+     * `POST /v1/akademik/periode/{id}/buka`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id Periode (tahun_id 5 digit)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByIdBuka(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/periode/{id}/buka', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status semester mahasiswa
+     *
+     * Mahasiswa yang semestinya terdaftar di periode (semester masuk s.d. batas studi, belum lulus/keluar) dengan status periode (A/C/N/null = belum tercatat), KRS, dan keuangan (syarat_bayar = cek_spp_persen; tagihan/dibayar/sisa periode). meta.ringkasan menghitung semua status. Hanya membaca.
+     *
+     * `GET /v1/akademik/registrasi`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{status?: string, q?: string, angkatan?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRegistrasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/registrasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Her-registrasi (aktifkan)
+     *
+     * Body: {"nim": [...], "tahun_id"?, "abaikan_keuangan"?: true}. Per NIM lewat HerService::registrasi (m=mahasiswa.her). Mahasiswa yang syarat bayarnya belum terpenuhi dilewati kecuali abaikan_keuangan. Maks. 200 NIM. Jawaban {berhasil, gagal}.
+     *
+     * `POST /v1/akademik/registrasi/aktifkan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRegistrasiAktifkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/registrasi/aktifkan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Non-aktifkan
+     *
+     * Body: {"nim": [...], "tahun_id"?}. Per NIM lewat NonAktifService::validasi + simpan (m=mahasiswa.nonaktif). Maks. 200 NIM.
+     *
+     * `POST /v1/akademik/registrasi/nonaktifkan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRegistrasiNonaktifkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/registrasi/nonaktifkan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan registrasi
+     *
+     * Pengaturan per kampus: {"aktif_kembali_otomatis": false, "aktif_kembali_hari_kerja": 3, "keterangan", "diubah_oleh", "diubah_at"}. meta.boleh_ubah = punya izin akademik.periode.buka (atau token admin).
+     *
+     * `GET /v1/akademik/registrasi/pengaturan`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRegistrasiPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/registrasi/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah pengaturan registrasi
+     *
+     * Body: {"aktif_kembali_otomatis": true, "aktif_kembali_hari_kerja": 3} (sebagian boleh). Bila aktif, perintah `php artisan registrasi:otomatis` (cron harian) meng-her-registrasi pengajuan aktif kembali yang disetujui tetapi belum her-registrasi dalam N hari kerja, lewat HerService lama, tetap memeriksa syarat bayar dan aturan registrasi.aktifkan; reg_log pelaku sistem. Butuh izin akademik.periode.buka.
+     *
+     * `POST /v1/akademik/registrasi/pengaturan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRegistrasiPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/registrasi/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat aksi
+     *
+     * Log aktifkan/nonaktifkan dan perubahan periode dari API (reg_log).
+     *
+     * `GET /v1/akademik/registrasi/riwayat`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{batas?: int, prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRegistrasiRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/registrasi/riwayat', [], $query, null, $options, false, false);
     }
 }

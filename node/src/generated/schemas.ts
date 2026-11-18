@@ -2217,7 +2217,7 @@ export type Aturan = {
   mode?: string | null;
   pesan?: string | null;
   prioritas?: number | null;
-  /** draf | aktif | nonaktif */
+  /** draf | diajukan | aktif | nonaktif */
   status?: string | null;
   versi?: number | null;
   diaktifkan_oleh?: string | null;
@@ -2227,7 +2227,19 @@ export type Aturan = {
   created_at?: string | null;
   updated_at?: string | null;
   dihapus_at?: string | null;
-  /** Di daftar */
+  /** Aturan bawaan kampus dari migration (tetap wajib SK) */
+  bawaan?: boolean;
+  /** Belum aktif dan belum punya SK */
+  menunggu_sk?: boolean;
+  /** SK terbaru yang melekat (null bila belum ada) */
+  sk?: {
+    /** UUID lampiran */
+    id?: string | null;
+    nomor?: string | null;
+    tanggal?: string | null;
+    [key: string]: any;
+  };
+  /** Jumlah SK yang melekat */
   jumlah_sk?: number | null;
   /** Di detail */
   lampiran?: Array<{
@@ -2253,7 +2265,7 @@ export type Aturan = {
   /** Di detail (pengatur) */
   pengecualian?: Array<{
     id?: string | null;
-    /** mahasiswa | dosen | prodi */
+    /** mahasiswa | dosen | prodi | pegawai | pendaftar | akun */
     subjek_jenis?: string | null;
     subjek?: string | null;
     alasan?: string | null;
@@ -2362,6 +2374,18 @@ export type AturanInput = {
   prioritas?: number | null;
   /** Catatan perubahan (riwayat) */
   catatan?: string | null;
+  /** Ubah aturan aktif: SK baru (wajib sk atau lampiran_id) */
+  sk?: {
+    berkas_id?: string | null;
+    nomor?: string | null;
+    tanggal?: string | null;
+    perihal?: string | null;
+    [key: string]: any;
+  };
+  /** Ubah aturan aktif: UUID SK yang sudah dilampirkan */
+  lampiran_id?: string | null;
+  /** Langsung ajukan untuk disetujui */
+  ajukan?: boolean;
   [key: string]: any;
 };
 
@@ -2401,7 +2425,7 @@ export type AturanLampiranInput = {
 
 export type AturanPengecualian = {
   id?: string | null;
-  /** mahasiswa | dosen | prodi */
+  /** mahasiswa | dosen | prodi | pegawai | pendaftar | akun */
   subjek_jenis?: string | null;
   subjek?: string | null;
   alasan?: string | null;
@@ -2415,9 +2439,9 @@ export type AturanPengecualian = {
 };
 
 export type AturanPengecualianInput = {
-  /** mahasiswa | dosen | prodi */
+  /** mahasiswa | dosen | prodi | pegawai | pendaftar | akun */
   subjek_jenis?: string | null;
-  /** NIM, NIDN/username, atau kode prodi */
+  /** NIM, NIDN/username, kode prodi, id pegawai SDM, no_pmb (atau id/UUID pendaftaran), username akun */
   subjek?: string | null;
   alasan?: string | null;
   /** YYYY-MM-DD[ HH:MM]; kosong = tanpa batas */
@@ -2448,6 +2472,12 @@ export type AturanPeriksaInput = {
   titik?: string | null;
   /** Mahasiswa: kosong = diri sendiri */
   nim?: string | null;
+  /** Titik pegawai (sdm.*, spmi.*, lppm.*) */
+  pegawai_id?: string | null;
+  /** Titik pendaftar (pmb.*): id/UUID pmb_pendaftaran atau no_pmb Contoh: `123` */
+  pendaftar?: string | null;
+  /** Titik akun (akun.*): username calon akun; kirim konteks jenis_akun Contoh: `2201010001` */
+  username?: string | null;
   /** Titik kelas */
   kode_prodi?: string | null;
   kelas?: string | null;
@@ -2533,15 +2563,46 @@ export type AturanKatalog = {
     batas_lama?: string | null;
     /** Endpoint yang menegakkan */
     penerapan?: Array<string>;
+    /** Kelompok untuk UI Contoh: `Akademik` */
+    kelompok?: string | null;
+    /** Unit pemilik titik: baak, bauk, pmb, pustikom, fakultas, kemahasiswaan, lppm, sdm, spmi, perpustakaan, sarpras, sekretariat Contoh: `baak` */
+    unit?: string | null;
+    /** Templat aturan siap pakai */
+    contoh?: Array<{
+      judul?: string | null;
+      keterangan?: string | null;
+      kategori?: string | null;
+      jenis?: string | null;
+      mode?: string | null;
+      /** {"semua": [{"indikator": "ipk", "op": ">=", "nilai": 2.75, "pesan": "..."}]} atau {"salah_satu": [...]}; boleh bersarang 3 tingkat */
+      kondisi?: JsonObject | null;
+      parameter?: JsonObject | null;
+      [key: string]: any;
+    }>;
     [key: string]: any;
   }>;
   indikator?: Array<{
     kode?: string | null;
     judul?: string | null;
+    /** angka | teks | benar_salah | daftar | pilihan */
     tipe?: string | null;
+    /** mahasiswa | kelas | pegawai | pendaftar | akun | umum */
     subjek?: string | null;
+    /** siakad | konteks */
     sumber?: string | null;
     keterangan?: string | null;
+    /** Contoh: `Keuangan` */
+    kelompok?: string | null;
+    /** SKS, %, Rp, tahun, hari */
+    satuan?: string | null;
+    /** Pesan bawaan bila kondisi gagal */
+    pesan?: string | null;
+    /** Tipe pilihan: nilai untuk dropdown */
+    opsi?: Array<{
+      nilai?: string | null;
+      label?: string | null;
+      [key: string]: any;
+    }>;
     [key: string]: any;
   }>;
   [key: string]: any;
@@ -13134,7 +13195,7 @@ export type RbacHakAkses = {
   peran?: Array<{
     kode?: string;
     nama?: string;
-    sumber?: "level" | "penugasan" | "jabatan" | "pegawai";
+    sumber?: "level" | "penugasan" | "jabatan" | "pegawai" | "akun";
     unit?: {
       id?: number;
       kode?: string;

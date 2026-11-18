@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3625 endpoint).
+ * Akses ke semua modul API (3657 endpoint).
  */
 trait GeneratedResources
 {
@@ -25,7 +25,7 @@ trait GeneratedResources
         return $this->resource(Resources\Admisi::class);
     }
 
-    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status (57 endpoint) */
+    /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi (67 endpoint) */
     public function akademik(): Resources\Akademik
     {
         return $this->resource(Resources\Akademik::class);
@@ -49,7 +49,7 @@ trait GeneratedResources
         return $this->resource(Resources\Arsip::class);
     }
 
-    /** Aturan, Aturan: pengatur dan pemeriksaan, Aturan: SK dan pengecualian (22 endpoint) */
+    /** Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan (39 endpoint) */
     public function aturan(): Resources\Aturan
     {
         return $this->resource(Resources\Aturan::class);
@@ -389,6 +389,12 @@ trait GeneratedResources
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);
+    }
+
+    /** Sistem: Log terpadu (5 endpoint) */
+    public function sistem(): Resources\Sistem
+    {
+        return $this->resource(Resources\Sistem::class);
     }
 
     /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File (205 endpoint) */

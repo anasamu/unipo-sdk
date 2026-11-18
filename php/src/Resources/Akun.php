@@ -18,7 +18,7 @@ final class Akun extends Resource
      *
      * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`.
      *
-     * Hak: level ADMIN atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
+     * Hak: administrator (peran superadmin) atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
      *
      * `GET /v1/akun`
      *
@@ -41,10 +41,11 @@ final class Akun extends Resource
      * hash password sama seperti aplikasi lama. Dosen/tendik yang belum ada di SIAKAD bisa dibuat sekaligus lewat `orang_baru`
      * (kolom sama dengan form tambah dosen/karyawan lama; tendik wajib punya prodi agar bisa login).
      *
-     * Level per jenis: dosen DOSEN/PROGDI/DIREKTUR/KEUANGAN/ADMIN (ADMIN hanya Pustikom), tendik OPERATOR/BAK/PUSTAKA/PANITIA,
+     * Level per jenis: dosen DOSEN/PROGDI/DIREKTUR/KEUANGAN, tendik OPERATOR/BAK/PUSTAKA/PANITIA,
      * mahasiswa MAHASISWA, pendaftar MABA. `sandi`: `bawaan` (ID + tanggal lahir 2 digit, rumus lama), `acak` (dikembalikan
      * sekali di `password_sementara`), atau `manual` (`password` min. 8 karakter). Peran RBAC diberikan terpisah lewat
-     * POST /v1/rbac/penugasan.
+     * POST /v1/rbac/penugasan. Level ADMIN ditolak 409 `level_admin_cli`: hanya lewat CLI
+     * `php artisan admin:buat` (akun administrator terpisah).
      *
      * `POST /v1/akun`
      *
