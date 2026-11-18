@@ -4409,7 +4409,7 @@ export type IndukUnit = {
   induk_id?: number;
   /** (unik) */
   kode?: string;
-  jenis?: "universitas" | "rektorat" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
+  jenis?: "universitas" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -4438,7 +4438,7 @@ export type IndukUnitInput = {
   induk_id?: number;
   /** (unik) */
   kode: string;
-  jenis: "universitas" | "rektorat" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
+  jenis: "universitas" | "rektorat" | "kampus" | "biro" | "fakultas" | "prodi" | "lembaga" | "upt" | "bagian" | "unit";
   /** m_fakultas.kode_fakultas */
   kode_fakultas?: string;
   /** m_program_studi.kode_prodi */
@@ -4466,6 +4466,8 @@ export type IndukJabatan = {
   nama?: string;
   kelompok?: "pimpinan_universitas" | "pimpinan_fakultas" | "pimpinan_prodi" | "kepala_unit" | "sekretaris" | "lainnya";
   untuk_jenis_unit?: string;
+  /** ID di induk_unit */
+  unit_id?: number;
   tunggal?: boolean;
   aktif?: boolean;
   urut?: number;
@@ -4480,6 +4482,8 @@ export type IndukJabatanInput = {
   nama: string;
   kelompok?: "pimpinan_universitas" | "pimpinan_fakultas" | "pimpinan_prodi" | "kepala_unit" | "sekretaris" | "lainnya";
   untuk_jenis_unit?: string;
+  /** ID di induk_unit */
+  unit_id?: number;
   tunggal?: boolean;
   aktif?: boolean;
   urut?: number;

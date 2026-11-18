@@ -16,7 +16,7 @@ final class Induk extends Resource
     /**
      * Pohon unit organisasi
      *
-     * Seluruh unit tersusun bertingkat (turunan). ?aktif=1 hanya unit aktif.
+     * Seluruh unit tersusun bertingkat (turunan), dengan koordinasi dan kampus (m_kampus.idkp tempat unit tersedia; kosong = semua kampus). ?aktif=1 hanya unit aktif. Dipakai pemilih unit unipo-ui (PilihUnit).
      *
      * `GET /v1/induk/unit-pohon`
      *
@@ -245,9 +245,29 @@ final class Induk extends Resource
     }
 
     /**
+     * Atur kampus
+     *
+     * Label kampus di tabel pendamping induk_kampus (m_kampus tidak diubah): nama, singkatan, alamat, utama (satu kampus utama), aktif. Daftar kampus ada di GET /v1/induk/organisasi (kampus). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `PUT /v1/induk/organisasi/kampus/{idkp}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $idkp m_kampus.idkp
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiKampusByIdkp(int|string $idkp, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/kampus/{idkp}', ['idkp' => $idkp], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Struktur jabatan unit
      *
-     * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain.
+     * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain yang berlaku untuk jenis unit ini (untuk_jenis_unit) atau khusus unit ini (unit_id).
      *
      * `GET /v1/induk/organisasi/unit/{id}/jabatan`
      *
@@ -282,6 +302,26 @@ final class Induk extends Resource
     public function putOrganisasiUnitByIdJabatan(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/induk/organisasi/unit/{id}/jabatan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Buat jabatan khusus unit
+     *
+     * Body `nama`, `kode` (opsional, dibuat otomatis), `tunggal`. Jabatan hanya berlaku di unit ini dan langsung tersedia di struktur jabatannya. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/unit/{id}/jabatan-khusus`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUnitByIdJabatanKhusus(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/unit/{id}/jabatan-khusus', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -327,7 +367,7 @@ final class Induk extends Resource
     /**
      * Cari pegawai
      *
-     * Dosen dan tendik dari SDM, m_dosen, m_karyawan, dan akun SIAKAD (nama, NIDN, NIK karyawan, username, NIP). `akun` = akun yang akan menerima peran. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Dosen dan tendik dari SDM, m_dosen, m_karyawan, dan akun SIAKAD (nama, NIDN, NIK karyawan, username, NIP). `akun` = akun yang akan menerima peran. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `GET /v1/induk/organisasi/pegawai`
      *
@@ -346,7 +386,7 @@ final class Induk extends Resource
     /**
      * Periksa pejabat sebelum disimpan
      *
-     * Body sama dengan tambah/ubah (+ id saat mengubah). Jawaban: bentrok (pejabat sejenis yang masanya tumpang tindih), peringatan, peran yang akan didapat, akun yang cocok, dan status. Tidak menyimpan apa pun. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Body sama dengan tambah/ubah (+ id saat mengubah). Jawaban: bentrok (pejabat sejenis yang masanya tumpang tindih), peringatan, peran yang akan didapat, akun yang cocok, dan status. Tidak menyimpan apa pun. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `POST /v1/induk/organisasi/pejabat/periksa`
      *
@@ -365,7 +405,7 @@ final class Induk extends Resource
     /**
      * Tambah pejabat
      *
-     * Body: unit_id, jabatan_id, pegawai (username, nidn, dan/atau nik_karyawan; nama otomatis bila kosong), nip, nomor_sk, tanggal_sk, mulai (TMT), selesai (opsional), jenis_penugasan (definitif, plt, plh), catatan, akhiri_lama {id, selesai} untuk mengakhiri pejabat lama yang bentrok. Jabatan tunggal: satu pejabat sejenis per unit pada masa yang sama (409 dengan details.bentrok). Peran dari jabatan berlaku otomatis selama masa SK. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Body: unit_id, jabatan_id, pegawai (username, nidn, dan/atau nik_karyawan; nama otomatis bila kosong), nip, nomor_sk, tanggal_sk, mulai (TMT), selesai (opsional), jenis_penugasan (definitif, plt, plh), catatan, akhiri_lama {id, selesai} untuk mengakhiri pejabat lama yang bentrok. Jabatan tunggal: satu pejabat sejenis per unit pada masa yang sama (409 dengan details.bentrok). Peran dari jabatan berlaku otomatis selama masa SK. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `POST /v1/induk/organisasi/pejabat`
      *
@@ -404,7 +444,7 @@ final class Induk extends Resource
     /**
      * Ubah pejabat
      *
-     * Kolom yang tidak dikirim tetap. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Kolom yang tidak dikirim tetap. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `PUT /v1/induk/organisasi/pejabat/{id}`
      *
@@ -424,7 +464,7 @@ final class Induk extends Resource
     /**
      * Hapus pejabat
      *
-     * Untuk data yang salah input; pejabat yang pernah menjabat sebaiknya diakhiri. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Untuk data yang salah input; pejabat yang pernah menjabat sebaiknya diakhiri. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `DELETE /v1/induk/organisasi/pejabat/{id}`
      *
@@ -444,7 +484,7 @@ final class Induk extends Resource
     /**
      * Akhiri jabatan
      *
-     * Body: selesai (bawaan hari ini; peran berlaku sampai akhir tanggal ini), catatan. Disarankan daripada menghapus. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Body: selesai (bawaan hari ini; peran berlaku sampai akhir tanggal ini), catatan. Disarankan daripada menghapus. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `POST /v1/induk/organisasi/pejabat/{id}/akhiri`
      *
@@ -464,7 +504,7 @@ final class Induk extends Resource
     /**
      * Unggah lampiran SK
      *
-     * Multipart field "berkas" (PDF/gambar, maks. PUSAT_DATA_MAKS_MB). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Multipart field "berkas" (PDF/gambar, maks. PUSAT_DATA_MAKS_MB). Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `POST /v1/induk/organisasi/pejabat/{id}/sk`
      *
@@ -503,7 +543,7 @@ final class Induk extends Resource
     /**
      * Hapus lampiran SK
      *
-     * Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     * Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
      *
      * `DELETE /v1/induk/organisasi/pejabat/{id}/sk/{uuid}`
      *
@@ -707,7 +747,7 @@ final class Induk extends Resource
      *
      * scope: `induk:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, kelompok?: string, tunggal?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, kelompok?: string, unit_id?: string, tunggal?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -726,7 +766,7 @@ final class Induk extends Resource
      *
      * scope: `induk:write`
      *
-     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, unit_id?: int, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -766,7 +806,7 @@ final class Induk extends Resource
      * scope: `induk:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, unit_id?: int, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

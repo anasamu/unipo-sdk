@@ -65,6 +65,14 @@ export interface RegistriSK {
    * Isian bawaan: penerbit, perihal, penandatangan menurut jenis SK dan jabatan yang diangkat (pengangkatan Rektor ->
    * Yayasan/Ketua Yayasan; pejabat lain dan surat tugas Plt/Plh -> universitas/Rektor; SK fakultas -> Dekan).
    */
+  /** Profil Yayasan / Badan Penyelenggara (penerbit bawaan SK Rektor). */
+  yayasan(opsi?: RequestOptions): Promise<ProfilYayasan>;
+  /** Simpan profil Yayasan (izin sk.atur). */
+  simpanYayasan(isi: Partial<Omit<ProfilYayasan, 'ketua' | 'boleh' | 'ada'>>, opsi?: RequestOptions): Promise<ProfilYayasan>;
+  /** Kewenangan penerbitan SK (penerbit + penandatangan bawaan per jenis SK / jabatan / jenis unit). */
+  kewenangan(opsi?: RequestOptions): Promise<KewenanganSK[]>;
+  /** Tambah (tanpa id) atau ubah baris kewenangan (izin sk.atur). */
+  simpanKewenangan(isi: Partial<KewenanganSK>, id?: number, opsi?: RequestOptions): Promise<KewenanganSK[]>;
   bawaan(q: { jenis?: string; penerbitUnitId?: number | null; untukJabatanId?: number | null; untukUnitId?: number | null }, opsi?: RequestOptions): Promise<BawaanSK>;
   /** URL sementara berkas SK (hak baca registri, tanpa salinan). */
   urlBerkas(id: string, o?: { ttl?: number; unduh?: boolean } & RequestOptions): Promise<string>;
@@ -96,6 +104,46 @@ export interface BawaanSK {
   penerbit_luar: string | null;
   perihal: string | null;
   penandatangan: PenandatanganSK | null;
+}
+
+export interface PengurusYayasan {
+  jabatan: 'ketua' | 'sekretaris' | 'bendahara' | 'anggota';
+  nama: string;
+  mulai: string | null;
+  selesai: string | null;
+  pejabat_id: number | null;
+  aktif?: boolean;
+}
+
+export interface ProfilYayasan {
+  ada: boolean;
+  nama_resmi: string | null;
+  singkatan: string | null;
+  akta_nomor: string | null;
+  akta_tanggal: string | null;
+  notaris: string | null;
+  sk_kemenkumham_nomor: string | null;
+  sk_kemenkumham_tanggal: string | null;
+  alamat: string | null;
+  telepon: string | null;
+  email: string | null;
+  situs: string | null;
+  logo_berkas_id: string | null;
+  pengurus: PengurusYayasan[];
+  ketua: { nama: string; jabatan: string; pejabat_id: number | null } | null;
+  boleh: { atur: boolean };
+}
+
+export interface KewenanganSK {
+  id: number;
+  jenis: string | null;
+  jabatan_kode: string | null;
+  jenis_unit: string | null;
+  penerbit: 'yayasan' | 'universitas' | 'fakultas' | 'unit';
+  penandatangan_kode: string;
+  prioritas: number;
+  keterangan: string | null;
+  aktif: boolean;
 }
 
 const daftar = (v?: string | string[]) => (Array.isArray(v) ? v.join(',') : v);
@@ -151,6 +199,18 @@ export function registriSK(siakad: SiakadCore): RegistriSK {
     },
     async jabatanPenandatangan(unitId, opsi) {
       return (await siakad.request<JabatanPenandatanganSK[]>({ method: 'GET', path: `${P}/jabatan-penandatangan`, query: { unit_id: unitId ?? undefined } }, opsi)).data;
+    },
+    async yayasan(opsi) {
+      return (await siakad.request<ProfilYayasan>({ method: 'GET', path: `${P}/yayasan` }, opsi)).data;
+    },
+    async simpanYayasan(isi, opsi) {
+      return (await siakad.request<ProfilYayasan>({ method: 'POST', path: `${P}/yayasan`, body: isi }, opsi)).data;
+    },
+    async kewenangan(opsi) {
+      return (await siakad.request<KewenanganSK[]>({ method: 'GET', path: `${P}/kewenangan` }, opsi)).data;
+    },
+    async simpanKewenangan(isi, id, opsi) {
+      return (await siakad.request<KewenanganSK[]>({ method: 'POST', path: id ? `${P}/kewenangan/${id}` : `${P}/kewenangan`, body: isi }, opsi)).data;
     },
     async bawaan(q, opsi) {
       return (await siakad.request<BawaanSK>({ method: 'GET', path: `${P}/bawaan`, query: { jenis: q.jenis, penerbit_unit_id: q.penerbitUnitId ?? undefined, untuk_jabatan_id: q.untukJabatanId ?? undefined, untuk_unit_id: q.untukUnitId ?? undefined } }, opsi)).data;

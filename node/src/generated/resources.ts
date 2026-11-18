@@ -6372,6 +6372,8 @@ export class AturanResource {
     menunggu_sk?: string;
     /** persetujuan_saya (aturan diajukan yang bisa saya setujui) | telaah (antrean telaah SPMI) */
     antrean?: string;
+    /** 1 = hanya aturan aktif tanpa SK (aturan bawaan yang aktif otomatis; meta.bawaan_tanpa_sk) */
+    tanpa_sk?: string;
     /** 1 = hanya aturan bawaan kampus */
     bawaan?: string;
     /** Unit pemilik titik, mis. baak, bauk, pmb, sdm, spmi, lppm, pustikom (meta.bawaan: ringkasan aturan bawaan per kategori dan unit) */
@@ -16275,7 +16277,7 @@ export class IndukResource {
   /**
    * Pohon unit organisasi
    *
-   * Seluruh unit tersusun bertingkat (turunan). ?aktif=1 hanya unit aktif.
+   * Seluruh unit tersusun bertingkat (turunan), dengan koordinasi dan kampus (m_kampus.idkp tempat unit tersedia; kosong = semua kampus). ?aktif=1 hanya unit aktif. Dipakai pemilih unit unipo-ui (PilihUnit).
    *
    * `GET /v1/induk/unit-pohon`
    *
@@ -16463,9 +16465,25 @@ export class IndukResource {
   }
 
   /**
+   * Atur kampus
+   *
+   * Label kampus di tabel pendamping induk_kampus (m_kampus tidak diubah): nama, singkatan, alamat, utama (satu kampus utama), aktif. Daftar kampus ada di GET /v1/induk/organisasi (kampus). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   *
+   * `PUT /v1/induk/organisasi/kampus/{idkp}`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param idkp m_kampus.idkp
+   * @param body
+   */
+  putOrganisasiKampusByIdkp(idkp: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'PUT', path: '/v1/induk/organisasi/kampus/{idkp}', query: { idkp }, body }, options);
+  }
+
+  /**
    * Struktur jabatan unit
    *
-   * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain.
+   * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain yang berlaku untuk jenis unit ini (untuk_jenis_unit) atau khusus unit ini (unit_id).
    *
    * `GET /v1/induk/organisasi/unit/{id}/jabatan`
    *
@@ -16491,6 +16509,22 @@ export class IndukResource {
    */
   putOrganisasiUnitByIdJabatan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'PUT', path: '/v1/induk/organisasi/unit/{id}/jabatan', query: { id }, body }, options);
+  }
+
+  /**
+   * Buat jabatan khusus unit
+   *
+   * Body `nama`, `kode` (opsional, dibuat otomatis), `tunggal`. Jabatan hanya berlaku di unit ini dan langsung tersedia di struktur jabatannya. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   *
+   * `POST /v1/induk/organisasi/unit/{id}/jabatan-khusus`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID unit
+   * @param body
+   */
+  postOrganisasiUnitByIdJabatanKhusus(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/unit/{id}/jabatan-khusus', query: { id }, body }, options);
   }
 
   /**
@@ -16527,7 +16561,7 @@ export class IndukResource {
   /**
    * Cari pegawai
    *
-   * Dosen dan tendik dari SDM, m_dosen, m_karyawan, dan akun SIAKAD (nama, NIDN, NIK karyawan, username, NIP). `akun` = akun yang akan menerima peran. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Dosen dan tendik dari SDM, m_dosen, m_karyawan, dan akun SIAKAD (nama, NIDN, NIK karyawan, username, NIP). `akun` = akun yang akan menerima peran. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `GET /v1/induk/organisasi/pegawai`
    *
@@ -16543,7 +16577,7 @@ export class IndukResource {
   /**
    * Periksa pejabat sebelum disimpan
    *
-   * Body sama dengan tambah/ubah (+ id saat mengubah). Jawaban: bentrok (pejabat sejenis yang masanya tumpang tindih), peringatan, peran yang akan didapat, akun yang cocok, dan status. Tidak menyimpan apa pun. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Body sama dengan tambah/ubah (+ id saat mengubah). Jawaban: bentrok (pejabat sejenis yang masanya tumpang tindih), peringatan, peran yang akan didapat, akun yang cocok, dan status. Tidak menyimpan apa pun. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `POST /v1/induk/organisasi/pejabat/periksa`
    *
@@ -16558,7 +16592,7 @@ export class IndukResource {
   /**
    * Tambah pejabat
    *
-   * Body: unit_id, jabatan_id, pegawai (username, nidn, dan/atau nik_karyawan; nama otomatis bila kosong), nip, nomor_sk, tanggal_sk, mulai (TMT), selesai (opsional), jenis_penugasan (definitif, plt, plh), catatan, akhiri_lama {id, selesai} untuk mengakhiri pejabat lama yang bentrok. Jabatan tunggal: satu pejabat sejenis per unit pada masa yang sama (409 dengan details.bentrok). Peran dari jabatan berlaku otomatis selama masa SK. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Body: unit_id, jabatan_id, pegawai (username, nidn, dan/atau nik_karyawan; nama otomatis bila kosong), nip, nomor_sk, tanggal_sk, mulai (TMT), selesai (opsional), jenis_penugasan (definitif, plt, plh), catatan, akhiri_lama {id, selesai} untuk mengakhiri pejabat lama yang bentrok. Jabatan tunggal: satu pejabat sejenis per unit pada masa yang sama (409 dengan details.bentrok). Peran dari jabatan berlaku otomatis selama masa SK. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `POST /v1/induk/organisasi/pejabat`
    *
@@ -16588,7 +16622,7 @@ export class IndukResource {
   /**
    * Ubah pejabat
    *
-   * Kolom yang tidak dikirim tetap. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Kolom yang tidak dikirim tetap. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `PUT /v1/induk/organisasi/pejabat/{id}`
    *
@@ -16604,7 +16638,7 @@ export class IndukResource {
   /**
    * Hapus pejabat
    *
-   * Untuk data yang salah input; pejabat yang pernah menjabat sebaiknya diakhiri. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Untuk data yang salah input; pejabat yang pernah menjabat sebaiknya diakhiri. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `DELETE /v1/induk/organisasi/pejabat/{id}`
    *
@@ -16619,7 +16653,7 @@ export class IndukResource {
   /**
    * Akhiri jabatan
    *
-   * Body: selesai (bawaan hari ini; peran berlaku sampai akhir tanggal ini), catatan. Disarankan daripada menghapus. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Body: selesai (bawaan hari ini; peran berlaku sampai akhir tanggal ini), catatan. Disarankan daripada menghapus. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `POST /v1/induk/organisasi/pejabat/{id}/akhiri`
    *
@@ -16635,7 +16669,7 @@ export class IndukResource {
   /**
    * Unggah lampiran SK
    *
-   * Multipart field "berkas" (PDF/gambar, maks. PUSAT_DATA_MAKS_MB). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Multipart field "berkas" (PDF/gambar, maks. PUSAT_DATA_MAKS_MB). Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `POST /v1/induk/organisasi/pejabat/{id}/sk`
    *
@@ -16665,7 +16699,7 @@ export class IndukResource {
   /**
    * Hapus lampiran SK
    *
-   * Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
    *
    * `DELETE /v1/induk/organisasi/pejabat/{id}/sk/{uuid}`
    *
@@ -16857,6 +16891,8 @@ export class IndukResource {
     per_page?: number;
     /** Filter kesamaan (isi "null" untuk kosong) */
     kelompok?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    unit_id?: string;
     /** Filter kesamaan (isi "null" untuk kosong) */
     tunggal?: string;
     /** Filter kesamaan (isi "null" untuk kosong) */
@@ -58826,6 +58862,8 @@ export class SkResource {
     per_page?: string;
     /** 0 = tanpa saran arsip */
     arsip?: string;
+    /** 1 = antrean verifikasi: SK impor data lama yang terbit tetapi belum diverifikasi penerbit */
+    belum_verifikasi?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.SkRegistri>>> {
     return this.client.request({ method: 'GET', path: '/v1/sk', query }, options);
   }
@@ -58930,6 +58968,101 @@ export class SkResource {
     unit_id?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
     return this.client.request({ method: 'GET', path: '/v1/sk/jabatan-penandatangan', query }, options);
+  }
+
+  /**
+   * Profil Yayasan
+   *
+   * Profil Yayasan / Badan Penyelenggara: nama resmi, singkatan, akta pendirian, SK Kemenkumham, alamat, kontak, situs, logo, pengurus (ketua, sekretaris, bendahara, anggota). Dipakai sebagai penerbit bawaan SK Rektor. boleh.atur = izin sk.atur.
+   *
+   * `GET /v1/sk/yayasan`
+   *
+   * scope: `berkas:read`
+   */
+  getYayasan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sk/yayasan', query }, options);
+  }
+
+  /**
+   * Simpan profil Yayasan
+   *
+   * Body: {nama_resmi, singkatan?, akta_nomor?, akta_tanggal?, notaris?, sk_kemenkumham_nomor?, sk_kemenkumham_tanggal?, alamat?, telepon?, email?, situs?, logo_berkas_id?, pengurus?: [{jabatan: ketua|sekretaris|bendahara|anggota, nama, mulai?, selesai?, pejabat_id?}]}. Izin sk.atur (Rektorat/Pustikom). Perubahan tercatat di riwayat.
+   *
+   * `POST /v1/sk/yayasan`
+   *
+   * scope: `berkas:write` · hanya token pengguna
+   */
+  postYayasan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/sk/yayasan', query }, options);
+  }
+
+  /**
+   * Riwayat profil Yayasan dan kewenangan SK
+   *
+   * 100 perubahan terakhir (jejak audit).
+   *
+   * `GET /v1/sk/yayasan/riwayat`
+   *
+   * scope: `berkas:read`
+   */
+  getYayasanRiwayat(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sk/yayasan/riwayat', query }, options);
+  }
+
+  /**
+   * Kewenangan penerbitan SK
+   *
+   * Aturan bawaan penerbit + penandatangan per jenis SK / jabatan yang diangkat / jenis unit, dipakai GET /v1/sk/bawaan. Baris paling spesifik menang (jabatan > jenis SK > jenis unit), lalu prioritas.
+   *
+   * `GET /v1/sk/kewenangan`
+   *
+   * scope: `berkas:read`
+   */
+  getKewenangan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sk/kewenangan', query }, options);
+  }
+
+  /**
+   * Tambah kewenangan SK
+   *
+   * Body: {jenis?, jabatan_kode?, jenis_unit?, penerbit: yayasan|universitas|fakultas|unit, penandatangan_kode (kode induk_jabatan atau KETUA_YAYASAN), prioritas?, keterangan?, aktif?}. Izin sk.atur.
+   *
+   * `POST /v1/sk/kewenangan`
+   *
+   * scope: `berkas:write` · hanya token pengguna
+   */
+  postKewenangan(query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/sk/kewenangan', query }, options);
+  }
+
+  /**
+   * Ubah kewenangan SK
+   *
+   * Body sama dengan tambah (sebagian boleh). Izin sk.atur.
+   *
+   * `POST /v1/sk/kewenangan/{id}`
+   *
+   * scope: `berkas:write` · hanya token pengguna
+   *
+   * @param id ID baris
+   */
+  postKewenanganById(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/sk/kewenangan/{id}', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Hapus kewenangan SK
+   *
+   * Izin sk.atur.
+   *
+   * `POST /v1/sk/kewenangan/{id}/hapus`
+   *
+   * scope: `berkas:write` · hanya token pengguna
+   *
+   * @param id ID baris
+   */
+  postKewenanganByIdHapus(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'POST', path: '/v1/sk/kewenangan/{id}/hapus', query: { ...query, id } }, options);
   }
 
   /**

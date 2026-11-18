@@ -22,7 +22,7 @@ final class Sk extends Resource
      *
      * scope: `berkas:read`
      *
-     * @param array{q?: string, jenis?: string, status?: string, penerbit?: string, per_page?: string, arsip?: string, ...} $query
+     * @param array{q?: string, jenis?: string, status?: string, penerbit?: string, per_page?: string, arsip?: string, belum_verifikasi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -144,6 +144,141 @@ final class Sk extends Resource
     public function getJabatanPenandatangan(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sk/jabatan-penandatangan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Profil Yayasan
+     *
+     * Profil Yayasan / Badan Penyelenggara: nama resmi, singkatan, akta pendirian, SK Kemenkumham, alamat, kontak, situs, logo, pengurus (ketua, sekretaris, bendahara, anggota). Dipakai sebagai penerbit bawaan SK Rektor. boleh.atur = izin sk.atur.
+     *
+     * `GET /v1/sk/yayasan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getYayasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sk/yayasan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan profil Yayasan
+     *
+     * Body: {nama_resmi, singkatan?, akta_nomor?, akta_tanggal?, notaris?, sk_kemenkumham_nomor?, sk_kemenkumham_tanggal?, alamat?, telepon?, email?, situs?, logo_berkas_id?, pengurus?: [{jabatan: ketua|sekretaris|bendahara|anggota, nama, mulai?, selesai?, pejabat_id?}]}. Izin sk.atur (Rektorat/Pustikom). Perubahan tercatat di riwayat.
+     *
+     * `POST /v1/sk/yayasan`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postYayasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/yayasan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat profil Yayasan dan kewenangan SK
+     *
+     * 100 perubahan terakhir (jejak audit).
+     *
+     * `GET /v1/sk/yayasan/riwayat`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getYayasanRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sk/yayasan/riwayat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kewenangan penerbitan SK
+     *
+     * Aturan bawaan penerbit + penandatangan per jenis SK / jabatan yang diangkat / jenis unit, dipakai GET /v1/sk/bawaan. Baris paling spesifik menang (jabatan > jenis SK > jenis unit), lalu prioritas.
+     *
+     * `GET /v1/sk/kewenangan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKewenangan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sk/kewenangan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah kewenangan SK
+     *
+     * Body: {jenis?, jabatan_kode?, jenis_unit?, penerbit: yayasan|universitas|fakultas|unit, penandatangan_kode (kode induk_jabatan atau KETUA_YAYASAN), prioritas?, keterangan?, aktif?}. Izin sk.atur.
+     *
+     * `POST /v1/sk/kewenangan`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKewenangan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/kewenangan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah kewenangan SK
+     *
+     * Body sama dengan tambah (sebagian boleh). Izin sk.atur.
+     *
+     * `POST /v1/sk/kewenangan/{id}`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id ID baris
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKewenanganById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/kewenangan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus kewenangan SK
+     *
+     * Izin sk.atur.
+     *
+     * `POST /v1/sk/kewenangan/{id}/hapus`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id ID baris
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKewenanganByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/kewenangan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -357,7 +357,7 @@ final class Aturan extends Resource
      *
      * scope: `aturan:read` · berhalaman
      *
-     * @param array{titik?: string, kategori?: string, jenis?: string, mode?: string, status?: string, prodi?: string, tahun_id?: string, q?: string, terhapus?: string, menunggu_sk?: string, antrean?: string, bawaan?: string, unit?: string, page?: int, per_page?: int, ...} $query
+     * @param array{titik?: string, kategori?: string, jenis?: string, mode?: string, status?: string, prodi?: string, tahun_id?: string, q?: string, terhapus?: string, menunggu_sk?: string, antrean?: string, tanpa_sk?: string, bawaan?: string, unit?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

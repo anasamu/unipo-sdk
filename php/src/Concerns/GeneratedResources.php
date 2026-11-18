@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3769 endpoint).
+ * Akses ke semua modul API (3778 endpoint).
  */
 trait GeneratedResources
 {
@@ -133,7 +133,7 @@ trait GeneratedResources
         return $this->resource(Resources\Iku::class);
     }
 
-    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (68 endpoint) */
+    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (70 endpoint) */
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
@@ -397,7 +397,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sistem::class);
     }
 
-    /** SK: Registri (16 endpoint) */
+    /** SK: Registri (23 endpoint) */
     public function sk(): Resources\Sk
     {
         return $this->resource(Resources\Sk::class);
