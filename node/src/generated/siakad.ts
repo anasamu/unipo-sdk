@@ -22,7 +22,7 @@ export class Siakad extends SiakadCore {
     return r;
   }
 
-  /** Sistem (3 endpoint) */
+  /** Sistem (4 endpoint) */
   get system(): R.SystemResource {
     return this.resource('system', () => new R.SystemResource(this));
   }
@@ -32,12 +32,12 @@ export class Siakad extends SiakadCore {
     return this.resource('admisi', () => new R.AdmisiResource(this));
   }
 
-  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi (67 endpoint) */
+  /** Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Ujian, Akademik: Konversi dan riwayat nilai, Akademik: Pengajuan status, Akademik: Perbaikan nilai, Akademik: Periode, Akademik: Her-registrasi (102 endpoint) */
   get akademik(): R.AkademikResource {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
 
-  /** Akun pengguna (13 endpoint) */
+  /** Akun pengguna (14 endpoint) */
   get akun(): R.AkunResource {
     return this.resource('akun', () => new R.AkunResource(this));
   }
@@ -97,7 +97,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (91 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (99 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -122,7 +122,7 @@ export class Siakad extends SiakadCore {
     return this.resource('iku', () => new R.IkuResource(this));
   }
 
-  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit (45 endpoint) */
+  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (70 endpoint) */
   get induk(): R.IndukResource {
     return this.resource('induk', () => new R.IndukResource(this));
   }
@@ -147,7 +147,7 @@ export class Siakad extends SiakadCore {
     return this.resource('jadwalUjian', () => new R.JadwalUjianResource(this));
   }
 
-  /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Kegiatan (15 endpoint) */
+  /** Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kegiatan (34 endpoint) */
   get kalender(): R.KalenderResource {
     return this.resource('kalender', () => new R.KalenderResource(this));
   }
@@ -340,6 +340,11 @@ export class Siakad extends SiakadCore {
   /** Sistem: Log terpadu, Sistem: Tugas terjadwal (14 endpoint) */
   get sistem(): R.SistemResource {
     return this.resource('sistem', () => new R.SistemResource(this));
+  }
+
+  /** SK: Registri (23 endpoint) */
+  get sk(): R.SkResource {
+    return this.resource('sk', () => new R.SkResource(this));
   }
 
   /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File (205 endpoint) */

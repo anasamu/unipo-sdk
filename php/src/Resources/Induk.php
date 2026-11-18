@@ -9,14 +9,14 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Jabatan, Induk: Peran modul, Induk: Log audit
+ * Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit
  */
 final class Induk extends Resource
 {
     /**
      * Pohon unit organisasi
      *
-     * Seluruh unit tersusun bertingkat (turunan). ?aktif=1 hanya unit aktif.
+     * Seluruh unit tersusun bertingkat (turunan), dengan koordinasi dan kampus (m_kampus.idkp tempat unit tersedia; kosong = semua kampus). ?aktif=1 hanya unit aktif. Dipakai pemilih unit unipo-ui (PilihUnit).
      *
      * `GET /v1/induk/unit-pohon`
      *
@@ -128,15 +128,508 @@ final class Induk extends Resource
     }
 
     /**
+     * Ringkasan organisasi
+     *
+     * Semua unit (datar, dengan jumlah sub-unit, pejabat aktif, dan pimpinan), jabatan beserta peran RBAC yang diberikannya, pejabat beserta status (aktif, akan_datang, berakhir, nonaktif) dan sisa hari masa SK, pintasan jabatan Pustikom yang belum terisi, serta hak pemilik token (kelola, peta_peran).
+     *
+     * `GET /v1/induk/organisasi`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bagan struktur organisasi
+     *
+     * Unit aktif (seluruh organisasi, atau subtree `unit` = ID, kode unit, kode prodi, atau kode fakultas) beserta jabatan yang terisi pejabat aktif (termasuk Plt/Plh) dan jabatan lazim yang belum diisi (pejabat = null). Unit nonaktif dan turunannya tidak tampil kecuali `semua=1`; `kampus` (m_kampus.idkp) menyaring unit yang tersedia di kampus itu. Dipakai bagan di Pustikom dan aplikasi Fakultas.
+     *
+     * `GET /v1/induk/organisasi/struktur`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param array{unit?: string, semua?: string, kampus?: string, tendik?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiStruktur(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/struktur', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail unit
+     *
+     * Unit, jalur induk, sub-unit, pejabat (semua masa), data yang masih merujuk unit (keterkaitan), boleh_hapus, dan riwayat perubahan unit serta pejabatnya.
+     *
+     * `GET /v1/induk/organisasi/unit/{id}`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiUnitById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/unit/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah unit
+     *
+     * Kolom yang tidak dikirim tetap. Induk tidak boleh unit itu sendiri atau turunannya. `aktif: false` menonaktifkan. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `PUT /v1/induk/organisasi/unit/{id}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiUnitById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/unit/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus unit
+     *
+     * Hanya bila tidak punya sub-unit, pejabat, penugasan, atau data lain yang merujuknya; bila ada, 409 unit_dipakai dengan details.keterkaitan (nonaktifkan saja). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `DELETE /v1/induk/organisasi/unit/{id}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteOrganisasiUnitById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/induk/organisasi/unit/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah unit
+     *
+     * Body: kode (unik), nama, singkatan, jenis (universitas, rektorat, biro, fakultas, prodi, lembaga, upt, bagian, unit), induk_id (wajib selain universitas), aktif, urut, koordinasi, kampus (daftar m_kampus.idkp; kosong = semua kampus), email, telepon. Mengaktifkan unit ikut mengaktifkan induknya yang nonaktif. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/unit`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUnit(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/unit', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Atur kampus
+     *
+     * Label kampus di tabel pendamping induk_kampus (m_kampus tidak diubah): nama, singkatan, alamat, utama (satu kampus utama), aktif. Daftar kampus ada di GET /v1/induk/organisasi (kampus). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `PUT /v1/induk/organisasi/kampus/{idkp}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $idkp m_kampus.idkp
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiKampusByIdkp(int|string $idkp, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/kampus/{idkp}', ['idkp' => $idkp], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Struktur jabatan unit
+     *
+     * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain yang berlaku untuk jenis unit ini (untuk_jenis_unit) atau khusus unit ini (unit_id).
+     *
+     * `GET /v1/induk/organisasi/unit/{id}/jabatan`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiUnitByIdJabatan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/unit/{id}/jabatan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur jabatan tersedia di unit
+     *
+     * Body `{"jabatan": [{"jabatan_id": 11, "tersedia": false}]}`: mengganti seluruh penyesuaian unit; jabatan di luar aturan dengan tersedia true menjadi jabatan khusus unit. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `PUT /v1/induk/organisasi/unit/{id}/jabatan`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiUnitByIdJabatan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/unit/{id}/jabatan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Buat jabatan khusus unit
+     *
+     * Body `nama`, `kode` (opsional, dibuat otomatis), `tunggal`. Jabatan hanya berlaku di unit ini dan langsung tersedia di struktur jabatannya. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/unit/{id}/jabatan-khusus`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUnitByIdJabatanKhusus(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/unit/{id}/jabatan-khusus', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tendik dan staf unit
+     *
+     * Pegawai tendik aktif dari SDM (unit kerja SDM dipetakan ke unit ini) dan pemegang penugasan peran berlingkup unit: nama, NIP/NIDK, tugas, sumber. Untuk Pustikom (pustikom.organisasi.kelola), petugas SDM, dan pemegang fakultas.akses di unit itu. Data diubah di aplikasi SDM.
+     *
+     * `GET /v1/induk/organisasi/unit/{id}/tendik`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiUnitByIdTendik(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/unit/{id}/tendik', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Urutkan unit
+     *
+     * Body `arah`: naik atau turun (di antara unit sejajar). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/unit/{id}/urutkan`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID unit
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiUnitByIdUrutkan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/unit/{id}/urutkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cari pegawai
+     *
+     * Dosen dan tendik dari SDM, m_dosen, m_karyawan, dan akun SIAKAD (nama, NIDN, NIK karyawan, username, NIP). `akun` = akun yang akan menerima peran. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `GET /v1/induk/organisasi/pegawai`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param array{q: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiPegawai(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/pegawai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periksa pejabat sebelum disimpan
+     *
+     * Body sama dengan tambah/ubah (+ id saat mengubah). Jawaban: bentrok (pejabat sejenis yang masanya tumpang tindih), peringatan, peran yang akan didapat, akun yang cocok, dan status. Tidak menyimpan apa pun. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `POST /v1/induk/organisasi/pejabat/periksa`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiPejabatPeriksa(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/pejabat/periksa', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tambah pejabat
+     *
+     * Body: unit_id, jabatan_id, pegawai (username, nidn, dan/atau nik_karyawan; nama otomatis bila kosong), nip, nomor_sk, tanggal_sk, mulai (TMT), selesai (opsional), jenis_penugasan (definitif, plt, plh), catatan, akhiri_lama {id, selesai} untuk mengakhiri pejabat lama yang bentrok. Jabatan tunggal: satu pejabat sejenis per unit pada masa yang sama (409 dengan details.bentrok). Peran dari jabatan berlaku otomatis selama masa SK. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `POST /v1/induk/organisasi/pejabat`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiPejabat(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/pejabat', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Detail pejabat
+     *
+     * Beserta lampiran SK, riwayat, peran yang diberikan, dan akun yang menerimanya.
+     *
+     * `GET /v1/induk/organisasi/pejabat/{id}`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiPejabatById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/pejabat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah pejabat
+     *
+     * Kolom yang tidak dikirim tetap. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `PUT /v1/induk/organisasi/pejabat/{id}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiPejabatById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/pejabat/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus pejabat
+     *
+     * Untuk data yang salah input; pejabat yang pernah menjabat sebaiknya diakhiri. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `DELETE /v1/induk/organisasi/pejabat/{id}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteOrganisasiPejabatById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/induk/organisasi/pejabat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Akhiri jabatan
+     *
+     * Body: selesai (bawaan hari ini; peran berlaku sampai akhir tanggal ini), catatan. Disarankan daripada menghapus. Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `POST /v1/induk/organisasi/pejabat/{id}/akhiri`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiPejabatByIdAkhiri(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/pejabat/{id}/akhiri', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Unggah lampiran SK
+     *
+     * Multipart field "berkas" (PDF/gambar, maks. PUSAT_DATA_MAKS_MB). Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `POST /v1/induk/organisasi/pejabat/{id}/sk`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, jenis?: string, keterangan?: string, berkas_base64?: string, nama_file?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiPejabatByIdSk(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/pejabat/{id}/sk', ['id' => $id], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Unduh lampiran SK
+     *
+     * `GET /v1/induk/organisasi/pejabat/{id}/sk/{uuid}`
+     *
+     * scope: `induk:read` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getOrganisasiPejabatByIdSkByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/induk/organisasi/pejabat/{id}/sk/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus lampiran SK
+     *
+     * Admin Pustikom (pustikom.organisasi.kelola), petugas SDM ber-izin sdm.pejabat.kelola, admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain. Log mencatat aplikasi asal.
+     *
+     * `DELETE /v1/induk/organisasi/pejabat/{id}/sk/{uuid}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pejabat
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteOrganisasiPejabatByIdSkByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/induk/organisasi/pejabat/{id}/sk/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah jabatan
+     *
+     * Body: kode (huruf besar, unik, tidak bisa diubah), nama, kelompok, untuk_jenis_unit (daftar jenis unit), tunggal, aktif, urut. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `POST /v1/induk/organisasi/jabatan`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postOrganisasiJabatan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/induk/organisasi/jabatan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah jabatan
+     *
+     * Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+     *
+     * `PUT /v1/induk/organisasi/jabatan/{id}`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID jabatan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiJabatanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/jabatan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Atur peran jabatan
+     *
+     * Mengganti seluruh peran RBAC yang diberikan jabatan: `{"peran_id": [12]}`. Berlaku langsung untuk semua pejabat aktif. Peran superadmin ditolak. Hanya admin hak akses (izin rbac:admin) dan administrator.
+     *
+     * `PUT /v1/induk/organisasi/jabatan/{id}/peran`
+     *
+     * scope: `induk:write` · hanya token pengguna
+     *
+     * @param int|string $id ID jabatan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putOrganisasiJabatanByIdPeran(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/induk/organisasi/jabatan/{id}/peran', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Unit organisasi: daftar
      *
-     * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+     * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
      *
      * `GET /v1/induk/unit`
      *
      * scope: `induk:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, induk_id?: string, jenis?: string, kode_fakultas?: string, kode_prodi?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, induk_id?: string, jenis?: string, kode_fakultas?: string, kode_prodi?: string, aktif?: string, bawaan?: string, koordinasi?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -155,7 +648,7 @@ final class Induk extends Resource
      *
      * scope: `induk:write`
      *
-     * @param array{induk_id?: int, kode: string, jenis: string, kode_fakultas?: string, kode_prodi?: string, nama: string, nama_en?: string, singkatan?: string, email?: string, telepon?: string, situs?: string, alamat?: string, tanggal_berdiri?: string, nomor_sk_pendirian?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{induk_id?: int, kode: string, jenis: string, kode_fakultas?: string, kode_prodi?: string, nama: string, nama_en?: string, singkatan?: string, email?: string, telepon?: string, situs?: string, alamat?: string, tanggal_berdiri?: string, nomor_sk_pendirian?: string, aktif?: bool, koordinasi?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -168,7 +661,7 @@ final class Induk extends Resource
     /**
      * Unit organisasi: detail
      *
-     * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+     * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
      *
      * `GET /v1/induk/unit/{id}`
      *
@@ -195,7 +688,7 @@ final class Induk extends Resource
      * scope: `induk:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{induk_id?: int, kode: string, jenis: string, kode_fakultas?: string, kode_prodi?: string, nama: string, nama_en?: string, singkatan?: string, email?: string, telepon?: string, situs?: string, alamat?: string, tanggal_berdiri?: string, nomor_sk_pendirian?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{induk_id?: int, kode: string, jenis: string, kode_fakultas?: string, kode_prodi?: string, nama: string, nama_en?: string, singkatan?: string, email?: string, telepon?: string, situs?: string, alamat?: string, tanggal_berdiri?: string, nomor_sk_pendirian?: string, aktif?: bool, koordinasi?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -228,7 +721,7 @@ final class Induk extends Resource
     /**
      * Unit organisasi: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
      *
      * `GET /v1/induk/unit/{id}/riwayat`
      *
@@ -254,7 +747,7 @@ final class Induk extends Resource
      *
      * scope: `induk:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, kelompok?: string, tunggal?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, kelompok?: string, unit_id?: string, tunggal?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -273,7 +766,7 @@ final class Induk extends Resource
      *
      * scope: `induk:write`
      *
-     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, unit_id?: int, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -313,7 +806,7 @@ final class Induk extends Resource
      * scope: `induk:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, kelompok?: string, untuk_jenis_unit?: string, unit_id?: int, tunggal?: bool, aktif?: bool, urut?: int, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -372,7 +865,7 @@ final class Induk extends Resource
      *
      * scope: `induk:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, unit_id?: string, jabatan_id?: string, orang_id?: string, nidn?: string, nik_karyawan?: string, username?: string, plt?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, unit_id?: string, jabatan_id?: string, orang_id?: string, nidn?: string, nik_karyawan?: string, username?: string, plt?: string, plh?: string, aktif?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -391,7 +884,7 @@ final class Induk extends Resource
      *
      * scope: `induk:write`
      *
-     * @param array{unit_id: int, jabatan_id: int, orang_id?: int, nidn?: string, nik_karyawan?: string, username?: string, nama?: string, nip?: string, nomor_sk?: string, tanggal_sk?: string, mulai: string, selesai?: string, plt?: bool, aktif?: bool, ...} $body
+     * @param array{unit_id: int, jabatan_id: int, orang_id?: int, nidn?: string, nik_karyawan?: string, username?: string, nama?: string, nip?: string, nomor_sk?: string, tanggal_sk?: string, mulai: string, selesai?: string, plt?: bool, plh?: bool, catatan?: string, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -431,7 +924,7 @@ final class Induk extends Resource
      * scope: `induk:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{unit_id: int, jabatan_id: int, orang_id?: int, nidn?: string, nik_karyawan?: string, username?: string, nama?: string, nip?: string, nomor_sk?: string, tanggal_sk?: string, mulai: string, selesai?: string, plt?: bool, aktif?: bool, ...} $body
+     * @param array{unit_id: int, jabatan_id: int, orang_id?: int, nidn?: string, nik_karyawan?: string, username?: string, nama?: string, nip?: string, nomor_sk?: string, tanggal_sk?: string, mulai: string, selesai?: string, plt?: bool, plh?: bool, catatan?: string, aktif?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

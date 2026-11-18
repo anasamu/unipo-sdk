@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Pengajuan status, Akademik: Periode, Akademik: Her-registrasi
+ * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Ujian, Akademik: Konversi dan riwayat nilai, Akademik: Pengajuan status, Akademik: Perbaikan nilai, Akademik: Periode, Akademik: Her-registrasi
  */
 final class Akademik extends Resource
 {
@@ -54,7 +54,7 @@ final class Akademik extends Resource
     /**
      * Daftar jadwal kuliah prodi
      *
-     * Jadwal per periode dengan jam, dosen + tim, peserta, bisa_dihapus. Semester pendek = periode berakhiran 3 (mis. 20253).
+     * Jadwal per periode dengan jam, dosen + tim, peserta, bisa_dihapus. Semester pendek = periode berakhiran 3 (mis. 20253). Tanpa prodi (pengelola lintas prodi) = semua prodi kelolaan: dibaca per prodi lalu digabung, tiap baris membawa kode_prodi dan nama_prodi, maks. 3000 baris (meta.terpotong, meta.per_prodi). Tambah/ubah/hapus jadwal tetap per prodi.
      *
      * `GET /v1/akademik/jadwal`
      *
@@ -440,6 +440,65 @@ final class Akademik extends Resource
     }
 
     /**
+     * Riwayat KRS atas nama
+     *
+     * Log tambah/hapus mata kuliah KRS atas nama mahasiswa oleh pengelola (akd_krs_atas_nama): NIM, nama, prodi, periode, aksi, MK, kelas, SKS, alasan, pelaku, waktu. Terbaru dulu.
+     *
+     * `GET /v1/akademik/krs/atas-nama`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{prodi?: string, nim?: string, tahun_id?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKrsAtasNama(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/krs/atas-nama', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * KRS dan penawaran untuk diisi atas nama
+     *
+     * Pengelola. KRS mahasiswa pada periode + penawaran mata kuliah dari form Input KRS staf (KrsInputStafService: masa KRS kampus, batas SKS, syarat bayar, cuti/non-aktif, paket, prasyarat, pilihan kelas + penuh), boleh_input + alasan, persetujuan PA, dan ringkasan aturan titik krs.input.operator.
+     *
+     * `GET /v1/akademik/krs/atas-nama/{nim}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $nim NIM
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKrsAtasNamaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/krs/atas-nama/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah/hapus MK KRS atas nama mahasiswa
+     *
+     * Body tambah: {"aksi": "tambah", "mata_kuliah": [{"id": id m_mata_kuliah, "idj": kelas}], "alasan": "...", "tahun_id"}. Body hapus: {"aksi": "hapus", "idkrs": 123, "alasan": "...", "tahun_id"}. Alasan wajib (5-500 karakter). Aturan titik krs.input.operator ditegakkan dengan SKS/jumlah MK setelah perubahan (409 aturan_dilanggar). Simpan lewat KrsInputStafService::simpan (validasi lama: batas SKS, kapasitas, bentrok; status persetujuan PA dipertahankan), hapus lewat KrsInputStafService::hapus (ditolak bila sudah bernilai). Dicatat di akd_krs_atas_nama dan m_log.
+     *
+     * `POST /v1/akademik/krs/atas-nama/{nim}`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKrsAtasNamaByNim(int|string $nim, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/krs/atas-nama/{nim}', ['nim' => $nim], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Kelas untuk input nilai
      *
      * Peserta dan jumlah bernilai per kelas. Dosen: kelas yang diampu/tim.
@@ -577,6 +636,25 @@ final class Akademik extends Resource
     public function postBatasByJenisByIdKunci(int|string $jenis, int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akademik/batas/{jenis}/{id}/kunci', ['jenis' => $jenis, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Monitoring presensi per kelas
+     *
+     * Pengelola. Semua kelas (jadwal) satu prodi atau semua prodi kelolaan (tanpa prodi) pada periode: prodi, mata kuliah, kelas, dosen, peserta, jumlah_pertemuan (t_dosen_presensi), pertemuan_terakhir, persen_hadir (status H dari presensi mahasiswa yang tercatat). ringkasan: kelas, belum_ada_pertemuan, rata_pertemuan. Maks. 3000 kelas. Hanya baca.
+     *
+     * `GET /v1/akademik/presensi/monitoring`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPresensiMonitoring(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/presensi/monitoring', [], $query, null, $options, false, false);
     }
 
     /**
@@ -806,7 +884,7 @@ final class Akademik extends Resource
     /**
      * Transkrip sementara
      *
-     * Transkrip nilai terbaik (sama dengan /v1/mahasiswa/{nim}/transkrip) + kop perguruan tinggi, prodi, predikat sementara (m_predikat).
+     * Transkrip nilai terbaik (sama dengan /v1/mahasiswa/{nim}/transkrip) + kop perguruan tinggi, prodi, predikat sementara (m_predikat). Aturan dinamis titik `transkrip.cetak`: pelanggaran 409 aturan_dilanggar.
      *
      * `GET /v1/akademik/mahasiswa/{nim}/transkrip-sementara`
      *
@@ -879,6 +957,355 @@ final class Akademik extends Resource
     public function getLaporan(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/akademik/laporan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Referensi jadwal ujian
+     *
+     * Satu prodi: kelas kuliah periode (MK, kelas, pengampu, ruang, peserta), jam m_jam, ruang, dosen aktif (calon pengawas), rentang UTS/UAS m_tahun, syarat kartu (bayar, presensi minimal).
+     *
+     * `GET /v1/akademik/ujian/referensi`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianReferensi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/ujian/referensi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jadwal ujian
+     *
+     * Jadwal UTS/UAS satu atau semua prodi kelolaan: MK, kelas, tanggal, jam nyata, ruang, pengawas, kapasitas, peserta, kode_prodi, dan `bentrok` (jenis temuan yang menyentuh baris ini). Ringkasan: jadwal, kelas belum terjadwal, peserta, hari, bentrok, peringatan.
+     *
+     * `GET /v1/akademik/ujian`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/ujian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah jadwal ujian
+     *
+     * Body: {"prodi", "tahun_id", "ujian": "uts|uas", "kode_mk", "kelas", "tanggal", "jamke", "ruang", "kapasitas", "nidn1", "nidn2"}. Bentrok jam nyata lintas prodi (ruang, pengawas, kelas, mahasiswa) = 409; lalu validasi UjianProdi (tanggal di masa ujian, kapasitas >= peserta) dan INSERT lewat JadwalUjianStafRepository.
+     *
+     * `POST /v1/akademik/ujian`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cek bentrok jadwal ujian
+     *
+     * Hanya membaca. Bentrok (jam nyata m_jam tiap prodi, lintas prodi): ruang sama, pengawas sama (NIDN1..NIDN4), rombongan kelas sama, mahasiswa yang KRS-nya memuat dua ujian beririsan. Peringatan: peserta melebihi kapasitas, tanggal di luar masa UTS/UAS periode, jam tidak dikenal.
+     *
+     * `GET /v1/akademik/ujian/bentrok`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianBentrok(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/ujian/bentrok', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cek satu jadwal sebelum disimpan
+     *
+     * Body sama dengan tambah (+ "id" saat ubah). Hasil {aman, data: [temuan]}. Tidak menyimpan.
+     *
+     * `POST /v1/akademik/ujian/cek`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianCek(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian/cek', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus jadwal ujian
+     *
+     * Body: {"id": [1, 2]} (maks. 200). Per prodi lewat JadwalUjianStafRepository::hapus; periode lalu dan prodi di luar kewenangan masuk `ditolak`.
+     *
+     * `POST /v1/akademik/ujian/hapus`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param array{prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianHapus(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian/hapus', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kartu ujian: kelayakan mahasiswa
+     *
+     * Mahasiswa ber-KRS disetujui + jadwal ujian MK-nya + `layak`/`alasan`: syarat SIAKAD (status semester aktif, belum lulus/DO, batas studi, bayar bila m_tahun.cetak_ujian_bayar = Y, presensi minimal UAS) ditambah aturan dinamis titik ujian.uts/ujian.uas (Mesin::periksa; mis. indikator bayar_syarat_ujian). ?status=layak|tidak menyaring setelah dihitung (maks. 3000 mahasiswa) dan mengisi meta.ringkasan.
+     *
+     * `GET /v1/akademik/ujian/kartu`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{status?: string, kelas?: string, angkatan?: string, q?: string, nim?: string, page?: int, per_page?: int, prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianKartu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/ujian/kartu', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Terbitkan kartu ujian (PDF)
+     *
+     * Body: {"nim", "tahun_id"?, "ujian": "uts|uas", "unduh"?: true, "pratinjau"?: true}. Diterbitkan lewat modul Dokumen (jenis kartu: templat bagian prodi, kode verifikasi, QR, tersimpan di dok_terbit). 409 tidak_layak bila mahasiswa belum memenuhi syarat (alasan di details).
+     *
+     * `POST /v1/akademik/ujian/kartu/pdf`
+     *
+     * scope: `akademik:read`, `dokumen:write` · hanya token pengguna
+     *
+     * @param array{prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianKartuPdf(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian/kartu/pdf', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar hadir ujian
+     *
+     * Peserta satu jadwal + ruang/meja + kelayakan + kop.
+     *
+     * `GET /v1/akademik/ujian/{id}/peserta`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID jadwal ujian (idju)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianByIdPeserta(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/ujian/{id}/peserta', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur nomor meja
+     *
+     * Nomor meja 1..n urut NIM (t_mahasiswa_krs uts_/uas_ruang + meja lewat KartuUjianRepository).
+     *
+     * `POST /v1/akademik/ujian/{id}/meja`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $id ID jadwal ujian (idju)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianByIdMeja(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian/{id}/meja', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah jadwal ujian
+     *
+     * Body sama dengan tambah (kelas tidak bisa diubah). Bentrok diperiksa ulang kecuali dirinya.
+     *
+     * `POST /v1/akademik/ujian/{id}`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $id ID jadwal ujian (idju)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/ujian/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai mahasiswa untuk perbaikan
+     *
+     * KHS per periode dengan skala m_nilai tiap periode, pengajuan perbaikan yang menunggu, dan boleh_ajukan (dosen: kelas yang diampu). Pengelola prodi kelolaan atau dosen pengajar.
+     *
+     * `GET /v1/akademik/nilai/mahasiswa/{nim}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiMahasiswaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/mahasiswa/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mahasiswa pindahan/RPL
+     *
+     * Status masuk P di prodi kelolaan: SKS diakui vs SKS konversi terisi. ?status=belum|kurang|lengkap.
+     *
+     * `GET /v1/akademik/nilai/konversi/pindahan`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{prodi?: string, q?: string, status?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiKonversiPindahan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/konversi/pindahan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai konversi satu pindahan
+     *
+     * Nilai konversi (t_mahasiswa_krs pindahan Y) + pilihan MK kurikulum semester masuk/sebelumnya + skala m_nilai + kelas + riwayat.
+     *
+     * `GET /v1/akademik/nilai/konversi/pindahan/{nim}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiKonversiPindahanByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/konversi/pindahan/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan nilai konversi pindahan/RPL
+     *
+     * Body {"kelas", "data": [{"kode_mk", "nilai", "kode_mk_asal"?, "nama_mk_asal"?, "sks_asal"?}], "naikkan_sks_diakui"?: false}. Lewat Rpl\Services\Konversi (langkah KRS Input Pindahan); tiap baris tercatat di akd_nilai_riwayat.
+     *
+     * `POST /v1/akademik/nilai/konversi/pindahan/{nim}`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiKonversiPindahanByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/konversi/pindahan/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Konversi MBKM disetujui
+     *
+     * mbkm_konversi berstatus disetujui untuk mahasiswa prodi kelolaan + keadaan KHS periode itu (sesuai_khs, tercatat_at). ?status=belum|sudah.
+     *
+     * `GET /v1/akademik/nilai/konversi/mbkm`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiKonversiMbkm(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/konversi/mbkm', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tulis konversi MBKM ke KHS
+     *
+     * Body opsional {"kelas"} (bawaan kelas masuk). Lewat Edit KHS lama level BAK: ubah nilai bila MK sudah ada di KRS periode itu, tambah bila belum. Tercatat di akd_nilai_riwayat.
+     *
+     * `POST /v1/akademik/nilai/konversi/mbkm/{id}`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $id ID mbkm_konversi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiKonversiMbkmById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/konversi/mbkm/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat perubahan nilai
+     *
+     * akd_nilai_riwayat (perbaikan disetujui, konversi pindahan, konversi MBKM) + prodi_perbaikan_nilai (prodi_langsung dari dasbor fakultas).
+     *
+     * `GET /v1/akademik/nilai/riwayat`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{prodi?: string, nim?: string, sumber?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/riwayat', [], $query, null, $options, false, false);
     }
 
     /**
@@ -1137,6 +1564,264 @@ final class Akademik extends Resource
     public function postPengajuanByIdBatalkan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akademik/pengajuan/{id}/batalkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: daftar
+     *
+     * Dosen pengampu, prodi, atau dekan (peran RBAC dekan, prodi fakultasnya, hanya bila masa input nilai dosen dan prodi sudah berakhir) mengajukan perbaikan satu nilai KHS (idkrs) dengan alasan dan lampiran (`lampiran`: UUID /v1/berkas, atau POST /{id}/berkas); BAAK (ADMIN/BAK) memverifikasi. Prasyarat bawaan: KRS disetujui, mahasiswa belum lulus/keluar, nilai baru dari skala m_nilai periode itu (atau `nilai_angka_baru` yang dipetakan lewat rentang m_nilai), satu pengajuan menunggu per baris KRS, dosen hanya untuk kelas yang diampunya, dekan hanya bila masa input nilai dosen dan prodi periode/prodi itu pernah dibuka dan sudah berakhir (409 masa_input_dibuka / masa_input_belum_berakhir). Lalu aturan dinamis titik nilai.perbaikan.ajukan (konteks periode_sejak_nilai, peran_pengaju, jumlah_lampiran, masa_input_ditutup). Setujui menulis nilai lewat Edit KHS lama (KhsEditService level BAK / KhsEditAngkaService) bila nilai sekarang masih sama dengan saat diajukan, lalu mencatat akd_nilai_riwayat. Linimasa: GET /{id}/riwayat. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+     *
+     * `GET /v1/akademik/nilai/perbaikan`
+     *
+     * scope: `akademik:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, kode_prodi?: string, peran_pengaju?: string, status?: string, tercatat_siakad?: string, nim?: string, kode_mk?: string, pengaju?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiPerbaikan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/perbaikan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: tambah
+     *
+     * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status diajukan.
+     *
+     * `POST /v1/akademik/nilai/perbaikan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array{idkrs: int, nilai_baru?: string, nilai_angka_baru?: float|int, alasan: string, catatan?: string, lampiran?: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiPerbaikan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/perbaikan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: detail
+     *
+     * Dosen pengampu, prodi, atau dekan (peran RBAC dekan, prodi fakultasnya, hanya bila masa input nilai dosen dan prodi sudah berakhir) mengajukan perbaikan satu nilai KHS (idkrs) dengan alasan dan lampiran (`lampiran`: UUID /v1/berkas, atau POST /{id}/berkas); BAAK (ADMIN/BAK) memverifikasi. Prasyarat bawaan: KRS disetujui, mahasiswa belum lulus/keluar, nilai baru dari skala m_nilai periode itu (atau `nilai_angka_baru` yang dipetakan lewat rentang m_nilai), satu pengajuan menunggu per baris KRS, dosen hanya untuk kelas yang diampunya, dekan hanya bila masa input nilai dosen dan prodi periode/prodi itu pernah dibuka dan sudah berakhir (409 masa_input_dibuka / masa_input_belum_berakhir). Lalu aturan dinamis titik nilai.perbaikan.ajukan (konteks periode_sejak_nilai, peran_pengaju, jumlah_lampiran, masa_input_ditutup). Setujui menulis nilai lewat Edit KHS lama (KhsEditService level BAK / KhsEditAngkaService) bila nilai sekarang masih sama dengan saat diajukan, lalu mencatat akd_nilai_riwayat. Linimasa: GET /{id}/riwayat. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+     *
+     * `GET /v1/akademik/nilai/perbaikan/{id}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiPerbaikanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/perbaikan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: ubah
+     *
+     * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status diajukan. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/akademik/nilai/perbaikan/{id}`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{idkrs: int, nilai_baru?: string, nilai_angka_baru?: float|int, alasan: string, catatan?: string, lampiran?: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putNilaiPerbaikanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/akademik/nilai/perbaikan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: hapus
+     *
+     * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status diajukan.
+     *
+     * `DELETE /v1/akademik/nilai/perbaikan/{id}`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteNilaiPerbaikanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/akademik/nilai/perbaikan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Dosen pengampu, prodi, atau dekan (peran RBAC dekan, prodi fakultasnya, hanya bila masa input nilai dosen dan prodi sudah berakhir) mengajukan perbaikan satu nilai KHS (idkrs) dengan alasan dan lampiran (`lampiran`: UUID /v1/berkas, atau POST /{id}/berkas); BAAK (ADMIN/BAK) memverifikasi. Prasyarat bawaan: KRS disetujui, mahasiswa belum lulus/keluar, nilai baru dari skala m_nilai periode itu (atau `nilai_angka_baru` yang dipetakan lewat rentang m_nilai), satu pengajuan menunggu per baris KRS, dosen hanya untuk kelas yang diampunya, dekan hanya bila masa input nilai dosen dan prodi periode/prodi itu pernah dibuka dan sudah berakhir (409 masa_input_dibuka / masa_input_belum_berakhir). Lalu aturan dinamis titik nilai.perbaikan.ajukan (konteks periode_sejak_nilai, peran_pengaju, jumlah_lampiran, masa_input_ditutup). Setujui menulis nilai lewat Edit KHS lama (KhsEditService level BAK / KhsEditAngkaService) bila nilai sekarang masih sama dengan saat diajukan, lalu mencatat akd_nilai_riwayat. Linimasa: GET /{id}/riwayat. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (pengaju).
+     *
+     * `GET /v1/akademik/nilai/perbaikan/{id}/riwayat`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiPerbaikanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/perbaikan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: daftar lampiran
+     *
+     * Siapa pun yang boleh melihat barisnya.
+     *
+     * `GET /v1/akademik/nilai/perbaikan/{id}/berkas`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiPerbaikanByIdBerkas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/perbaikan/{id}/berkas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: unggah lampiran
+     *
+     * Multipart field "berkas" (atau JSON berkas_base64 + nama_file), opsional jenis dan keterangan. PDF, gambar, dokumen Office/ODF, CSV, TXT, ZIP; maksimal PUSAT_DATA_MAKS_MB (bawaan 20 MB). Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status diajukan.
+     *
+     * `POST /v1/akademik/nilai/perbaikan/{id}/berkas`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{berkas_id?: string, berkas?: \Unipo\Siakad\Http\Upload|\SplFileInfo|string, jenis?: string, keterangan?: string, berkas_base64?: string, nama_file?: string, ...} $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiPerbaikanByIdBerkas(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/perbaikan/{id}/berkas', ['id' => $id], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: unduh lampiran
+     *
+     * `GET /v1/akademik/nilai/perbaikan/{id}/berkas/{uuid}`
+     *
+     * scope: `akademik:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getNilaiPerbaikanByIdBerkasByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/nilai/perbaikan/{id}/berkas/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: hapus lampiran
+     *
+     * Pengelola, atau pengguna untuk datanya sendiri (pengaju diisi otomatis); pemilik hanya bisa mengubah/menghapus bila status diajukan.
+     *
+     * `DELETE /v1/akademik/nilai/perbaikan/{id}/berkas/{uuid}`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteNilaiPerbaikanByIdBerkasByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/akademik/nilai/perbaikan/{id}/berkas/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: Setujui (nilai ditulis ke KHS lewat Edit KHS lama)
+     *
+     * Admin modul. Status harus diajukan, menjadi disetujui.
+     *
+     * `POST /v1/akademik/nilai/perbaikan/{id}/setujui`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{catatan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiPerbaikanByIdSetujui(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/perbaikan/{id}/setujui', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: Tolak dengan catatan
+     *
+     * Admin modul. Status harus diajukan, menjadi ditolak.
+     *
+     * `POST /v1/akademik/nilai/perbaikan/{id}/tolak`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{catatan: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiPerbaikanByIdTolak(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/perbaikan/{id}/tolak', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pengajuan perbaikan nilai: Batalkan pengajuan (oleh pengaju)
+     *
+     * Pemilik data atau pengelola. Status harus diajukan, menjadi dibatalkan.
+     *
+     * `POST /v1/akademik/nilai/perbaikan/{id}/batalkan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postNilaiPerbaikanByIdBatalkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/nilai/perbaikan/{id}/batalkan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

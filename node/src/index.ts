@@ -39,6 +39,10 @@ export {
 } from './log-sistem.js';
 export { kodeDariQr, formatKode, qrSvg, qrPng, cocokkanPdf, type OpsiQr } from './dokumen.js';
 export {
+  registriSK,
+  type RegistriSK, type SaringanSK, type HasilCariSK, type StatusSK, type PenandatanganSK, type JabatanPenandatanganSK, type BawaanSK, type ProfilYayasan, type PengurusYayasan, type KewenanganSK, type SkRegistri, type SkDetail, type SkCatat, type SkPeriksa, type SkPenerbit, type SkPenandatangan,
+} from './sk.js';
+export {
   jarakMeter, dalamPoligon, cocokkanArea, buatKunciPresensi, catatPresensiKerja, KODE_GALAT_PRESENSI,
   type AreaPresensi, type JadwalPresensiHari, type PresensiHarian, type KejadianPresensi, type PresensiHariIni,
   type CatatPresensiInput, type HasilCatatPresensi, type StatusKejadianPresensi, type KodeGalatPresensi,
