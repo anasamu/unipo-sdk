@@ -22,7 +22,7 @@ export class Siakad extends SiakadCore {
     return r;
   }
 
-  /** Sistem (3 endpoint) */
+  /** Sistem (4 endpoint) */
   get system(): R.SystemResource {
     return this.resource('system', () => new R.SystemResource(this));
   }
@@ -97,7 +97,7 @@ export class Siakad extends SiakadCore {
     return this.resource('edom', () => new R.EdomResource(this));
   }
 
-  /** Fakultas, Fakultas: kelola akademik (98 endpoint) */
+  /** Fakultas, Fakultas: kelola akademik (99 endpoint) */
   get fakultas(): R.FakultasResource {
     return this.resource('fakultas', () => new R.FakultasResource(this));
   }
@@ -122,7 +122,7 @@ export class Siakad extends SiakadCore {
     return this.resource('iku', () => new R.IkuResource(this));
   }
 
-  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (63 endpoint) */
+  /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (68 endpoint) */
   get induk(): R.IndukResource {
     return this.resource('induk', () => new R.IndukResource(this));
   }
@@ -342,7 +342,7 @@ export class Siakad extends SiakadCore {
     return this.resource('sistem', () => new R.SistemResource(this));
   }
 
-  /** SK: Registri (14 endpoint) */
+  /** SK: Registri (16 endpoint) */
   get sk(): R.SkResource {
     return this.resource('sk', () => new R.SkResource(this));
   }

@@ -59,10 +59,43 @@ export interface RegistriSK {
   gabung(id: string, ke: string, opsi?: RequestOptions): Promise<SkDetail>;
   penerbit(opsi?: RequestOptions): Promise<SkPenerbit[]>;
   penandatangan(unitId?: number | null, opsi?: RequestOptions): Promise<SkPenandatangan[]>;
+  /** Jabatan yang berlaku di unit, untuk penandatangan berupa jabatan tanpa orang (sebelum pejabatnya tercatat). */
+  jabatanPenandatangan(unitId?: number | null, opsi?: RequestOptions): Promise<JabatanPenandatanganSK[]>;
+  /**
+   * Isian bawaan: penerbit, perihal, penandatangan menurut jenis SK dan jabatan yang diangkat (pengangkatan Rektor ->
+   * Yayasan/Ketua Yayasan; pejabat lain dan surat tugas Plt/Plh -> universitas/Rektor; SK fakultas -> Dekan).
+   */
+  bawaan(q: { jenis?: string; penerbitUnitId?: number | null; untukJabatanId?: number | null; untukUnitId?: number | null }, opsi?: RequestOptions): Promise<BawaanSK>;
   /** URL sementara berkas SK (hak baca registri, tanpa salinan). */
   urlBerkas(id: string, o?: { ttl?: number; unduh?: boolean } & RequestOptions): Promise<string>;
   /** Catat SK dari surat keluar arsip ("surat:<uuid>" dari hasil cari). */
   dariSurat(suratId: string, opsi?: RequestOptions): Promise<SkDetail>;
+}
+
+/** Penandatangan SK: pejabat (tertaut), jabatan di unit tanpa orang, atau teks belum tertaut. */
+export interface PenandatanganSK {
+  tautan: 'pejabat' | 'jabatan' | 'teks';
+  pejabat_id?: number | null;
+  jabatan_id?: number | null;
+  unit_id?: number | null;
+  jabatan: string | null;
+  nama: string | null;
+}
+
+export interface JabatanPenandatanganSK {
+  jabatan_id: number;
+  kode: string;
+  nama: string;
+  jabatan_lengkap: string;
+  unit_id: number | null;
+}
+
+export interface BawaanSK {
+  jenis: string;
+  penerbit_unit_id: number | null;
+  penerbit_luar: string | null;
+  perihal: string | null;
+  penandatangan: PenandatanganSK | null;
 }
 
 const daftar = (v?: string | string[]) => (Array.isArray(v) ? v.join(',') : v);
@@ -115,6 +148,12 @@ export function registriSK(siakad: SiakadCore): RegistriSK {
     },
     async penandatangan(unitId, opsi) {
       return (await siakad.request<SkPenandatangan[]>({ method: 'GET', path: `${P}/penandatangan`, query: { unit_id: unitId ?? undefined } }, opsi)).data;
+    },
+    async jabatanPenandatangan(unitId, opsi) {
+      return (await siakad.request<JabatanPenandatanganSK[]>({ method: 'GET', path: `${P}/jabatan-penandatangan`, query: { unit_id: unitId ?? undefined } }, opsi)).data;
+    },
+    async bawaan(q, opsi) {
+      return (await siakad.request<BawaanSK>({ method: 'GET', path: `${P}/bawaan`, query: { jenis: q.jenis, penerbit_unit_id: q.penerbitUnitId ?? undefined, untuk_jabatan_id: q.untukJabatanId ?? undefined, untuk_unit_id: q.untukUnitId ?? undefined } }, opsi)).data;
     },
     async urlBerkas(id, o = {}) {
       const { ttl, unduh, ...req } = o;

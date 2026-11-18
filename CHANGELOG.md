@@ -5,7 +5,8 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 ## 1.20.0 (belum dirilis)
 
 - Registri SK tunggal (/v1/sk, SIAKAD docs/SK.md): klien bertipe registriSK(siakad) di Node (cari, periksa nomor ganda, detail, catat/ajukan pencatatan, catatAtauPakai, ubah, verifikasi, cabut, gabung, penerbit, penandatangan, urlBerkas sementara, dariSurat) dan siakad.sk.* / $siakad->sk() (13 operasi; tipe SkRegistri, SkDetail, SkCatat, SkPeriksa, SkPenerbit, SkPenandatangan). Modul lain merujuk SK lewat sk_id.
-- Spesifikasi diperbarui dari SIAKAD gabungan dev (branch claude/project-thread-asy9g9-dev + -sk-tunggal): 87 operasi baru, 0 hilang (total 3760). Selain /v1/sk: periode dan tahapan kalender (/v1/kalender/periode*, /v1/kalender/status, /v1/kalender/batas*), organisasi & pejabat Pustikom (/v1/induk/organisasi*), dan tambahan akademik/fakultas dari branch yang belum di-merge; rilis setelah branch-branch itu masuk main.
+- Penandatangan SK tanpa ketergantungan melingkar: `registriSK().bawaan()` (penerbit/perihal/penandatangan bawaan menurut jenis SK dan jabatan yang diangkat), `jabatanPenandatangan()`; tipe `PenandatanganSK` (`tautan`: pejabat, jabatan, teks), `JabatanPenandatanganSK`, `BawaanSK`; `SkCatat` menerima `penandatangan_jabatan_id`/`penandatangan_unit_id` atau teks jabatan + nama.
+- Spesifikasi diperbarui dari SIAKAD gabungan dev (branch claude/project-thread-asy9g9-dev + -sk-tunggal): 96 operasi baru, 0 hilang (total 3769). Selain /v1/sk: periode dan tahapan kalender (/v1/kalender/periode*, /v1/kalender/status, /v1/kalender/batas*), organisasi & pejabat Pustikom (/v1/induk/organisasi*), dan tambahan akademik/fakultas dari branch yang belum di-merge; rilis setelah branch-branch itu masuk main.
 
 ## 1.19.0 (belum dirilis)
 

@@ -35,13 +35,13 @@ final class Sk extends Resource
     /**
      * Catat atau ajukan SK
      *
-     * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", "penandatangan_pejabat_id"?, "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas dipindah ke ruang Berkas unit penerbit (folder SK).
+     * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", penandatangan opsional: "penandatangan_pejabat_id" | ("penandatangan_jabatan_id" + "penandatangan_unit_id") | ("penandatangan_jabatan" + "penandatangan_nama" teks, belum tertaut), "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas dipindah ke ruang Berkas unit penerbit (folder SK).
      *
      * `POST /v1/sk`
      *
      * scope: `berkas:write` · hanya token pengguna
      *
-     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
+     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -109,6 +109,44 @@ final class Sk extends Resource
     }
 
     /**
+     * Isian bawaan SK
+     *
+     * Penerbit, perihal, dan penandatangan bawaan menurut jenis SK dan jabatan yang diangkat: pengangkatan Rektor -> Yayasan (penandatangan Ketua Yayasan, teks); pengangkatan pejabat lain dan surat tugas Plt/Plh -> universitas, Rektor; SK fakultas/prodi -> Dekan. Penandatangan = pejabat aktif bila ada, selain itu jabatan saja (tautan "jabatan") atau teks.
+     *
+     * `GET /v1/sk/bawaan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{jenis?: string, penerbit_unit_id?: string, untuk_jabatan_id?: string, untuk_unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBawaan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sk/bawaan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jabatan penandatangan
+     *
+     * Jabatan yang berlaku di unit (untuk penandatangan berupa jabatan tanpa orang, mis. sebelum pejabatnya tercatat).
+     *
+     * `GET /v1/sk/jabatan-penandatangan`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array{unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJabatanPenandatangan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sk/jabatan-penandatangan', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Detail SK
      *
      * SK beserta pemakaian (baris modul yang merujuk), relasi mengubah/mencabut, catatan lain bernomor sama, dan boleh.catat.
@@ -138,7 +176,7 @@ final class Sk extends Resource
      * scope: `berkas:write` · hanya token pengguna
      *
      * @param int|string $id UUID SK
-     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
+     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

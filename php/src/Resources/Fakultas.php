@@ -73,6 +73,26 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Struktur organisasi fakultas
+     *
+     * Unit fakultas (atau `prodi`) beserta sub-unitnya yang aktif, pejabat aktif (termasuk Plt/Plh), dan jabatan lazim yang belum diisi (pejabat = null), serta tendik/staf per unit (`tendik`), dari Organisasi & pejabat Pustikom. Izin fakultas.akses.
+     *
+     * `GET /v1/fakultas/{kode}/struktur`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeStruktur(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/struktur', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Konteks & hak akses saya
      *
      * Fakultas, prodi, peran yang berlaku di fakultas ini, izin fakultas.* beserta prodi yang boleh dilihat, tahun akademik aktif. 403 bila tidak punya fakultas.akses.

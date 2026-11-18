@@ -35,6 +35,21 @@ export class SystemResource {
   }
 
   /**
+   * Status dan lingkungan aplikasi
+   *
+   * Untuk kaki sidebar aplikasi: status API dan database, jenis server SIAKAD (`server.lingkungan` = produksi, uji, pengembangan,
+   * atau lokal; dari `APP_LINGKUNGAN` di .env, atau ditebak dari alamat API), database yang melayani token ini
+   * (`database.lingkungan` = live atau development, `label` siap tampil mis. "Live (produksi)", "Development (salinan 12 Nov)",
+   * "Lokal"; `data_asli`; `alasan` development: `aplikasi` belum disetujui live, `menyamar`, atau `dipilih`), versi API dan
+   * commit pendek, serta waktu server. Token apa pun, tanpa scope. Tidak memuat host, nama database, atau kredensial.
+   *
+   * `GET /v1/health/lingkungan`
+   */
+  getHealthLingkungan(query?: Query, options?: RequestOptions): Promise<ApiResult<S.StatusLingkungan>> {
+    return this.client.request({ method: 'GET', path: '/v1/health/lingkungan', query }, options);
+  }
+
+  /**
    * Spesifikasi OpenAPI 3.1
    *
    * Dokumen ini. Bisa diimpor ke Postman, Insomnia, atau generator klien.
@@ -10865,6 +10880,24 @@ export class FakultasResource {
   }
 
   /**
+   * Struktur organisasi fakultas
+   *
+   * Unit fakultas (atau `prodi`) beserta sub-unitnya yang aktif, pejabat aktif (termasuk Plt/Plh), dan jabatan lazim yang belum diisi (pejabat = null), serta tendik/staf per unit (`tendik`), dari Organisasi & pejabat Pustikom. Izin fakultas.akses.
+   *
+   * `GET /v1/fakultas/{kode}/struktur`
+   *
+   * scope: `fakultas:read` · hanya token pengguna
+   *
+   * @param kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+   */
+  getByKodeStruktur(kode: string | number, query?: {
+    /** Kode prodi (bagan satu prodi) */
+    prodi?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/fakultas/{kode}/struktur', query: { ...query, kode } }, options);
+  }
+
+  /**
    * Konteks & hak akses saya
    *
    * Fakultas, prodi, peran yang berlaku di fakultas ini, izin fakultas.* beserta prodi yang boleh dilihat, tahun akademik aktif. 403 bila tidak punya fakultas.akses.
@@ -16347,6 +16380,28 @@ export class IndukResource {
   }
 
   /**
+   * Bagan struktur organisasi
+   *
+   * Unit aktif (seluruh organisasi, atau subtree `unit` = ID, kode unit, kode prodi, atau kode fakultas) beserta jabatan yang terisi pejabat aktif (termasuk Plt/Plh) dan jabatan lazim yang belum diisi (pejabat = null). Unit nonaktif dan turunannya tidak tampil kecuali `semua=1`; `kampus` (m_kampus.idkp) menyaring unit yang tersedia di kampus itu. Dipakai bagan di Pustikom dan aplikasi Fakultas.
+   *
+   * `GET /v1/induk/organisasi/struktur`
+   *
+   * scope: `induk:read` · hanya token pengguna
+   */
+  getOrganisasiStruktur(query?: {
+    /** ID/kode unit, kode prodi, atau kode fakultas */
+    unit?: string;
+    /** 1 = sertakan unit nonaktif */
+    semua?: string;
+    /** Kode kampus (m_kampus.idkp) */
+    kampus?: string;
+    /** 1 = sertakan tendik/staf per unit (bila berhak: Pustikom, petugas SDM, fakultas.akses di unit akar) */
+    tendik?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/induk/organisasi/struktur', query }, options);
+  }
+
+  /**
    * Detail unit
    *
    * Unit, jalur induk, sub-unit, pejabat (semua masa), data yang masih merujuk unit (keterkaitan), boleh_hapus, dan riwayat perubahan unit serta pejabatnya.
@@ -16395,7 +16450,7 @@ export class IndukResource {
   /**
    * Tambah unit
    *
-   * Body: kode (unik), nama, singkatan, jenis (universitas, rektorat, biro, fakultas, prodi, lembaga, upt, bagian, unit), induk_id (wajib selain universitas), aktif, urut, email, telepon. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   * Body: kode (unik), nama, singkatan, jenis (universitas, rektorat, biro, fakultas, prodi, lembaga, upt, bagian, unit), induk_id (wajib selain universitas), aktif, urut, koordinasi, kampus (daftar m_kampus.idkp; kosong = semua kampus), email, telepon. Mengaktifkan unit ikut mengaktifkan induknya yang nonaktif. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
    *
    * `POST /v1/induk/organisasi/unit`
    *
@@ -16405,6 +16460,68 @@ export class IndukResource {
    */
   postOrganisasiUnit(body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
     return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/unit', body }, options);
+  }
+
+  /**
+   * Struktur jabatan unit
+   *
+   * Jabatan yang semestinya ada di unit (aturan jenis unit: Dekan, Wakil Dekan I..n mengikuti Wakil Rektor aktif, Kepala TU; Kaprodi, Sekprodi, Kepala Lab; dsb.) beserta penyesuaian unit (tersedia), jabatan khusus, pemegang aktif termasuk Plt/Plh, dan pilihan jabatan lain.
+   *
+   * `GET /v1/induk/organisasi/unit/{id}/jabatan`
+   *
+   * scope: `induk:read` · hanya token pengguna
+   *
+   * @param id ID unit
+   */
+  getOrganisasiUnitByIdJabatan(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/induk/organisasi/unit/{id}/jabatan', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Atur jabatan tersedia di unit
+   *
+   * Body `{"jabatan": [{"jabatan_id": 11, "tersedia": false}]}`: mengganti seluruh penyesuaian unit; jabatan di luar aturan dengan tersedia true menjadi jabatan khusus unit. Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   *
+   * `PUT /v1/induk/organisasi/unit/{id}/jabatan`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID unit
+   * @param body
+   */
+  putOrganisasiUnitByIdJabatan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'PUT', path: '/v1/induk/organisasi/unit/{id}/jabatan', query: { id }, body }, options);
+  }
+
+  /**
+   * Tendik dan staf unit
+   *
+   * Pegawai tendik aktif dari SDM (unit kerja SDM dipetakan ke unit ini) dan pemegang penugasan peran berlingkup unit: nama, NIP/NIDK, tugas, sumber. Untuk Pustikom (pustikom.organisasi.kelola), petugas SDM, dan pemegang fakultas.akses di unit itu. Data diubah di aplikasi SDM.
+   *
+   * `GET /v1/induk/organisasi/unit/{id}/tendik`
+   *
+   * scope: `induk:read` · hanya token pengguna
+   *
+   * @param id ID unit
+   */
+  getOrganisasiUnitByIdTendik(id: string | number, query?: Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/induk/organisasi/unit/{id}/tendik', query: { ...query, id } }, options);
+  }
+
+  /**
+   * Urutkan unit
+   *
+   * Body `arah`: naik atau turun (di antara unit sejajar). Hanya Admin Pustikom (izin pustikom.organisasi.kelola), admin modul induk, dan administrator; ditolak saat masuk sebagai pengguna lain.
+   *
+   * `POST /v1/induk/organisasi/unit/{id}/urutkan`
+   *
+   * scope: `induk:write` · hanya token pengguna
+   *
+   * @param id ID unit
+   * @param body
+   */
+  postOrganisasiUnitByIdUrutkan(id: string | number, body: S.Objek, options?: RequestOptions & { query?: Query }): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'POST', path: '/v1/induk/organisasi/unit/{id}/urutkan', query: { id }, body }, options);
   }
 
   /**
@@ -16611,7 +16728,7 @@ export class IndukResource {
   /**
    * Unit organisasi: daftar
    *
-   * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+   * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
    *
    * `GET /v1/induk/unit`
    *
@@ -16632,6 +16749,10 @@ export class IndukResource {
     kode_prodi?: string;
     /** Filter kesamaan (isi "null" untuk kosong) */
     aktif?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    bawaan?: string;
+    /** Filter kesamaan (isi "null" untuk kosong) */
+    koordinasi?: string;
     /** Cari di nama, kode, singkatan */
     q?: string;
     /** Tanggal awal (YYYY-MM-DD) */
@@ -16662,7 +16783,7 @@ export class IndukResource {
   /**
    * Unit organisasi: detail
    *
-   * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+   * Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
    *
    * `GET /v1/induk/unit/{id}`
    *
@@ -16708,7 +16829,7 @@ export class IndukResource {
   /**
    * Unit organisasi: riwayat status
    *
-   * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Semua pemilik token ber-scope induk:read.
+   * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pohon unit universitas › fakultas › prodi, serta biro, lembaga, UPT, dan bagian. Unit fakultas/prodi terhubung ke tabel lama lewat kode_fakultas/kode_prodi. Pemilih unit sebaiknya memakai ?aktif=1: unit nonaktif (mis. unit bawaan yang tidak ada di kampus ini) tidak ditawarkan, tetapi tetap terbaca untuk data lama. Semua pemilik token ber-scope induk:read.
    *
    * `GET /v1/induk/unit/{id}/riwayat`
    *
@@ -58712,7 +58833,7 @@ export class SkResource {
   /**
    * Catat atau ajukan SK
    *
-   * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", "penandatangan_pejabat_id"?, "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas dipindah ke ruang Berkas unit penerbit (folder SK).
+   * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", penandatangan opsional: "penandatangan_pejabat_id" | ("penandatangan_jabatan_id" + "penandatangan_unit_id") | ("penandatangan_jabatan" + "penandatangan_nama" teks, belum tertaut), "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas dipindah ke ruang Berkas unit penerbit (folder SK).
    *
    * `POST /v1/sk`
    *
@@ -58771,6 +58892,44 @@ export class SkResource {
     unit_id?: string;
   } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.SkPenandatangan>>> {
     return this.client.request({ method: 'GET', path: '/v1/sk/penandatangan', query }, options);
+  }
+
+  /**
+   * Isian bawaan SK
+   *
+   * Penerbit, perihal, dan penandatangan bawaan menurut jenis SK dan jabatan yang diangkat: pengangkatan Rektor -> Yayasan (penandatangan Ketua Yayasan, teks); pengangkatan pejabat lain dan surat tugas Plt/Plh -> universitas, Rektor; SK fakultas/prodi -> Dekan. Penandatangan = pejabat aktif bila ada, selain itu jabatan saja (tautan "jabatan") atau teks.
+   *
+   * `GET /v1/sk/bawaan`
+   *
+   * scope: `berkas:read`
+   */
+  getBawaan(query?: {
+    /** pengangkatan, surat_tugas, ... */
+    jenis?: string;
+    /** induk_unit.id */
+    penerbit_unit_id?: string;
+    /** induk_jabatan.id yang diangkat */
+    untuk_jabatan_id?: string;
+    /** induk_unit.id jabatan yang diangkat */
+    untuk_unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<S.Objek>> {
+    return this.client.request({ method: 'GET', path: '/v1/sk/bawaan', query }, options);
+  }
+
+  /**
+   * Jabatan penandatangan
+   *
+   * Jabatan yang berlaku di unit (untuk penandatangan berupa jabatan tanpa orang, mis. sebelum pejabatnya tercatat).
+   *
+   * `GET /v1/sk/jabatan-penandatangan`
+   *
+   * scope: `berkas:read`
+   */
+  getJabatanPenandatangan(query?: {
+    /** induk_unit.id */
+    unit_id?: string;
+  } & Query, options?: RequestOptions): Promise<ApiResult<Array<S.Objek>>> {
+    return this.client.request({ method: 'GET', path: '/v1/sk/jabatan-penandatangan', query }, options);
   }
 
   /**

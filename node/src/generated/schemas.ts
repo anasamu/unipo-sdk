@@ -48,6 +48,38 @@ export type Health = {
   [key: string]: any;
 };
 
+export type StatusLingkungan = {
+  /** ok atau gangguan Contoh: `ok` */
+  status?: string | null;
+  server?: {
+    lingkungan?: "produksi" | "uji" | "pengembangan" | "lokal";
+    /** Contoh: `Produksi` */
+    label?: string | null;
+    [key: string]: any;
+  };
+  database?: {
+    lingkungan?: "live" | "development";
+    /** Label siap tampil Contoh: `Live (produksi)` */
+    label?: string | null;
+    data_asli?: boolean;
+    disamarkan?: boolean;
+    /** Waktu salinan live terakhir (development) */
+    salinan_at?: string | null;
+    alasan?: "aplikasi" | "menyamar" | "dipilih" | null;
+    tersambung?: boolean;
+    [key: string]: any;
+  };
+  api?: {
+    /** Contoh: `1.0.0` */
+    versi?: string | null;
+    /** Contoh: `bcf8aa53` */
+    commit?: string | null;
+    [key: string]: any;
+  };
+  waktu_server?: string | null;
+  [key: string]: any;
+};
+
 export type TokenRequest = {
   grant_type: "client_credentials" | "password" | "refresh_token" | "urn:ietf:params:oauth:grant-type:token-exchange";
   /** Bila tidak memakai header Basic */
@@ -4392,6 +4424,9 @@ export type IndukUnit = {
   tanggal_berdiri?: string;
   nomor_sk_pendirian?: string;
   aktif?: boolean;
+  /** (hanya baca) Hanya dibaca. */
+  bawaan?: boolean;
+  koordinasi?: boolean;
   urut?: number;
   created_at?: string | null;
   updated_at?: string | null;
@@ -4418,6 +4453,7 @@ export type IndukUnitInput = {
   tanggal_berdiri?: string;
   nomor_sk_pendirian?: string;
   aktif?: boolean;
+  koordinasi?: boolean;
   urut?: number;
   [key: string]: any;
 };
@@ -15328,8 +15364,14 @@ export type SkRegistri = {
   penandatangan?: {
     /** induk_pejabat.id */
     pejabat_id?: number | null;
+    /** induk_jabatan.id */
+    jabatan_id?: number | null;
+    /** induk_unit.id */
+    unit_id?: number | null;
     jabatan?: string | null;
     nama?: string | null;
+    /** teks = diketik, belum tertaut ke data pejabat */
+    tautan?: "pejabat" | "jabatan" | "teks";
     /** Path gambar tanda tangan bila ada */
     ttd?: string | null;
     [key: string]: any;
@@ -15417,9 +15459,13 @@ export type SkCatat = {
   penerbit_luar?: string | null;
   /** induk_pejabat.id; jabatan dan nama diambil dari data pejabat */
   penandatangan_pejabat_id?: number | null;
-  /** Hanya SK instansi luar */
+  /** induk_jabatan.id (penandatangan berupa jabatan) */
+  penandatangan_jabatan_id?: number | null;
+  /** induk_unit.id jabatan penandatangan */
+  penandatangan_unit_id?: number | null;
+  /** Teks bila belum tertaut, mis. Ketua Yayasan */
   penandatangan_jabatan?: string | null;
-  /** Hanya SK instansi luar */
+  /** Teks bila belum tertaut */
   penandatangan_nama?: string | null;
   tempat?: string | null;
   /** UUID /v1/berkas */

@@ -9,11 +9,11 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (3760 endpoint).
+ * Akses ke semua modul API (3769 endpoint).
  */
 trait GeneratedResources
 {
-    /** Sistem (3 endpoint) */
+    /** Sistem (4 endpoint) */
     public function system(): Resources\System
     {
         return $this->resource(Resources\System::class);
@@ -103,7 +103,7 @@ trait GeneratedResources
         return $this->resource(Resources\Edom::class);
     }
 
-    /** Fakultas, Fakultas: kelola akademik (98 endpoint) */
+    /** Fakultas, Fakultas: kelola akademik (99 endpoint) */
     public function fakultas(): Resources\Fakultas
     {
         return $this->resource(Resources\Fakultas::class);
@@ -133,7 +133,7 @@ trait GeneratedResources
         return $this->resource(Resources\Iku::class);
     }
 
-    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (63 endpoint) */
+    /** Induk: Unit organisasi, Induk: Pejabat, Induk: Orang, Induk: Organisasi & pejabat (Pustikom), Induk: Jabatan, Induk: Peran modul, Induk: Log audit (68 endpoint) */
     public function induk(): Resources\Induk
     {
         return $this->resource(Resources\Induk::class);
@@ -397,7 +397,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sistem::class);
     }
 
-    /** SK: Registri (14 endpoint) */
+    /** SK: Registri (16 endpoint) */
     public function sk(): Resources\Sk
     {
         return $this->resource(Resources\Sk::class);
