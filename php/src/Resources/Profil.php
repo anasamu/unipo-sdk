@@ -14,6 +14,25 @@ use Unipo\Siakad\Http\ApiResponse;
 final class Profil extends Resource
 {
     /**
+     * Status wisuda saya
+     *
+     * Acara wisuda terbit yang memuat akun ini: jadwal, gladi, tempat, nomor kursi, urutan panggil, ukuran toga, undangan QR wisudawan dan pendamping, susunan acara. Kosong bila belum terdaftar.
+     *
+     * `GET /v1/profil/saya/wisuda`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaWisuda(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/wisuda', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Riwayat organisasi mahasiswa saya
      *
      * Untuk profile.unipo.ac.id: riwayat kepengurusan ormawa milik pengguna mahasiswa/alumni (ormawa, jabatan, periode, SK kepengurusan). Selain mahasiswa: berlaku false.
@@ -30,6 +49,84 @@ final class Profil extends Resource
     public function getSayaOrganisasiMahasiswa(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/profil/saya/organisasi-mahasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Beasiswa saya
+     *
+     * Program yang sedang dibuka beserta syarat yang terpenuhi/belum (dari data SIAKAD), formulir (isian, berkas), dan pendaftaran saya dengan status, alur pemeriksa, wawancara, SK, evaluasi, pencairan. Selain mahasiswa: berlaku false.
+     *
+     * `GET /v1/profil/saya/beasiswa`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaBeasiswa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/beasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar beasiswa
+     *
+     * Body {isian: {kode: nilai}, berkas: {kode: UUID /v1/berkas}, penghasilan_ortu?, alasan?}. Di luar jam buka/tutup: 422 di_luar_jadwal. Syarat dicek ulang; 409 prasyarat_tidak_terpenuhi memuat butir syarat.
+     *
+     * `POST /v1/profil/saya/beasiswa/{id}/daftar`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaBeasiswaByIdDaftar(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/saya/beasiswa/{id}/daftar', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lengkapi berkas beasiswa
+     *
+     * Body {berkas: {kode: UUID}}. Saat pendaftaran masih menunggu verifikasi.
+     *
+     * `POST /v1/profil/saya/beasiswa/pendaftaran/{id}/berkas`
+     *
+     * scope: `profil:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pendaftaran
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaBeasiswaPendaftaranByIdBerkas(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/profil/saya/beasiswa/pendaftaran/{id}/berkas', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kartu deposit saya
+     *
+     * Untuk Profil/Fakultas mahasiswa: saldo deposit, dana (beasiswa, bayar di muka) termasuk yang menunggu tagihan periode sasaran, dan alokasinya berbukti.
+     *
+     * `GET /v1/profil/saya/deposit`
+     *
+     * scope: `profil:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaDeposit(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/profil/saya/deposit', [], $query, null, $options, false, false);
     }
 
     /**

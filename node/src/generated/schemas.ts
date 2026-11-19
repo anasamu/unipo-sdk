@@ -3595,7 +3595,8 @@ export type DokPengaturan = {
     /** Kop di setiap halaman (bawaan hanya halaman pertama) */
     semua_halaman?: boolean;
     perataan?: "tengah" | "kiri";
-    logo?: "kampus" | "berkas" | "tanpa";
+    /** fakultas = logo fakultas unit penerbit (identitas fakultas; kosong = logo kampus) */
+    logo?: "kampus" | "fakultas" | "berkas" | "tanpa";
     /** UUID berkas PNG/JPG */
     logo_berkas_id?: string;
     /** Logo kedua di kanan (mis. logo fakultas/akreditasi) */
@@ -13112,6 +13113,8 @@ export type RbacAplikasi = {
   sistem?: boolean;
   aktif?: boolean;
   urut?: number;
+  /** Nilai JSON apa pun */
+  sasaran?: any;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -13131,6 +13134,8 @@ export type RbacAplikasiInput = {
   client_id_sso?: string;
   aktif?: boolean;
   urut?: number;
+  /** Nilai JSON apa pun */
+  sasaran?: any;
   [key: string]: any;
 };
 
@@ -13363,6 +13368,13 @@ export type RbacHakAkses = {
   scope_api?: Array<string>;
   /** Level lama yang setara dengan peran yang dipegang */
   level_siakad_tersedia?: Array<string>;
+  /** Aplikasi yang dinonaktifkan Pustikom: SSO menolak login ke kliennya dengan pesan */
+  aplikasi_nonaktif?: Array<{
+    kode?: string;
+    nama?: string;
+    client_id_sso?: string | null;
+    [key: string]: any;
+  }>;
   [key: string]: any;
 };
 
@@ -16339,7 +16351,7 @@ export type SpmiAkreditasi = {
   /** ID unit */
   unit_id?: number | null;
   lingkup?: "institusi" | "prodi";
-  lembaga?: "ban_pt" | "lamemba" | "lamdik" | "lam_ptkes" | "lam_infokom" | "lam_teknik" | "lamsama" | "lamspak" | "lam_hukum" | "internasional" | "lainnya";
+  lembaga?: string;
   status?: "terakreditasi_unggul" | "terakreditasi" | "terakreditasi_pertama" | "tidak_terakreditasi" | "dalam_proses";
   peringkat?: string | null;
   instrumen?: string | null;
@@ -16369,7 +16381,7 @@ export type SpmiAkreditasiInput = {
   /** ID unit */
   unit_id: number | null;
   lingkup: "institusi" | "prodi";
-  lembaga: "ban_pt" | "lamemba" | "lamdik" | "lam_ptkes" | "lam_infokom" | "lam_teknik" | "lamsama" | "lamspak" | "lam_hukum" | "internasional" | "lainnya";
+  lembaga: string;
   status: "terakreditasi_unggul" | "terakreditasi" | "terakreditasi_pertama" | "tidak_terakreditasi" | "dalam_proses";
   peringkat?: string | null;
   instrumen?: string | null;
@@ -16384,11 +16396,65 @@ export type SpmiAkreditasiInput = {
   [key: string]: any;
 };
 
+export type SpmiLembaga = {
+  id?: number;
+  kode?: string;
+  nama?: string | null;
+  singkatan?: string | null;
+  lingkup?: "prodi" | "institusi" | "semua";
+  situs?: string | null;
+  aktif?: boolean;
+  urut?: number;
+  catatan?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+/** Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SpmiLembagaInput = {
+  kode: string;
+  nama: string | null;
+  singkatan?: string | null;
+  lingkup?: "prodi" | "institusi" | "semua";
+  situs?: string | null;
+  aktif?: boolean;
+  urut?: number;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SpmiPeringkat = {
+  id?: number;
+  kode?: string;
+  nama?: string | null;
+  status?: "terakreditasi_unggul" | "terakreditasi" | "terakreditasi_pertama" | "tidak_terakreditasi";
+  kode_siakad?: "A" | "B" | "C" | "L" | "U";
+  aktif?: boolean;
+  urut?: number;
+  keterangan?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+/** Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SpmiPeringkatInput = {
+  kode: string;
+  nama: string | null;
+  status: "terakreditasi_unggul" | "terakreditasi" | "terakreditasi_pertama" | "tidak_terakreditasi";
+  kode_siakad?: "A" | "B" | "C" | "L" | "U";
+  aktif?: boolean;
+  urut?: number;
+  keterangan?: string | null;
+  [key: string]: any;
+};
+
 export type SpmiInstrumen = {
   id?: number;
   kode?: string;
   nama?: string | null;
-  lembaga?: "ban_pt" | "lamemba" | "lamdik" | "lam_ptkes" | "lam_infokom" | "lam_teknik" | "lamsama" | "lamspak" | "lam_hukum" | "internasional" | "lainnya";
+  lembaga?: string;
   lingkup?: "institusi" | "prodi";
   dasar?: string | null;
   aktif?: boolean;
@@ -16402,7 +16468,7 @@ export type SpmiInstrumen = {
 export type SpmiInstrumenInput = {
   kode: string;
   nama: string | null;
-  lembaga: "ban_pt" | "lamemba" | "lamdik" | "lam_ptkes" | "lam_infokom" | "lam_teknik" | "lamsama" | "lamspak" | "lam_hukum" | "internasional" | "lainnya";
+  lembaga: string;
   lingkup: "institusi" | "prodi";
   dasar?: string | null;
   aktif?: boolean;
@@ -16432,6 +16498,40 @@ export type SpmiKriteriaInput = {
   nama: string | null;
   deskripsi?: string | null;
   bobot?: number | null;
+  urut?: number;
+  [key: string]: any;
+};
+
+export type SpmiDokumenAkreditasi = {
+  id?: number;
+  /** ID instrumen */
+  instrumen_id?: number | null;
+  /** ID kriteria */
+  kriteria_id?: number | null;
+  kode?: string;
+  nama?: string | null;
+  jenis?: "led" | "lkps" | "tabel" | "pendukung" | "lainnya";
+  keterangan?: string | null;
+  wajib?: boolean;
+  sumber_data?: string | null;
+  urut?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+/** Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SpmiDokumenAkreditasiInput = {
+  /** ID instrumen */
+  instrumen_id: number | null;
+  /** ID kriteria */
+  kriteria_id?: number | null;
+  kode: string;
+  nama: string | null;
+  jenis: "led" | "lkps" | "tabel" | "pendukung" | "lainnya";
+  keterangan?: string | null;
+  wajib?: boolean;
+  sumber_data?: string | null;
   urut?: number;
   [key: string]: any;
 };

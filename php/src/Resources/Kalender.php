@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kegiatan
+ * Kalender: Terpadu, Kalender: Hari kerja, Kalender: Periode, Kalender: Batas waktu, Kalender: Kunci periode, Kalender: Kunci fitur per periode, Kalender: Kegiatan
  */
 final class Kalender extends Resource
 {
@@ -655,6 +655,121 @@ final class Kalender extends Resource
     public function postPeriodeByTahunTutup(int|string $tahun, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/kalender/periode/{tahun}/tutup', ['tahun' => $tahun], $query, null, $options, false, false);
+    }
+
+    /**
+     * Katalog fitur berperiode
+     *
+     * Semua rute tulis yang dijaga kunci periode (peta Data/kunci_periode.php, rute yang dijaga otomatis karena membawa tahun_id, Sumber PusatData bertahun), dikelompokkan per fitur dan modul, dengan keputusan bawaan, aturan aplikasi yang berlaku, dan status di periode `tahun_id` (dibuka, terkunci, dikecualikan, bukan_berperiode, dibuka_kembali[_sebagian]). entri[].belum_diklasifikasi = rute di luar peta yang membawa tahun_id (tetap terkunci). Izin kalender.kunci.lihat atau kalender.kunci.atur.
+     *
+     * `GET /v1/kalender/kunci-fitur`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunciFitur(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci-fitur', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar aturan kunci
+     *
+     * Aturan kal_kunci_aturan (berlaku, akan, berakhir, dicabut). meta.boleh_atur.
+     *
+     * `GET /v1/kalender/kunci-fitur/aturan`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunciFiturAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci-fitur/aturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat aturan kunci
+     *
+     * Body {sasaran: rute|awalan|fitur|modul|sumber, kunci, keputusan: ikut_kunci|dikecualikan|bukan_berperiode, tahun_id? (kosong = semua periode), prodi?: [..] (kosong = semua prodi), mulai?, sampai?, alasan (min. 10), dasar_nomor?}. Menimpa keputusan bawaan Data/kunci_periode.php; aturan paling khusus menang. Tercatat di riwayat dan induk_log. Izin kalender.kunci.atur. Buka sementara fitur di periode ditutup: POST /v1/kalender/pengecualian-waktu jenis buka_kembali dengan modul ["fitur:<kode>"].
+     *
+     * `POST /v1/kalender/kunci-fitur/aturan`
+     *
+     * scope: `akademik:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKunciFiturAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/kunci-fitur/aturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut aturan kunci
+     *
+     * Body {alasan}. Rute kembali ke keputusan bawaan (atau aturan lain yang berlaku). Izin kalender.kunci.atur.
+     *
+     * `POST /v1/kalender/kunci-fitur/aturan/{id}/cabut`
+     *
+     * scope: `akademik:write`
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKunciFiturAturanByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/kunci-fitur/aturan/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat aturan kunci
+     *
+     * Buat/cabut beserta pelaku, alasan, dan isi aturan.
+     *
+     * `GET /v1/kalender/kunci-fitur/riwayat`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array{aturan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKunciFiturRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kalender/kunci-fitur/riwayat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simulasi penjaga kunci
+     *
+     * Body {metode, path (pola rute atau path nyata), tahun_id, prodi?: [..]} atau {sumber: tabel PusatData, tahun_id, prodi?}. Menjalankan PenjagaPeriode sungguhan dengan periode & prodi data yang diberikan (tanpa menulis catatan): hasil ditolak (423) atau lolos beserta sebabnya, aturan yang dipakai, dan keputusan bawaan.
+     *
+     * `POST /v1/kalender/kunci-fitur/simulasi`
+     *
+     * scope: `akademik:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKunciFiturSimulasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kalender/kunci-fitur/simulasi', [], $query, null, $options, false, false);
     }
 
     /**

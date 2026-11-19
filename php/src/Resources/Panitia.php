@@ -52,6 +52,28 @@ final class Panitia extends Resource
     }
 
     /**
+     * Tugas kepanitiaan saya
+     *
+     * Penugasan panitia yang sedang AKTIF untuk akun ini (semua jenis panitia: wisuda, UTS/UAS, PMB, ...): panitia aktif, hari ini dalam masa SK,
+     * dan hak akses jabatannya sudah disetujui Pustikom (jabatan tanpa peran tidak perlu persetujuan). Setiap baris memuat jabatan/seksi dan
+     * `tugas` [{kode, nama, keterangan, tautan: {aplikasi: alamat}}] dari jabatan itu (diatur Pustikom di Jenis panitia). Kosong = menu
+     * "Tugas kepanitiaan" disembunyikan. Query `jenis` menyaring kode jenis panitia.
+     *
+     * `GET /v1/panitia/tugas-saya`
+     *
+     * scope: `panitia:read` · hanya token pengguna
+     *
+     * @param array{jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTugasSaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/panitia/tugas-saya', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Cari akun untuk anggota
      *
      * Akun SIAKAD aktif (dosen, tendik, mahasiswa). q minimal 2 karakter, maks. 20 baris. Izin panitia.kelola.
@@ -172,7 +194,7 @@ final class Panitia extends Resource
      * Tambah jenis panitia
      *
      * Izin `panitia.atur` (Pustikom). Body: `{"kode": "dies-natalis", "nama": "Panitia dies natalis", "keterangan"?, "jenis_unit": ["universitas"] (kosong = semua unit), "wajib_sk": true, "masa_maks_hari"?,
-     * "jabatan": [{"kode": "ketua", "nama": "Ketua", "wajib": true, "maks": 1, "peran": ["kode-peran", ...]}, {"kode": "anggota", "nama": "Anggota", "peran": []}]}`.
+     * "jabatan": [{"kode": "ketua", "nama": "Ketua", "wajib": true, "maks": 1, "peran": ["kode-peran", ...], "tugas"?: ["wisuda.semua", ...]}, {"kode": "anggota", "nama": "Anggota", "peran": []}]}`.
      *
      * `POST /v1/panitia/jenis`
      *
@@ -186,6 +208,25 @@ final class Panitia extends Resource
     public function postJenis(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/panitia/jenis', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Katalog tugas jabatan
+     *
+     * Tugas kepanitiaan yang bisa dilekatkan ke jabatan/seksi (menentukan menu Tugas kepanitiaan dan aksi modul, mis. wisuda.kehadiran). Query jenis = kode jenis panitia.
+     *
+     * `GET /v1/panitia/jenis/tugas`
+     *
+     * scope: `panitia:read`
+     *
+     * @param array{jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJenisTugas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/panitia/jenis/tugas', [], $query, null, $options, false, false);
     }
 
     /**

@@ -9,10 +9,206 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Data master: Struktur akademik, Data master: Mahasiswa dan dosen, Data master: Format dokumen akademik
+ * Data master: Fakultas & prodi (BAAK), Data master: Struktur akademik, Data master: Mahasiswa dan dosen, Data master: Format dokumen akademik
  */
 final class Master extends Resource
 {
+    /**
+     * Fakultas dan prodi lengkap
+     *
+     * Pohon fakultas -> prodi: data m_fakultas/m_program_studi, data organisasi induk_unit (nama Inggris, singkatan, kontak), Dekan/Kaprodi aktif dari Organisasi (hanya baca), SK izin dari registri SK, akreditasi terkini dari SPMI (hanya baca; null = belum diisi), jumlah mahasiswa aktif, ringkasan, dan boleh_kelola.
+     *
+     * `GET /v1/master/fakultas-prodi`
+     *
+     * scope: `referensi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasProdi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/master/fakultas-prodi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah program studi
+     *
+     * Izin baak.prodi.kelola. Body: kode_prodi (kode PDDikti, harus ada di r_prodi), kode_fak, kode_jurusan, kode_jenjang, nama_prodi (opsional; bawaan dari r_prodi), nama_en, singkatan, gelar, gelar_panjang, sk_izin_id (PilihSK) atau no_sk_dikti + tgl_sk_dikti, tgl_akhir_sk_dikti, tgl_awal_berdiri, status_prodi (A/N/B/K/M/H), email, telepon, website, alamat. Unit organisasi prodi (induk_unit) dan unit SPMI dibuat otomatis di bawah fakultas induk.
+     *
+     * `POST /v1/master/fakultas-prodi/prodi`
+     *
+     * scope: `prodi:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFakultasProdiProdi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/master/fakultas-prodi/prodi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah program studi
+     *
+     * Izin baak.prodi.kelola. Isian seperti tambah (kirim yang berubah saja). Kode, fakultas, jurusan, dan jenjang tidak bisa diganti di sini (ikut mengubah kode di semua tabel lama). Kolom lama ditulis ke m_program_studi (tercatat di m_log), kolom organisasi ke induk_unit.
+     *
+     * `PUT /v1/master/fakultas-prodi/prodi/{kode}`
+     *
+     * scope: `prodi:write`
+     *
+     * @param int|string $kode Kode prodi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putFakultasProdiProdiByKode(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/master/fakultas-prodi/prodi/{kode}', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah fakultas
+     *
+     * Izin baak.prodi.kelola. Body: nama_fakultas (m_fakultas), nama_en, singkatan, email, telepon, situs, alamat (induk_unit). Dekan diatur di Organisasi.
+     *
+     * `PUT /v1/master/fakultas-prodi/fakultas/{kode}`
+     *
+     * scope: `prodi:write`
+     *
+     * @param int|string $kode Kode fakultas
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putFakultasProdiFakultasByKode(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/master/fakultas-prodi/fakultas/{kode}', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Antrean usulan perubahan data prodi
+     *
+     * Semua usulan Kaprodi (status, prodi, fakultas, isian yang diusulkan, jumlah per keputusan, alur pemeriksa). ?status=diajukan|disetujui|sebagian|ditolak|dibatalkan.
+     *
+     * `GET /v1/master/fakultas-prodi/usulan`
+     *
+     * scope: `referensi:read`
+     *
+     * @param array{status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasProdiUsulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/master/fakultas-prodi/usulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail usulan data prodi
+     *
+     * Butir: nilai lama (saat diajukan), nilai baru, nilai sekarang di sumbernya, keputusan & catatan; alasan, lampiran, alur pemeriksa.
+     *
+     * `GET /v1/master/fakultas-prodi/usulan/{id}`
+     *
+     * scope: `referensi:read`
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasProdiUsulanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/master/fakultas-prodi/usulan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lampiran usulan data prodi
+     *
+     * Inline; ?unduh=1 untuk unduhan.
+     *
+     * `GET /v1/master/fakultas-prodi/usulan/{id}/berkas`
+     *
+     * scope: `referensi:read`
+     *
+     * @param int|string $id ID usulan
+     * @param array{unduh?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasProdiUsulanByIdBerkas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/master/fakultas-prodi/usulan/{id}/berkas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Putuskan usulan data prodi
+     *
+     * Body: {butir: [{id, keputusan: setujui|tolak, catatan}], catatan}. Semua isian yang menunggu wajib diputus; tolak wajib catatan. Isian yang disetujui langsung ditulis ke sumbernya (m_program_studi lewat Penulis + m_log, induk_unit, atau pengaturan situs portal prodi); status disetujui | sebagian | ditolak; pengusul diberi notifikasi.
+     *
+     * `POST /v1/master/fakultas-prodi/usulan/{id}/putuskan`
+     *
+     * scope: `prodi:write`
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postFakultasProdiUsulanByIdPutuskan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/master/fakultas-prodi/usulan/{id}/putuskan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Isian data prodi
+     *
+     * DATA isian prodi: label, grup, sumber (prodi|unit|portal), tipe, maks, boleh_usul (prodi boleh mengusulkan) atau hanya BAAK, terkunci (kode/jenjang).
+     *
+     * `GET /v1/master/fakultas-prodi/isian`
+     *
+     * scope: `referensi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getFakultasProdiIsian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/master/fakultas-prodi/isian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur isian data prodi
+     *
+     * Body: {boleh_usul, aktif, label, keterangan}. Isian terkunci tidak bisa dijadikan boleh_usul.
+     *
+     * `PUT /v1/master/fakultas-prodi/isian/{kode}`
+     *
+     * scope: `prodi:write`
+     *
+     * @param int|string $kode Kode isian
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putFakultasProdiIsianByKode(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/master/fakultas-prodi/isian/{kode}', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
     /**
      * Tambah fakultas
      *

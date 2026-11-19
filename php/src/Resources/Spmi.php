@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Pelaporan, SPMI: File
+ * SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File
  */
 final class Spmi extends Resource
 {
@@ -1406,6 +1406,516 @@ final class Spmi extends Resource
     public function postAkreditasiSinkronSiakad(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/spmi/akreditasi/sinkron-siakad', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Acuan pengelolaan akreditasi
+     *
+     * Lembaga dan peringkat (data, dengan kode_siakad pemetaan ke kode lama), status Pasal 73, masa berlaku bawaan, ambang pengingat, unit universitas/prodi, dan boleh_kelola.
+     *
+     * `GET /v1/spmi/akreditasi/acuan`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiAcuan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi/acuan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Akreditasi per unit
+     *
+     * Institusi dan setiap prodi aktif: akreditasi terkini (lembaga, peringkat, SK, berlaku sampai, keadaan berlaku|segera_habis (<= 12 bulan)|habis|proses|tidak_terakreditasi), jumlah riwayat dan sertifikat, serta ringkasan per keadaan (belum_diisi = belum ada data).
+     *
+     * `GET /v1/spmi/akreditasi/kelola`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelola(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi/kelola', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat akreditasi unit
+     *
+     * Semua akreditasi unit (terkini dulu) dengan SK registri, sertifikat (file SPMI entitas akreditasi), waktu tulis ke SIAKAD lama, dan persiapan/rencana reakreditasi yang berjalan.
+     *
+     * `GET /v1/spmi/akreditasi/unit/{unit}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $unit ID unit SPMI
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiUnitByUnit(int|string $unit, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi/unit/{unit}', ['unit' => $unit], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jalankan pengingat masa berlaku
+     *
+     * Admin SPMI. Sama dengan tugas terjadwal spmi-akreditasi-pengingat: notifikasi 12/6/3 bulan sebelum berakhir ke Kaprodi, Dekan, dan petugas SPMI (tidak berulang untuk ambang yang sama).
+     *
+     * `POST /v1/spmi/akreditasi/pengingat`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiPengingat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi/pengingat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status akreditasi: daftar
+     *
+     * Terlihat oleh semua pemilik spmi:read. Filter: unit_id, lingkup, lembaga, status, terkini, sumber, q (cari).
+     *
+     * `GET /v1/spmi/akreditasi`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, lingkup?: string, lembaga?: string, status?: string, terkini?: string, sumber?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah akreditasi
+     *
+     * Izin spmi.akreditasi.kelola atau admin SPMI. Body: unit_id (prodi/universitas), lembaga (kode), peringkat (kode/nama; status ikut peringkat), sk_id (PilihSK) atau nomor_sk + tanggal_sk, berlaku_mulai, berlaku_sampai (kosong = 5 tahun prodi/8 tahun institusi), instrumen, nilai, catatan, tautan_sk, terkini (bawaan: ya bila tidak lebih lama dari yang terkini), target_reakreditasi (rencana pengajuan). Akreditasi terkini ditulis ke m_program_studi/m_perguruan_tinggi (kode lama dari peringkat); hasilnya di tulis_siakad.
+     *
+     * `POST /v1/spmi/akreditasi`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Status akreditasi: detail
+     *
+     * `GET /v1/spmi/akreditasi/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah akreditasi
+     *
+     * Seperti tambah; kirim hanya isian yang berubah.
+     *
+     * `PUT /v1/spmi/akreditasi/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID akreditasi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkreditasiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/akreditasi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus akreditasi
+     *
+     * Riwayat sebelumnya kembali menjadi terkini dan ditulis ulang ke SIAKAD lama (tanpa riwayat = tabel lama tidak diubah).
+     *
+     * `DELETE /v1/spmi/akreditasi/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID akreditasi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAkreditasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/akreditasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar usulan akreditasi
+     *
+     * SPMI (spmi.akreditasi.kelola/admin): semua; Fakultas: prodi dengan izin fakultas.akreditasi(.kelola). Dengan alur pemeriksa (prodi -> SPMI -> data resmi).
+     *
+     * `GET /v1/spmi/akreditasi-usulan`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{prodi?: string, fakultas?: string, status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiUsulan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-usulan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan usulan akreditasi
+     *
+     * Izin dasbor fakultas.akreditasi.kelola untuk prodi itu. Body: kode_prodi, lembaga, peringkat, sk_id (PilihSK) atau nomor_sk + tanggal_sk, berlaku_mulai, berlaku_sampai, berkas_id (sertifikat/SK; wajib kecuali tidak terakreditasi), catatan. Satu usulan menunggu per prodi; SPMI diberi notifikasi.
+     *
+     * `POST /v1/spmi/akreditasi-usulan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiUsulan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-usulan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Acuan usulan akreditasi prodi
+     *
+     * Lembaga & peringkat aktif (data SPMI), akreditasi terkini, usulan yang menunggu, hak (lihat, ajukan, validasi).
+     *
+     * `GET /v1/spmi/akreditasi-usulan/acuan/{kode}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $kode Kode prodi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiUsulanAcuanByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-usulan/acuan/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail usulan akreditasi
+     *
+     * Isian usulan, akreditasi terkini prodi untuk banding, alur pemeriksa, hak.
+     *
+     * `GET /v1/spmi/akreditasi-usulan/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiUsulanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-usulan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan usulan akreditasi
+     *
+     * Pengusul/Kaprodi; hanya yang masih diajukan.
+     *
+     * `POST /v1/spmi/akreditasi-usulan/{id}/batal`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiUsulanByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-usulan/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Validasi usulan akreditasi
+     *
+     * Izin spmi.akreditasi.kelola atau admin SPMI. Body: {keputusan: setujui|tolak, catatan (wajib bila tolak), koreksi: {lembaga, peringkat, nomor_sk, tanggal_sk, berlaku_mulai, berlaku_sampai}}. Setujui = akreditasi resmi baru lewat POST /v1/spmi/akreditasi (riwayat, SK registri, tulis-tembus m_program_studi) + sertifikat ditautkan; pengusul diberi notifikasi.
+     *
+     * `POST /v1/spmi/akreditasi-usulan/{id}/putuskan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiUsulanByIdPutuskan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-usulan/{id}/putuskan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Sertifikat/SK usulan
+     *
+     * Inline; ?unduh=1 untuk unduhan.
+     *
+     * `GET /v1/spmi/akreditasi-usulan/{id}/berkas`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID usulan
+     * @param array{unduh?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiUsulanByIdBerkas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-usulan/{id}/berkas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ringkasan kelengkapan per prodi
+     *
+     * Prodi yang terlihat (SPMI: semua; Fakultas: prodi berizin fakultas.akreditasi): akreditasi terkini (SPMI), persiapan aktif, jumlah dokumen, lengkap, menunggu periksa, perbaikan, terlambat, persen, hak. ?fakultas=.
+     *
+     * `GET /v1/spmi/akreditasi-kelengkapan`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{fakultas?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelengkapan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-kelengkapan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ruang kerja kelengkapan satu prodi
+     *
+     * Akreditasi terkini (hanya baca), persiapan aktif, dokumen per kriteria (status, penanggung jawab, tenggat, bukti, komentar, alur pemeriksa), persen per kriteria, instrumen untuk memulai, hak.
+     *
+     * `GET /v1/spmi/akreditasi-kelengkapan/prodi/{kode}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $kode Kode prodi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelengkapanProdiByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-kelengkapan/prodi/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mulai/segarkan ruang kerja
+     *
+     * Membuat persiapan akreditasi aktif (bila belum ada) dan satu butir per dokumen instrumen. Body: {instrumen_id, target_pengajuan, jenis}. Aman diulang.
+     *
+     * `POST /v1/spmi/akreditasi-kelengkapan/prodi/{kode}/mulai`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $kode Kode prodi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiKelengkapanProdiByKodeMulai(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-kelengkapan/prodi/{kode}/mulai', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lampiran data otomatis
+     *
+     * Dosen tetap & JAD, mahasiswa, lulusan, IPK, tepat waktu, penelitian/PkM LP2M, kerja sama, ketercapaian CPL, tracer, EDOM; dihitung dari SIAKAD (hanya baca). Tabel LKPS lengkap: /v1/spmi/lkps/{kode}.
+     *
+     * `GET /v1/spmi/akreditasi-kelengkapan/prodi/{kode}/lampiran`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $kode Kode prodi
+     * @param array{ts?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelengkapanProdiByKodeLampiran(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-kelengkapan/prodi/{kode}/lampiran', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail butir kelengkapan
+     *
+     * Dokumen, status, bukti, alur pemeriksa, komentar, hak (unggah, periksa).
+     *
+     * `GET /v1/spmi/akreditasi-kelengkapan/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelengkapanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-kelengkapan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Penanggung jawab & tenggat
+     *
+     * Body: {pic_username, tenggat}.
+     *
+     * `PUT /v1/spmi/akreditasi-kelengkapan/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkreditasiKelengkapanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/akreditasi-kelengkapan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Unggah bukti
+     *
+     * Body: {berkas_id} (unggah dulu ke /v1/berkas). Status menjadi diunggah.
+     *
+     * `POST /v1/spmi/akreditasi-kelengkapan/{id}/unggah`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiKelengkapanByIdUnggah(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-kelengkapan/{id}/unggah', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Periksa bukti
+     *
+     * Body: {keputusan: lanjut|kembalikan, catatan}. UPM fakultas: diunggah -> diperiksa; SPMI: -> lengkap; kembalikan -> perbaikan (wajib catatan).
+     *
+     * `POST /v1/spmi/akreditasi-kelengkapan/{id}/periksa`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiKelengkapanByIdPeriksa(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-kelengkapan/{id}/periksa', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tambah komentar
+     *
+     * Body: {isi}. Semua yang boleh melihat prodi.
+     *
+     * `POST /v1/spmi/akreditasi-kelengkapan/{id}/komentar`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiKelengkapanByIdKomentar(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-kelengkapan/{id}/komentar', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Isi bukti
+     *
+     * Tampil inline; ?unduh=1 untuk unduhan.
+     *
+     * `GET /v1/spmi/akreditasi-kelengkapan/{id}/berkas`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID butir
+     * @param array{unduh?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiKelengkapanByIdBerkas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-kelengkapan/{id}/berkas', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -3376,44 +3886,6 @@ final class Spmi extends Resource
     }
 
     /**
-     * Status akreditasi: daftar
-     *
-     * Terlihat oleh semua pemilik spmi:read. Filter: unit_id, lingkup, lembaga, status, terkini, sumber, q (cari).
-     *
-     * `GET /v1/spmi/akreditasi`
-     *
-     * scope: `spmi:read` · berhalaman
-     *
-     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, lingkup?: string, lembaga?: string, status?: string, terkini?: string, sumber?: string, ...} $query
-     * @param array{headers?: array<string, string>, max_retries?: int} $options
-     * @return ApiResponse
-     * @throws \Unipo\Siakad\Exceptions\SiakadException
-     */
-    public function getAkreditasi(array $query = [], array $options = []): ApiResponse
-    {
-        return $this->send('GET', '/v1/spmi/akreditasi', [], $query, null, $options, false, false);
-    }
-
-    /**
-     * Status akreditasi: tambah
-     *
-     * Dikelola LPM atau pengelola mutu unit (unit_id); unit_id kosong = LPM.
-     *
-     * `POST /v1/spmi/akreditasi`
-     *
-     * scope: `spmi:write`
-     *
-     * @param array{unit_id: int|null, lingkup: string, lembaga: string, status: string, peringkat?: string|null, instrumen?: string|null, nilai?: float|int|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, berlaku_sampai?: string|null, tautan_sk?: string|null, terkini?: bool, catatan?: string|null, ...} $body
-     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
-     * @return ApiResponse
-     * @throws \Unipo\Siakad\Exceptions\SiakadException
-     */
-    public function postAkreditasi(array $body, array $options = []): ApiResponse
-    {
-        return $this->send('POST', '/v1/spmi/akreditasi', [], $options['query'] ?? [], $body, $options, false, false);
-    }
-
-    /**
      * Status akreditasi: riwayat perubahan
      *
      * `GET /v1/spmi/akreditasi/{id}/riwayat`
@@ -3429,64 +3901,6 @@ final class Spmi extends Resource
     public function getAkreditasiByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/spmi/akreditasi/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
-    }
-
-    /**
-     * Status akreditasi: detail
-     *
-     * `GET /v1/spmi/akreditasi/{id}`
-     *
-     * scope: `spmi:read`
-     *
-     * @param int|string $id ID
-     * @param array<string, mixed> $query
-     * @param array{headers?: array<string, string>, max_retries?: int} $options
-     * @return ApiResponse
-     * @throws \Unipo\Siakad\Exceptions\SiakadException
-     */
-    public function getAkreditasiById(int|string $id, array $query = [], array $options = []): ApiResponse
-    {
-        return $this->send('GET', '/v1/spmi/akreditasi/{id}', ['id' => $id], $query, null, $options, false, false);
-    }
-
-    /**
-     * Status akreditasi: ubah
-     *
-     * Dikelola LPM atau pengelola mutu unit (unit_id); unit_id kosong = LPM. Kirim hanya kolom yang berubah.
-     *
-     * `PUT /v1/spmi/akreditasi/{id}`
-     *
-     * scope: `spmi:write`
-     *
-     * @param int|string $id ID
-     * @param array{unit_id: int|null, lingkup: string, lembaga: string, status: string, peringkat?: string|null, instrumen?: string|null, nilai?: float|int|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, berlaku_sampai?: string|null, tautan_sk?: string|null, terkini?: bool, catatan?: string|null, ...} $body
-     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
-     * @return ApiResponse
-     * @throws \Unipo\Siakad\Exceptions\SiakadException
-     */
-    public function putAkreditasiById(int|string $id, array $body, array $options = []): ApiResponse
-    {
-        return $this->send('PUT', '/v1/spmi/akreditasi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
-    }
-
-    /**
-     * Status akreditasi: hapus
-     *
-     * Ditolak bila masih dipakai data lain.
-     *
-     * `DELETE /v1/spmi/akreditasi/{id}`
-     *
-     * scope: `spmi:write`
-     *
-     * @param int|string $id ID
-     * @param array<string, mixed> $query
-     * @param array{headers?: array<string, string>, max_retries?: int} $options
-     * @return ApiResponse
-     * @throws \Unipo\Siakad\Exceptions\SiakadException
-     */
-    public function deleteAkreditasiById(int|string $id, array $query = [], array $options = []): ApiResponse
-    {
-        return $this->send('DELETE', '/v1/spmi/akreditasi/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -3943,5 +4357,347 @@ final class Spmi extends Resource
     public function deleteAkreditasiButirById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/spmi/akreditasi-butir/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: daftar
+     *
+     * Terlihat oleh semua pemilik spmi:read. Filter: lingkup, aktif, q (cari).
+     *
+     * `GET /v1/spmi/akreditasi-lembaga`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, lingkup?: string, aktif?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiLembaga(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-lembaga', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: tambah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN).
+     *
+     * `POST /v1/spmi/akreditasi-lembaga`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array{kode: string, nama: string|null, singkatan?: string|null, lingkup?: string, situs?: string|null, aktif?: bool, urut?: int, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiLembaga(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-lembaga', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: riwayat perubahan
+     *
+     * `GET /v1/spmi/akreditasi-lembaga/{id}/riwayat`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiLembagaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-lembaga/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: detail
+     *
+     * `GET /v1/spmi/akreditasi-lembaga/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiLembagaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-lembaga/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: ubah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/spmi/akreditasi-lembaga/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array{kode: string, nama: string|null, singkatan?: string|null, lingkup?: string, situs?: string|null, aktif?: bool, urut?: int, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkreditasiLembagaById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/akreditasi-lembaga/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Lembaga akreditasi: hapus
+     *
+     * Ditolak bila masih dipakai data lain.
+     *
+     * `DELETE /v1/spmi/akreditasi-lembaga/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAkreditasiLembagaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/akreditasi-lembaga/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: daftar
+     *
+     * Terlihat oleh semua pemilik spmi:read. Filter: status, aktif, q (cari).
+     *
+     * `GET /v1/spmi/akreditasi-peringkat`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, status?: string, aktif?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiPeringkat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-peringkat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: tambah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN).
+     *
+     * `POST /v1/spmi/akreditasi-peringkat`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array{kode: string, nama: string|null, status: string, kode_siakad?: string, aktif?: bool, urut?: int, keterangan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiPeringkat(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-peringkat', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: riwayat perubahan
+     *
+     * `GET /v1/spmi/akreditasi-peringkat/{id}/riwayat`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiPeringkatByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-peringkat/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: detail
+     *
+     * `GET /v1/spmi/akreditasi-peringkat/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiPeringkatById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-peringkat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: ubah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/spmi/akreditasi-peringkat/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array{kode: string, nama: string|null, status: string, kode_siakad?: string, aktif?: bool, urut?: int, keterangan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkreditasiPeringkatById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/akreditasi-peringkat/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Peringkat akreditasi: hapus
+     *
+     * Ditolak bila masih dipakai data lain.
+     *
+     * `DELETE /v1/spmi/akreditasi-peringkat/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAkreditasiPeringkatById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/akreditasi-peringkat/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: daftar
+     *
+     * Terlihat oleh semua pemilik spmi:read. Filter: instrumen_id, kriteria_id, jenis, q (cari).
+     *
+     * `GET /v1/spmi/akreditasi-dokumen`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, instrumen_id?: string, kriteria_id?: string, jenis?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiDokumen(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-dokumen', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: tambah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN).
+     *
+     * `POST /v1/spmi/akreditasi-dokumen`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array{instrumen_id: int|null, kriteria_id?: int|null, kode: string, nama: string|null, jenis: string, keterangan?: string|null, wajib?: bool, sumber_data?: string|null, urut?: int, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkreditasiDokumen(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/akreditasi-dokumen', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: riwayat perubahan
+     *
+     * `GET /v1/spmi/akreditasi-dokumen/{id}/riwayat`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiDokumenByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-dokumen/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: detail
+     *
+     * `GET /v1/spmi/akreditasi-dokumen/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkreditasiDokumenById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/akreditasi-dokumen/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: ubah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/spmi/akreditasi-dokumen/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array{instrumen_id: int|null, kriteria_id?: int|null, kode: string, nama: string|null, jenis: string, keterangan?: string|null, wajib?: bool, sumber_data?: string|null, urut?: int, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAkreditasiDokumenById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/akreditasi-dokumen/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen kebutuhan akreditasi: hapus
+     *
+     * Ditolak bila masih dipakai data lain.
+     *
+     * `DELETE /v1/spmi/akreditasi-dokumen/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAkreditasiDokumenById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/akreditasi-dokumen/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 }

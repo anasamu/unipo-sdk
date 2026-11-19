@@ -9,14 +9,14 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Fakultas, Fakultas: struktur organisasi, Fakultas: kelola akademik
+ * Fakultas, Fakultas: struktur organisasi, Fakultas: kelola akademik, Fakultas: identitas & usulan prodi
  */
 final class Fakultas extends Resource
 {
     /**
      * Daftar fakultas
      *
-     * Publik. Fakultas, prodi + akreditasi, singkatan, situs portal, dan domain; dipakai aplikasi fakultas untuk mengenali fakultas dari subdomain.
+     * Publik. Fakultas, prodi + akreditasi, singkatan, situs portal, domain, logo fakultas, dan warna aksen (identitas fakultas); dipakai aplikasi fakultas untuk mengenali fakultas dari subdomain.
      *
      * `GET /v1/fakultas`
      *
@@ -2289,5 +2289,229 @@ final class Fakultas extends Resource
     public function postByKodeAksesByIdCabut(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/fakultas/{kode}/akses/{id}/cabut', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Identitas fakultas
+     *
+     * Logo berlaku (situs portal fakultas = satu sumber untuk header dasbor, portal, Humas, dan kop dokumen), nama singkat, warna aksen, riwayat versi logo (berlaku, bisa dikembalikan), batas unggah, hak kelola (fakultas.identitas.kelola di tingkat fakultas).
+     *
+     * `GET /v1/fakultas/{kode}/identitas`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeIdentitas(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/identitas', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah nama singkat & warna aksen
+     *
+     * Body: {singkatan (maks. 30), warna_utama (#RRGGBB)}. Ditulis ke situs portal fakultas, langsung berlaku. Izin fakultas.identitas.kelola (tingkat fakultas).
+     *
+     * `PATCH /v1/fakultas/{kode}/identitas`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function patchByKodeIdentitas(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PATCH', '/v1/fakultas/{kode}/identitas', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Unggah logo fakultas
+     *
+     * Body: {berkas_id (UUID /v1/berkas), catatan}. PNG/JPG/WebP, maks. 2 MB, sisi 128-4096 px. Disimpan sebagai media situs portal fakultas dan langsung berlaku (tanpa validasi); versi lama tetap di riwayat.
+     *
+     * `POST /v1/fakultas/{kode}/identitas/logo`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeIdentitasLogo(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/identitas/logo', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus logo fakultas
+     *
+     * Kembali ke logo aplikasi bawaan; versi sebelumnya tetap di riwayat. Body opsional {catatan}.
+     *
+     * `POST /v1/fakultas/{kode}/identitas/logo/hapus`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeIdentitasLogoHapus(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/identitas/logo/hapus', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kembalikan versi logo
+     *
+     * Versi dari riwayat menjadi logo berlaku lagi (dicatat sebagai versi baru). Body opsional {catatan}.
+     *
+     * `POST /v1/fakultas/{kode}/identitas/logo/riwayat/{id}/pulihkan`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param int|string $id ID riwayat
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeIdentitasLogoRiwayatByIdPulihkan(int|string $kode, int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/identitas/logo/riwayat/{id}/pulihkan', ['kode' => $kode, 'id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Usulan perubahan data prodi
+     *
+     * Usulan prodi dalam kewenangan (izin fakultas.prodi.usul) dengan alur pemeriksa (Kaprodi -> BAAK -> diterapkan), jumlah isian per status, prodi_boleh.
+     *
+     * `GET /v1/fakultas/{kode}/prodi-usulan`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array{prodi?: string, status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeProdiUsulan(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/prodi-usulan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan usulan perubahan data prodi
+     *
+     * Body: {kode_prodi, butir: [{isian, nilai}], alasan, berkas_id (lampiran/SK, opsional)}. Isian hanya-BAAK/terkunci, nilai sama, atau isian yang sedang diusulkan ditolak 422. BAAK diberi notifikasi.
+     *
+     * `POST /v1/fakultas/{kode}/prodi-usulan`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeProdiUsulan(int|string $kode, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/prodi-usulan', ['kode' => $kode], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Acuan wizard usulan prodi
+     *
+     * Isian data prodi (DATA dari BAAK: boleh_usul atau hanya BAAK, terkunci) dengan nilai sekarang dari sumbernya, isian yang sedang diusulkan, situs portal prodi.
+     *
+     * `GET /v1/fakultas/{kode}/prodi-usulan/acuan`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param array{prodi: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeProdiUsulanAcuan(int|string $kode, array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/prodi-usulan/acuan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail usulan prodi
+     *
+     * Butir (nilai lama, baru, sekarang, keputusan BAAK, catatan), alur pemeriksa.
+     *
+     * `GET /v1/fakultas/{kode}/prodi-usulan/{id}`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeProdiUsulanById(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/prodi-usulan/{id}', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan usulan prodi
+     *
+     * Hanya usulan yang masih diajukan.
+     *
+     * `POST /v1/fakultas/{kode}/prodi-usulan/{id}/batal`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param int|string $id ID usulan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeProdiUsulanByIdBatal(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/prodi-usulan/{id}/batal', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lampiran usulan prodi
+     *
+     * Inline; ?unduh=1 untuk unduhan.
+     *
+     * `GET /v1/fakultas/{kode}/prodi-usulan/{id}/berkas`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk, singkatan, atau kode/domain situs portal
+     * @param int|string $id ID usulan
+     * @param array{unduh?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeProdiUsulanByIdBerkas(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/prodi-usulan/{id}/berkas', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
     }
 }

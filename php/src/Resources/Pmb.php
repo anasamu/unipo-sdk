@@ -708,6 +708,27 @@ final class Pmb extends Resource
     }
 
     /**
+     * Kwitansi resmi tagihan lunas
+     *
+     * Wajib header `X-Pmb-Akun-Token` dari /v1/pmb/akun/masuk. Bukti Kas Masuk berpenerbit unit PMB dengan QR verifikasi. Hanya tagihan lunas milik pendaftar.
+     *
+     * `GET /v1/pmb/saya/pendaftaran/{id}/tagihan/{tagihan}/kwitansi`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id ID pendaftaran (UUID)
+     * @param int|string $tagihan ID tagihan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaPendaftaranByIdTagihanByTagihanKwitansi(int|string $id, int|string $tagihan, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/saya/pendaftaran/{id}/tagihan/{tagihan}/kwitansi', ['id' => $id, 'tagihan' => $tagihan], $query, null, $options, false, false);
+    }
+
+    /**
      * Unggah bukti transfer
      *
      * Wajib header `X-Pmb-Akun-Token` dari /v1/pmb/akun/masuk. multipart/form-data: `bukti` (PDF/JPG/PNG), `jumlah`, `tanggal_bayar` (YYYY-MM-DD). Menunggu konfirmasi petugas keuangan.
@@ -2219,6 +2240,26 @@ final class Pmb extends Resource
     public function patchAdminTagihanById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PATCH', '/v1/pmb/admin/tagihan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kwitansi resmi tagihan lunas
+     *
+     * Bukti Kas Masuk berpenerbit unit PMB (docs/KWITANSI.md): nomor bukti PMB-..., rincian, riwayat pembayaran diterima, catatan (dipotret saat terbit), QR verifikasi. Hanya tagihan lunas.
+     *
+     * `GET /v1/pmb/admin/tagihan/{id}/kwitansi`
+     *
+     * scope: `pmb:keuangan`
+     *
+     * @param int|string $id ID tagihan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminTagihanByIdKwitansi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/tagihan/{id}/kwitansi', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

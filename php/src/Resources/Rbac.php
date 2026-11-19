@@ -182,6 +182,109 @@ final class Rbac extends Resource
     }
 
     /**
+     * Dampak menonaktifkan peran
+     *
+     * Jumlah penugasan aktif, pengguna, pejabat, akun level, jenis akun, dan peran turunan yang kehilangan izin bila peran ini dinonaktifkan; `terkunci` berisi alasan bila peran tidak boleh dinonaktifkan (superadmin). Hanya admin.
+     *
+     * `GET /v1/rbac/peran/{id}/dampak`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPeranByIdDampak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/peran/{id}/dampak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kembalikan peran bawaan ke bawaan
+     *
+     * Mengembalikan isian (nama, keterangan, lingkup, jenis unit, level setara, boleh didelegasikan, induk) dan status aktif peran
+     * bawaan seperti `app/Modules/Rbac/Data/bawaan.php`; izin bawaan yang hilang ditambahkan lagi dan izin tambahan dari admin dicabut
+     * (izin yang diberikan migration/CLI tetap). Tanda "diubah admin" dihapus sehingga sinkron kembali menambah izin bawaan baru otomatis. Penugasan dan pemegang tidak disentuh. `{"pratinjau": true}` hanya menghitung perubahannya
+     * (`isian`, `izin_ditambah`, `izin_dicabut`). Tercatat di log rbac (aksi `kembalikan`). Hanya admin; 409 `bukan_bawaan` untuk peran buatan.
+     *
+     * `POST /v1/rbac/peran/{id}/kembalikan`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeranByIdKembalikan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/peran/{id}/kembalikan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Putuskan izin baru tersedia
+     *
+     * Peran bawaan yang izinnya sudah diubah admin tidak ditambah izin bawaan baru oleh sinkron; izin itu muncul di `izin_baru_tersedia` detail peran. Body `{"terapkan": [...], "abaikan": [...]}`: yang diterapkan ditambahkan ke peran, yang diabaikan tidak ditawarkan lagi. Hanya admin.
+     *
+     * `POST /v1/rbac/peran/{id}/usulan`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeranByIdUsulan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/peran/{id}/usulan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dampak menonaktifkan aplikasi
+     *
+     * Izin, peran yang memberi izin masuk, pengguna lewat penugasan, dan jenis akun yang kehilangan aplikasi bila dinonaktifkan; `inti` = aplikasi yang tidak boleh dinonaktifkan (Pustikom, SSO, API SIAKAD). Hanya admin.
+     *
+     * `GET /v1/rbac/aplikasi/{id}/dampak`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAplikasiByIdDampak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/aplikasi/{id}/dampak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kembalikan aplikasi bawaan ke bawaan
+     *
+     * Mengembalikan nama, jenis, keterangan, client_id_sso, dan status aktif aplikasi bawaan seperti `Data/bawaan.php` (alamat, logo, klien API, visibilitas, dan sasaran tidak diubah). `{"pratinjau": true}` hanya menghitung perubahannya. Tercatat di log rbac. Hanya admin.
+     *
+     * `POST /v1/rbac/aplikasi/{id}/kembalikan`
+     *
+     * scope: `rbac:admin`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAplikasiByIdKembalikan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/aplikasi/{id}/kembalikan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Sinkron katalog
      *
      * Menambah aplikasi, izin, dan peran bawaan yang belum ada; izin scope API dari katalog scope terbaru; izin <modul>:kelola untuk modul pusat data. Aman diulang; perubahan admin tidak ditimpa. Sama dengan `php artisan rbac:sinkron`.
@@ -790,7 +893,7 @@ final class Rbac extends Resource
     /**
      * Aplikasi: daftar
      *
-     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
+     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). sasaran = siapa yang boleh memakai aplikasi walau perannya memberi izin masuk: null = semua; daftar kode mahasiswa (belum lulus), alumni, dosen, tendik, maba, petugas (peran kerja/penugasan/jabatan), atau peran:<kode>. Pengguna di luar sasaran tidak melihat aplikasi di SSO/Profil dan ditolak saat masuk. Semua pemilik token ber-scope rbac:read.
      *
      * `GET /v1/rbac/aplikasi`
      *
@@ -815,7 +918,7 @@ final class Rbac extends Resource
      *
      * scope: `rbac:write`
      *
-     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, sasaran?: mixed, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -828,7 +931,7 @@ final class Rbac extends Resource
     /**
      * Aplikasi: detail
      *
-     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
+     * Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). sasaran = siapa yang boleh memakai aplikasi walau perannya memberi izin masuk: null = semua; daftar kode mahasiswa (belum lulus), alumni, dosen, tendik, maba, petugas (peran kerja/penugasan/jabatan), atau peran:<kode>. Pengguna di luar sasaran tidak melihat aplikasi di SSO/Profil dan ditolak saat masuk. Semua pemilik token ber-scope rbac:read.
      *
      * `GET /v1/rbac/aplikasi/{id}`
      *
@@ -855,7 +958,7 @@ final class Rbac extends Resource
      * scope: `rbac:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, keterangan?: string, jenis?: string, url?: string, visibilitas?: string, url_android?: string, url_ios?: string, client_id_api?: string, client_id_sso?: string, aktif?: bool, urut?: int, sasaran?: mixed, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -888,7 +991,7 @@ final class Rbac extends Resource
     /**
      * Aplikasi: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). Semua pemilik token ber-scope rbac:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aplikasi yang memakai role dan hak akses terpusat. kode menjadi awalan kode izinnya (mis. lms → lms.akses). client_id_api = klien API milik aplikasi (boleh mendaftarkan izinnya sendiri); client_id_sso = klien SSO (klaim permissions di token SSO). visibilitas publik = tampil di dasbor SSO dan /v1/rbac/aplikasi-publik; privat = hanya di Pustikom. jenis web memakai url (tombol Buka), jenis mobile memakai url_android/url_ios (tautan unduh sesuai platform yang didukung). sasaran = siapa yang boleh memakai aplikasi walau perannya memberi izin masuk: null = semua; daftar kode mahasiswa (belum lulus), alumni, dosen, tendik, maba, petugas (peran kerja/penugasan/jabatan), atau peran:<kode>. Pengguna di luar sasaran tidak melihat aplikasi di SSO/Profil dan ditolak saat masuk. Semua pemilik token ber-scope rbac:read.
      *
      * `GET /v1/rbac/aplikasi/{id}/riwayat`
      *

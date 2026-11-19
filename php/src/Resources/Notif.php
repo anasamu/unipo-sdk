@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Notifikasi: Kotak masuk, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean
+ * Notifikasi: Kotak masuk, Notifikasi: Realtime, Notifikasi: Pengumuman, Notifikasi: Pemicu, Notifikasi: Preferensi, Notifikasi: Antrean
  */
 final class Notif extends Resource
 {
@@ -125,6 +125,44 @@ final class Notif extends Resource
     public function postKirim(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/notif/kirim', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Konfigurasi realtime
+     *
+     * Penyedia WebSocket aktif (Pustikom » Integrasi » Realtime) tanpa secret: driver, key, host, port, tls, cluster, nama kanal privat milik pemanggil, nama event, dan jeda polling cadangan. `aktif: false` = belum ada penyedia aktif; aplikasi tetap memakai long-poll/polling.
+     *
+     * `GET /v1/notif/realtime`
+     *
+     * scope: `notif:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRealtime(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/notif/realtime', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Otorisasi kanal privat
+     *
+     * Body {socket_id, channel_name}. Menandatangani langganan (protokol Pusher) hanya untuk kanal milik pemanggil; kanal lain 403. Jawaban {auth}.
+     *
+     * `POST /v1/notif/realtime/auth`
+     *
+     * scope: `notif:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRealtimeAuth(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/notif/realtime/auth', [], $query, null, $options, false, false);
     }
 
     /**

@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Keuangan, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keringanan dan beasiswa
+ * Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan
  */
 final class Keuangan extends Resource
 {
@@ -47,6 +47,499 @@ final class Keuangan extends Resource
     public function getPembayaran(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/keuangan/pembayaran', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pencairan beasiswa
+     *
+     * Penerima program berjalan per periode: potongan UKT (pengajuan dan terapan ke tagihan) atau pencairan tunai (status, bukti).
+     *
+     * `GET /v1/keuangan/beasiswa/pencairan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaPencairan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/pencairan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pasang potongan UKT penerima
+     *
+     * Skema keringanan bertaut program dibuat bila belum ada; setiap penerima mendapat pengajuan disetujui yang langsung diterapkan ke tagihan (idempoten).
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/potongan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdPotongan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/potongan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat daftar pencairan tunai
+     *
+     * Body {tahun_id, tanggal?}. Satu baris rencana per penerima yang belum punya pada periode itu.
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/pencairan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdPencairan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/pencairan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aturan pencairan program
+     *
+     * Mode (ke_mahasiswa|ke_tagihan|campuran), komponen dana [{kode, label, nominal, tujuan: tagihan|mahasiswa|catat}], prioritas kode_biaya, lintas_periode, aturan_sisa, aturan_lulus, pagu (+ terpakai), persetujuan. Belum tersimpan = bawaan (KIP Kuliah: biaya pendidikan ke tagihan, sisa deposit).
+     *
+     * `GET /v1/keuangan/beasiswa/program/{id}/aturan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaProgramByIdAturan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/program/{id}/aturan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan aturan pencairan
+     *
+     * Body seperti GET. Juga bisa dari wizard program BAAK (kunci pencairan).
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/aturan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdAturan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/aturan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Timpa aturan per penerima
+     *
+     * Body {mode?, nominal?: {kode_komponen: nominal}, alasan (wajib), hapus?: bool}.
+     *
+     * `POST /v1/keuangan/beasiswa/penerima/{id}/atur`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID pendaftar
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaPenerimaByIdAtur(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/penerima/{id}/atur', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Salurkan dana satu periode
+     *
+     * Body {tahun_id, penerimaan_id?, pendaftar_id?: [..]}. Komponen ke tagihan = dana deposit bertujuan (menunggu bila tagihan periode belum terbit; alokasi berkwitansi berurutan prioritas), ke mahasiswa = rencana transfer, catat = hanya dicatat. Cek pagu. Idempoten.
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/salurkan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdSalurkan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/salurkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dana masuk dari pemberi
+     *
+     * Daftar penerimaan kolektif (nomor, periode, nominal, teralokasi, bukti).
+     *
+     * `GET /v1/keuangan/beasiswa/penerimaan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{program_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaPenerimaan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/penerimaan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Catat dana masuk kolektif
+     *
+     * Body {tahun_id, tanggal, pemberi?, nominal, keterangan?, berkas_id? (bukti), salurkan?: bool}. Jurnal kas masuk (draf) bila pemetaan penerimaan "beasiswa" ada.
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/penerimaan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdPenerimaan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/penerimaan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Proses sisa dana beasiswa
+     *
+     * Body {nim?}. Alokasikan dulu; sisa tanpa tagihan sasaran ikut aturan_sisa (transfer/kewajiban/hangus); mahasiswa lulus/keluar ikut aturan_lulus (bawaan kelebihan dicatat). Deposit tetap untuk semester berikutnya.
+     *
+     * `POST /v1/keuangan/beasiswa/proses-sisa`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProsesSisa(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/proses-sisa', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Berkas pencairan kolektif
+     *
+     * Dengan tahap persetujuan (pemeriksa).
+     *
+     * `GET /v1/keuangan/beasiswa/berkas`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaBerkas(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/berkas', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat berkas pencairan
+     *
+     * Body {tahun_id, pencairan_id?: [..] (kosong = semua calon), judul?}. Rekening dipotret dari pemutakhiran_rekening; masalah rekening ditandai per baris.
+     *
+     * `POST /v1/keuangan/beasiswa/berkas`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaBerkas(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/berkas', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Calon baris berkas pencairan
+     *
+     * Rencana transfer yang belum masuk berkas berjalan, dengan rekening dari data keuangan Profil.
+     *
+     * `GET /v1/keuangan/beasiswa/berkas-calon`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaBerkasCalon(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/berkas-calon', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rincian berkas pencairan
+     *
+     * Baris transfer, tahap persetujuan, bukti.
+     *
+     * `GET /v1/keuangan/beasiswa/berkas/{id}`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaBerkasById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/berkas/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ekspor daftar transfer bank
+     *
+     * format=csv|xlsx (format umum: nama pemilik, bank, kode bank, nomor rekening, nominal, berita). Setelah disetujui.
+     *
+     * `GET /v1/keuangan/beasiswa/berkas/{id}/ekspor`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID berkas
+     * @param array{format?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaBerkasByIdEkspor(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/berkas/{id}/ekspor', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tandai cair
+     *
+     * Body {baris_id?: [..] (kosong = semua yang menunggu), tanggal?, berkas_id (bukti transfer)}. Mahasiswa mendapat Kabar; berkas selesai bila semua baris final (jurnal kas keluar draf bila pemetaan belanja "beasiswa" ada).
+     *
+     * `POST /v1/keuangan/beasiswa/berkas/{id}/cair`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID berkas
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaBerkasByIdCair(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/berkas/{id}/cair', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Baris gagal/retur
+     *
+     * Body {status: gagal|retur, catatan}. Rencana transfer kembali dan bisa diulang di berkas berikutnya.
+     *
+     * `POST /v1/keuangan/beasiswa/berkas/{id}/baris/{baris}/gagal`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID berkas
+     * @param int|string $baris ID baris
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaBerkasByIdBarisByBarisGagal(int|string $id, int|string $baris, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/berkas/{id}/baris/{baris}/gagal', ['id' => $id, 'baris' => $baris], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Aksi berkas pencairan
+     *
+     * ajukan (operator BAUK; ditolak bila ada rekening kosong), setujui/tolak {catatan|alasan} per tahap (Kepala BAUK: beasiswa.cair.setujui; WR II: beasiswa.cair.wr2), batal, keluarkan {baris_id} saat draf.
+     *
+     * `POST /v1/keuangan/beasiswa/berkas/{id}/{aksi}`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID berkas
+     * @param int|string $aksi ajukan|setujui|tolak|batal|keluarkan (rute terakhir: cair/baris ditangani rute khusus di atas)
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaBerkasByIdByAksi(int|string $id, int|string $aksi, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/berkas/{id}/{aksi}', ['id' => $id, 'aksi' => $aksi], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pelacakan beasiswa
+     *
+     * Corong per program (pendaftar, lolos verifikasi, ditetapkan, dicairkan jumlah & nominal), pagu/terpakai/sisa, penerima dengan status pencairan.
+     *
+     * `GET /v1/keuangan/beasiswa/pelacakan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{tahun_id?: string, kode_prodi?: string, kode_fak?: string, sumber_dana?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaPelacakan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/pelacakan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ekspor pelacakan
+     *
+     * format=csv|xlsx.
+     *
+     * `GET /v1/keuangan/beasiswa/pelacakan/ekspor`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{format?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaPelacakanEkspor(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/pelacakan/ekspor', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat beasiswa mahasiswa
+     *
+     * Pendaftaran, penyaluran, pencairan, rekening Profil, kartu deposit.
+     *
+     * `GET /v1/keuangan/beasiswa/mahasiswa/{nim}`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaMahasiswaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/mahasiswa/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekonsiliasi per penerima (SPJ)
+     *
+     * Per penerima per periode: diterima per komponen, dialokasikan ke tagihan (jenis biaya, periode, nomor bukti), ditransfer, sisa deposit, menunggu, ditutup, hanya dicatat; dana masuk.
+     *
+     * `GET /v1/keuangan/beasiswa/program/{id}/rekonsiliasi`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID program
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaProgramByIdRekonsiliasi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/program/{id}/rekonsiliasi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ekspor SPJ
+     *
+     * format=xlsx|csv; PDF dari halaman cetak aplikasi.
+     *
+     * `GET /v1/keuangan/beasiswa/program/{id}/rekonsiliasi/ekspor`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID program
+     * @param array{tahun_id?: string, format?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaProgramByIdRekonsiliasiEkspor(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/program/{id}/rekonsiliasi/ekspor', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dasbor deposit menunggu
+     *
+     * Dana menunggu per periode sasaran (terlambat = periode sasaran sudah lewat) dan daftar dana aktif/menunggu.
+     *
+     * `GET /v1/keuangan/beasiswa/deposit`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaDeposit(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/beasiswa/deposit', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Catat pencairan
+     *
+     * Body {status: dicairkan|gagal|rencana, tanggal?, cara?, berkas_id? (UUID bukti; wajib untuk dicairkan bila belum ada), keterangan?}. Mahasiswa mendapat Kabar saat dicairkan.
+     *
+     * `POST /v1/keuangan/beasiswa/pencairan/{id}`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID pencairan
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaPencairanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/pencairan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -529,6 +1022,83 @@ final class Keuangan extends Resource
     public function postKasirByIdTutup(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keuangan/kasir/{id}/tutup', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dana deposit bertujuan
+     *
+     * Pengelola: ringkasan dana menunggu per periode sasaran (terlambat = periode sasaran sudah lewat) dan daftar dana. Saring status (menunggu|aktif|habis|ditutup) dan sumber.
+     *
+     * `GET /v1/keuangan/deposit-dana`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{status?: string, sumber?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDepositDana(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/deposit-dana', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Catat dana deposit bertujuan
+     *
+     * Pengelola. Body {nim, sumber, nominal, label, sumber_ref? (idempoten per sumber+ref+nim), tahun_sasaran? (tagihan belum terbit = menunggu), prioritas?: [kode_biaya urut], lintas_periode?, aturan_sisa?: deposit|transfer|kewajiban|hangus, keterangan?}. Langsung dicoba dialokasikan.
+     *
+     * `POST /v1/keuangan/deposit-dana`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDepositDana(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/deposit-dana', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Alokasikan dana deposit ke tagihan
+     *
+     * Pengelola. Body {nim?, tahun_id?}. Sama dengan tugas terjadwal keu:deposit; setiap alokasi berkwitansi (metode deposit). Aman diulang.
+     *
+     * `POST /v1/keuangan/deposit-dana/alokasikan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDepositDanaAlokasikan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/deposit-dana/alokasikan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kartu deposit mahasiswa
+     *
+     * Saldo, dana per sumber (masuk, terpakai, sisa, menunggu periode) dan alokasinya (tagihan + nomor bukti). Mahasiswa melihat miliknya.
+     *
+     * `GET /v1/keuangan/deposit-dana/kartu/{nim}`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDepositDanaKartuByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/deposit-dana/kartu/{nim}', ['nim' => $nim], $query, null, $options, false, false);
     }
 
     /**

@@ -256,9 +256,123 @@ final class Sistem extends Resource
     }
 
     /**
+     * Katalog perintah yang boleh dijadwalkan
+     *
+     * Perintah artisan yang boleh dipakai tugas kustom: hanya yang menyatakan konstanta `TERJADWALKAN` di kelasnya dan tidak
+     * cocok dengan daftar terlarang (migrate, db:*, admin:*, menyamar, kunci, sandi, ...). Tiap perintah: `nama`, `keterangan`,
+     * `cara_pakai`, `modul`, `batas_menit` (saran), `parameter` (nama, jenis argumen/opsi, label, tipe angka/teks/pilihan/bendera/tanggal,
+     * wajib, bawaan, min, maks, pola, pilihan).
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
+     *
+     * `GET /v1/sistem/jadwal/perintah`
+     *
+     * scope: `penjadwal:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalPerintah(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sistem/jadwal/perintah', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Calon penerima notifikasi tugas kustom
+     *
+     * Admin Pustikom yang berhak melihat tugas terjadwal dan administrator: `username`, `administrator`.
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `GET /v1/sistem/jadwal/penerima`
+     *
+     * scope: `penjadwal:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalPenerima(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sistem/jadwal/penerima', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat tugas kustom
+     *
+     * Body: `judul` (wajib), `keterangan`, `perintah` (wajib, dari katalog perintah), `parameter` (objek nama => nilai, divalidasi
+     * menurut definisi perintah), `ekspresi` (wajib, cron 5 kolom, Asia/Makassar), `aktif` (bawaan true), `cegah_tumpang`
+     * (bawaan true), `batas_menit` (1-720, bawaan saran perintah), `ulang` (percobaan ulang 0-3), `notif_gagal` (0-10; 0 = tanpa
+     * notifikasi), `penerima` (daftar username dari /penerima; kosong = semua Admin Pustikom). Kode dibuat otomatis (`k-...`).
+     * Perintah di luar katalog atau terlarang ditolak 422. Tercatat di log (sebelum/sesudah).
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `POST /v1/sistem/jadwal/kustom`
+     *
+     * scope: `penjadwal:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalKustom(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sistem/jadwal/kustom', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah tugas kustom
+     *
+     * Kirim kolom yang diubah saja (sama dengan buat). Tugas bawaan tidak bisa diubah lewat sini (404).
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `POST /v1/sistem/jadwal/kustom/{kode}`
+     *
+     * scope: `penjadwal:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode tugas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalKustomByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sistem/jadwal/kustom/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus tugas kustom
+     *
+     * Riwayat jalan tetap. Ditolak 409 bila sedang berjalan; yang masih antre dibatalkan. Tugas bawaan tidak bisa dihapus (404).
+     *
+     * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja; tercatat di log.
+     *
+     * `POST /v1/sistem/jadwal/kustom/{kode}/hapus`
+     *
+     * scope: `penjadwal:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode tugas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postJadwalKustomByKodeHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sistem/jadwal/kustom/{kode}/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
      * Riwayat jalan
      *
-     * Terbaru dulu. Saring `tugas`, `status` (antre, berjalan, berhasil, gagal, batas_waktu, terlewat, dibatalkan; boleh beberapa dipisah koma), `pemicu` (jadwal, manual, susulan), `dari`/`sampai` (YYYY-MM-DD); `page`, `per_page` (maks. 100). Tanpa keluaran lengkap (lihat detail).
+     * Terbaru dulu. Saring `tugas`, `status` (antre, berjalan, berhasil, gagal, batas_waktu, terlewat, dibatalkan; boleh beberapa dipisah koma), `pemicu` (jadwal, manual, susulan, ulang), `dari`/`sampai` (YYYY-MM-DD); `page`, `per_page` (maks. 100). Tanpa keluaran lengkap (lihat detail).
      *
      * Peran Admin Pustikom (`admin-pustikom`) dengan izin `pustikom.jadwal` atau `pustikom.jadwal.kelola`, atau administrator. Token pengguna saja.
      *

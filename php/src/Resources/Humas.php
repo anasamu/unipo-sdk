@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Humas, Humas: redaksi
+ * Humas, Humas: redaksi, Humas: Beasiswa
  */
 final class Humas extends Resource
 {
@@ -1475,5 +1475,83 @@ final class Humas extends Resource
     public function postSindikasiById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/humas/sindikasi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Daftar beasiswa publik
+     *
+     * Program yang dibuka/berjalan: syarat, berkas, jadwal, kuota, bentuk, dan pengumuman terbit. Tanpa data pendaftar.
+     *
+     * `GET /v1/humas/beasiswa`
+     *
+     * scope: `portal:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/humas/beasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Draf dan terbitan pengumuman beasiswa
+     *
+     * Dibuat otomatis saat BAAK membuka program dan menetapkan penerima. Izin beasiswa.publikasi atau humas.redaksi.
+     *
+     * `GET /v1/humas/beasiswa/publikasi`
+     *
+     * scope: `portal:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBeasiswaPublikasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/humas/beasiswa/publikasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sunting draf pengumuman
+     *
+     * Body {judul, isi (teks; baris "- " jadi daftar)}.
+     *
+     * `POST /v1/humas/beasiswa/publikasi/{id}`
+     *
+     * scope: `portal:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pengumuman
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaPublikasiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/beasiswa/publikasi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Terbitkan pengumuman beasiswa
+     *
+     * Menjadi pengumuman portal universitas bertopik beasiswa (tayang di newsroom, PMB, SIAKAD mahasiswa).
+     *
+     * `POST /v1/humas/beasiswa/publikasi/{id}/terbit`
+     *
+     * scope: `portal:write` · hanya token pengguna
+     *
+     * @param int|string $id ID pengumuman
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaPublikasiByIdTerbit(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/humas/beasiswa/publikasi/{id}/terbit', ['id' => $id], $query, null, $options, false, false);
     }
 }

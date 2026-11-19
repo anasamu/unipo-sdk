@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket
+ * Helpdesk: Publik, Helpdesk: Laporan bug, Helpdesk: Tiket saya, Helpdesk: Laporan, Helpdesk: Kategori, Helpdesk: Tiket
  */
 final class Helpdesk extends Resource
 {
@@ -153,6 +153,203 @@ final class Helpdesk extends Resource
     public function getGalatByRequestId(int|string $request_id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/helpdesk/galat/{request_id}', ['request_id' => $request_id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ringkasan tiket saya
+     *
+     * Jumlah tiket milik pemanggil: total, terbuka, menunggu_anda (petugas meminta info), selesai (selesai + ditutup), ditolak, per_status.
+     *
+     * `GET /v1/helpdesk/saya/ringkasan`
+     *
+     * hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaRingkasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/saya/ringkasan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kategori untuk tiket baru
+     *
+     * Kategori aktif dan publik (id, kode, nama, jenis, keterangan, sla_jam, unit). Laporan bug aplikasi dikirim lewat kode galat, bukan dari sini.
+     *
+     * `GET /v1/helpdesk/saya/kategori`
+     *
+     * hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaKategori(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/saya/kategori', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar tiket saya
+     *
+     * Hanya tiket dengan pelapor = pemanggil. Menunggu balasan Anda tampil paling atas, lalu aktivitas terbaru. Petugas tampil sebagai nama.
+     *
+     * `GET /v1/helpdesk/saya/tiket`
+     *
+     * hanya token pengguna · berhalaman
+     *
+     * @param array{status?: string, kategori?: string, dari?: string, sampai?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaTiket(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/saya/tiket', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat tiket
+     *
+     * Body: kategori_id (kategori publik), judul (min. 5), isi (min. 10). Lampiran opsional lewat multipart/form-data: lampiran_1..lampiran_3 (maks. 5 MB per berkas; PDF, gambar, dokumen). Prioritas selalu sedang; petugas ditentukan Pustikom/unit. Maks. 10 tiket per jam per pengguna.
+     *
+     * `POST /v1/helpdesk/saya/tiket`
+     *
+     * hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaTiket(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/saya/tiket', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rincian tiket saya
+     *
+     * Percakapan tanpa catatan internal petugas, lampiran (per balasan), konteks kode galat tanpa log server dan tanpa identitas pelapor lain, `aksi` yang tersedia (balas, tutup, buka, nilai, batas_buka). Tiket orang lain: 404.
+     *
+     * `GET /v1/helpdesk/saya/tiket/{id}`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaTiketById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/saya/tiket/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Balas tiket saya
+     *
+     * Body: isi; lampiran multipart lampiran_1..3 (maks. 5 MB). Tiket menunggu Anda atau selesai kembali diproses. Petugas mendapat notifikasi (satu per 10 menit untuk balasan beruntun).
+     *
+     * `POST /v1/helpdesk/saya/tiket/{id}/balas`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaTiketByIdBalas(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/saya/tiket/{id}/balas', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tutup tiket saya
+     *
+     * Body: alasan (opsional). Tiket terbuka atau selesai menjadi ditutup.
+     *
+     * `POST /v1/helpdesk/saya/tiket/{id}/tutup`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaTiketByIdTutup(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/saya/tiket/{id}/tutup', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buka kembali tiket saya
+     *
+     * Body: isi (alasan, min. 10), lampiran opsional. Hanya tiket selesai/ditutup dalam HELPDESK_BUKA_KEMBALI_HARI (bawaan 14) hari setelah selesai; nilai sebelumnya dihapus.
+     *
+     * `POST /v1/helpdesk/saya/tiket/{id}/buka`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaTiketByIdBuka(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/saya/tiket/{id}/buka', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nilai layanan
+     *
+     * Body: rating 1-5, ulasan (opsional, maks. 500). Sekali per tiket selesai/ditutup; tiket selesai lalu ditutup.
+     *
+     * `POST /v1/helpdesk/saya/tiket/{id}/nilai`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaTiketByIdNilai(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/helpdesk/saya/tiket/{id}/nilai', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Unduh lampiran tiket saya
+     *
+     * PDF dan gambar tampil langsung.
+     *
+     * `GET /v1/helpdesk/saya/tiket/{id}/berkas/{uuid}`
+     *
+     * hanya token pengguna
+     *
+     * @param int|string $id ID tiket
+     * @param int|string $uuid UUID berkas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaTiketByIdBerkasByUuid(int|string $id, int|string $uuid, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/helpdesk/saya/tiket/{id}/berkas/{uuid}', ['id' => $id, 'uuid' => $uuid], $query, null, $options, false, false);
     }
 
     /**

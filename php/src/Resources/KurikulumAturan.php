@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Kurikulum: Aturan berversi, Kurikulum: Kerangka (data), Kurikulum: Perangkat MK, Kurikulum: Asesmen & RPS, Kurikulum: Evaluasi & peninjauan
+ * Kurikulum: Aturan berversi, Kurikulum: Kerangka (data), Kurikulum: Perangkat MK, Kurikulum: Asesmen & RPS, Kurikulum: Pengajuan & validasi BAAK, Kurikulum: Evaluasi & peninjauan
  */
 final class KurikulumAturan extends Resource
 {
@@ -640,6 +640,123 @@ final class KurikulumAturan extends Resource
     public function putIsian(array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/kurikulum-aturan/isian', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pilihan wizard kurikulum baru
+     *
+     * Versi aturan universitas terbit, kerangka (bagian CPL/bahan kajian, alur pengesahan), kurikulum OBE prodi (sumber salinan), semester MK lama, kurikulum aktif, pengajuan berjalan, hak.
+     *
+     * `GET /v1/kurikulum-aturan/pengajuan/acuan`
+     *
+     * scope: `kurikulum:read`
+     *
+     * @param array{prodi: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanAcuan(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kurikulum-aturan/pengajuan/acuan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean pengajuan kurikulum
+     *
+     * Alur pengesahan kurikulum lintas prodi (BAAK: semua fakultas; penyusun: prodinya) beserta alur pemeriksa, tahap sekarang, boleh (giliran pemilik token), dan ringkasan kurikulum. Filter ?giliran=saya, ?status=, ?fakultas=, ?prodi=.
+     *
+     * `GET /v1/kurikulum-aturan/pengajuan`
+     *
+     * scope: `kurikulum:read`
+     *
+     * @param array{giliran?: string, status?: string, fakultas?: string, prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kurikulum-aturan/pengajuan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat kurikulum baru (dan ajukan)
+     *
+     * Body: {kode_prodi, kerangka, acuan_versi_id, identitas {kode, nama, tahun_berlaku, angkatan_mulai, sks_lulus, sks_wajib, sks_pilihan, masa_tempuh, ipk_min_lulus, ...}, sumber {jenis: kosong|kurikulum|lama, kurikulum_id, tahun_id[]}, cpl [{kode, deskripsi, ranah}], bahan_kajian [{kode, nama}], ajukan, isian {ringkasan, dasar}}. Penyusun kurikulum prodi (kaprodi/sekprodi/tim kurikulum). ajukan=true memulai alur pengesahan berjenjang dan menjalankan tahap penyusunan.
+     *
+     * `POST /v1/kurikulum-aturan/pengajuan`
+     *
+     * scope: `kurikulum:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengajuan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kurikulum-aturan/pengajuan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ajukan kurikulum draf
+     *
+     * Memulai (atau melanjutkan setelah dikembalikan) alur pengesahan berjenjang kurikulum ini. Body: {isian: {ringkasan, dasar}}.
+     *
+     * `POST /v1/kurikulum-aturan/pengajuan/kurikulum/{id}/ajukan`
+     *
+     * scope: `kurikulum:write`
+     *
+     * @param int|string $id ID kurikulum OBE
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengajuanKurikulumByIdAjukan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kurikulum-aturan/pengajuan/kurikulum/{id}/ajukan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Cek administrasi otomatis
+     *
+     * Struktur SKS terhadap aturan versi acuan dan ketentuan jenjang, batas SKS per semester, kode MK unik/format/bentrok prodi lain, kesiapan PDDikti (SKS komponen, jenis MK, isian Feeder). Tingkat: lolos, peringatan, galat. Ringkasan validasi isi (SN Dikti/OBE) sebagai konteks.
+     *
+     * `GET /v1/kurikulum-aturan/pengajuan/kurikulum/{id}/periksa`
+     *
+     * scope: `kurikulum:read`
+     *
+     * @param int|string $id ID kurikulum OBE
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanKurikulumByIdPeriksa(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kurikulum-aturan/pengajuan/kurikulum/{id}/periksa', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Banding dengan kurikulum aktif
+     *
+     * Kurikulum OBE berlaku/disahkan terbaru prodi (atau MK SIAKAD lama semester terakhir): MK ditambah, dihapus, berubah (nama/SKS/semester/jenis), perubahan SKS lulus/masa tempuh/IPK.
+     *
+     * `GET /v1/kurikulum-aturan/pengajuan/kurikulum/{id}/banding`
+     *
+     * scope: `kurikulum:read`
+     *
+     * @param int|string $id ID kurikulum OBE
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengajuanKurikulumByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kurikulum-aturan/pengajuan/kurikulum/{id}/banding', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

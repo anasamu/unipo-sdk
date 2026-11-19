@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar
+ * SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: DUPAK, SDM: SKP, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar
  */
 final class Sdm extends Resource
 {
@@ -5659,6 +5659,943 @@ final class Sdm extends Resource
     public function postKarierAturanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/sdm/karier/aturan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Versi rubrik DUPAK
+     *
+     * Rubrik DUPAK berversi (sdm_aturan_versi jenis dupak): unsur, sub-unsur, butir kegiatan (kode, uraian, satuan, angka kredit, batas per semester/pengajuan, bukti wajib, jabatan yang boleh, sumber isi otomatis), komposisi unsur per jabatan tujuan. Dengan SK registri, tanggal berlaku, penanda versi berlaku, dan jumlah pengajuan yang mengunci versi itu.
+     *
+     * `GET /v1/sdm/dupak/aturan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/aturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Draf rubrik DUPAK baru
+     *
+     * Body: nama, dasar_hukum, berlaku_tanggal, catatan_perubahan, isi, sk_id. Admin SDM.
+     *
+     * `POST /v1/sdm/dupak/aturan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakAturan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/aturan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rubrik DUPAK yang berlaku sekarang
+     *
+     * Null bila belum ada versi terbit.
+     *
+     * `GET /v1/sdm/dupak/aturan/berlaku`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakAturanBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/aturan/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail rubrik DUPAK
+     *
+     * Isi lengkap, perubahan dari versi asal, pengajuan yang mengunci versi ini, riwayat, referensi (jabatan akademik, sumber isi otomatis, jenis luaran LPPM).
+     *
+     * `GET /v1/sdm/dupak/aturan/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakAturanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/aturan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah draf rubrik DUPAK
+     *
+     * Versi terbit dikunci; salin untuk mengubah.
+     *
+     * `PUT /v1/sdm/dupak/aturan/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putDupakAturanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/dupak/aturan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Salin rubrik menjadi versi baru (draf)
+     *
+     * `POST /v1/sdm/dupak/aturan/{id}/salin`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakAturanByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/aturan/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Banding dua versi rubrik
+     *
+     * Bawaan dibanding versi yang berlaku sekarang.
+     *
+     * `GET /v1/sdm/dupak/aturan/{id}/banding`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakAturanByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/aturan/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rubrik DUPAK: Terbitkan (draf -> terbit; berlaku mulai berlaku_tanggal)
+     *
+     * `POST /v1/sdm/dupak/aturan/{id}/terbitkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakAturanByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/aturan/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rubrik DUPAK: Arsipkan versi terbit
+     *
+     * `POST /v1/sdm/dupak/aturan/{id}/arsipkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakAturanByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/aturan/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rubrik DUPAK: Hapus draf
+     *
+     * `POST /v1/sdm/dupak/aturan/{id}/hapus`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakAturanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/aturan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Semester dalam periode penilaian
+     *
+     * `GET /v1/sdm/dupak/semester`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{mulai: string, selesai: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakSemester(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/semester', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar DUPAK
+     *
+     * `sebagai=saya` (bawaan) DUPAK milik pengguna; `antrean` yang tahapnya bisa diputus pengguna (Dekan/Tim PAK fakultas, Tim PAK universitas, Biro SDM); `semua` yang boleh dilihat. Tiap baris memuat status_label, AK usul/diakui per unsur, dan aksi_boleh.
+     *
+     * `GET /v1/sdm/dupak`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{sebagai?: string, status?: string, pegawai_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupak(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat draf DUPAK
+     *
+     * Body: periode_mulai, periode_selesai (tahun_id), jabatan_tujuan_id (bawaan satu jenjang di atas), pegawai_id (petugas), catatan_pengusul, tarik (bawaan true: butir terisi otomatis dari jadwal, BKD, bimbingan, LP2M, luaran). Rubrik = versi yang berlaku.
+     *
+     * `POST /v1/sdm/dupak`
+     *
+     * scope: `sdm:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupak(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah butir DUPAK
+     *
+     * kode_butir, uraian, semester, tanggal, volume, porsi. Saat draf/dikembalikan.
+     *
+     * `PUT /v1/sdm/dupak/butir/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putDupakButirById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/dupak/butir/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus butir DUPAK
+     *
+     * `DELETE /v1/sdm/dupak/butir/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID butir
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteDupakButirById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/dupak/butir/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail DUPAK
+     *
+     * Butir + bukti, ringkasan hitung (AK per unsur, peringatan batas/komposisi, blokir), rubrik versi yang dipakai, komposisi jabatan tujuan, linimasa, pemeriksa, aksi_boleh, dan dampak ke syarat AK aturan karier.
+     *
+     * `GET /v1/sdm/dupak/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDupakById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/dupak/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah draf DUPAK
+     *
+     * periode_mulai, periode_selesai, jabatan_tujuan_id, catatan_pengusul.
+     *
+     * `PUT /v1/sdm/dupak/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putDupakById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/dupak/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus draf DUPAK
+     *
+     * `DELETE /v1/sdm/dupak/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteDupakById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/dupak/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Isi otomatis butir
+     *
+     * Tambah butir dari jadwal mengajar, BKD disahkan, bimbingan/pengujian TA, penelitian/PkM LP2M, dan luaran terverifikasi sesuai rubrik; yang sudah ada tidak digandakan.
+     *
+     * `POST /v1/sdm/dupak/{id}/tarik`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdTarik(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/tarik', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah butir DUPAK
+     *
+     * kode_butir (rubrik), uraian, semester, tanggal, volume, porsi. Bukti: POST /v1/sdm/file entitas dupak_butir.
+     *
+     * `POST /v1/sdm/dupak/{id}/butir`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdButir(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/butir', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: ajukan
+     *
+     * Ajukan (pengusul). Versi rubrik dikunci saat pertama diajukan; ditolak bila ada blokir (butir kosong, bukti wajib butir manual).
+     *
+     * `POST /v1/sdm/dupak/{id}/ajukan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdAjukan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/ajukan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: verifikasi
+     *
+     * Verifikasi fakultas (Dekan/Tim PAK fakultas). Body: butir[{id, ak, catatan}] opsional (AK fakultas), catatan.
+     *
+     * `POST /v1/sdm/dupak/{id}/verifikasi`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdVerifikasi(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/verifikasi', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: nilai
+     *
+     * Nilai Tim PAK universitas (izin sdm.pak.nilai). Body: butir[{id, ak, catatan}] opsional (AK diakui; bawaan AK fakultas/usul), catatan.
+     *
+     * `POST /v1/sdm/dupak/{id}/nilai`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdNilai(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/nilai', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: tetapkan
+     *
+     * Tetapkan PAK (Biro SDM): nomor_pak, tanggal_pak. AK kumulatif = AK dasar + AK diakui, langsung dibaca syarat AK aturan karier.
+     *
+     * `POST /v1/sdm/dupak/{id}/tetapkan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdTetapkan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/tetapkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: kembalikan
+     *
+     * Kembalikan ke pengusul (catatan wajib); penilaian dihapus, versi rubrik tetap.
+     *
+     * `POST /v1/sdm/dupak/{id}/kembalikan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdKembalikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/kembalikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: tolak
+     *
+     * Tolak (catatan wajib).
+     *
+     * `POST /v1/sdm/dupak/{id}/tolak`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdTolak(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/tolak', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * DUPAK: batal
+     *
+     * Batalkan (pengusul).
+     *
+     * `POST /v1/sdm/dupak/{id}/batal`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDupakByIdBatal(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/dupak/{id}/batal', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Versi komponen SKP
+     *
+     * Komponen SKP berversi (sdm_aturan_versi jenis skp): jenis hasil kerja, aspek indikator, perilaku kerja, rumus nilai (bobot), predikat. SK registri, tanggal berlaku, jumlah laporan yang mengunci versi.
+     *
+     * `GET /v1/sdm/skp/aturan`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpAturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp/aturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Draf komponen SKP baru
+     *
+     * `POST /v1/sdm/skp/aturan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpAturan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/aturan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Komponen SKP yang berlaku sekarang
+     *
+     * `GET /v1/sdm/skp/aturan/berlaku`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpAturanBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp/aturan/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail komponen SKP
+     *
+     * `GET /v1/sdm/skp/aturan/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpAturanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp/aturan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah draf komponen SKP
+     *
+     * `PUT /v1/sdm/skp/aturan/{id}`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putSkpAturanById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/skp/aturan/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Salin komponen SKP menjadi versi baru (draf)
+     *
+     * `POST /v1/sdm/skp/aturan/{id}/salin`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpAturanByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/aturan/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Banding dua versi komponen SKP
+     *
+     * `GET /v1/sdm/skp/aturan/{id}/banding`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpAturanByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp/aturan/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Komponen SKP: Terbitkan
+     *
+     * `POST /v1/sdm/skp/aturan/{id}/terbitkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpAturanByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/aturan/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Komponen SKP: Arsipkan versi terbit
+     *
+     * `POST /v1/sdm/skp/aturan/{id}/arsipkan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpAturanByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/aturan/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Komponen SKP: Hapus draf
+     *
+     * `POST /v1/sdm/skp/aturan/{id}/hapus`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpAturanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/aturan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar SKP
+     *
+     * `sebagai=saya` (bawaan), `antrean` (yang menunggu persetujuan rencana/penilaian/pengesahan Anda), `semua` (yang boleh dilihat).
+     *
+     * `GET /v1/sdm/skp`
+     *
+     * scope: `sdm:read`
+     *
+     * @param array{sebagai?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkp(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Mulai SKP periode
+     *
+     * Body: periode_id (periode SKP dibuka), pegawai_id (petugas). Atasan langsung jadi penilai.
+     *
+     * `POST /v1/sdm/skp`
+     *
+     * scope: `sdm:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkp(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Detail SKP
+     *
+     * Rencana hasil kerja + indikator + aspek, realisasi, capaian, perilaku, hitung nilai/predikat menurut versi aturan, linimasa, pemeriksa, aksi_boleh.
+     *
+     * `GET /v1/sdm/skp/{id}`
+     *
+     * scope: `sdm:read`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkpById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/skp/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan rencana SKP
+     *
+     * item[{id?, jenis, rencana, indikator, aspek, target, satuan, uraian}]; yang tidak dikirim dihapus. Saat rencana draf/dikembalikan.
+     *
+     * `PUT /v1/sdm/skp/{id}/rencana`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putSkpByIdRencana(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/skp/{id}/rencana', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Isi realisasi SKP
+     *
+     * item[{id, realisasi}]. Bukti: POST /v1/sdm/file entitas kinerja_item.
+     *
+     * `PUT /v1/sdm/skp/{id}/realisasi`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putSkpByIdRealisasi(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/sdm/skp/{id}/realisasi', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: ajukan_rencana
+     *
+     * Ajukan rencana ke atasan
+     *
+     * `POST /v1/sdm/skp/{id}/ajukan_rencana`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdAjukanRencana(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/ajukan_rencana', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: setujui_rencana
+     *
+     * Atasan menyetujui rencana
+     *
+     * `POST /v1/sdm/skp/{id}/setujui_rencana`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdSetujuiRencana(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/setujui_rencana', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: kembalikan_rencana
+     *
+     * Atasan mengembalikan rencana (catatan wajib)
+     *
+     * `POST /v1/sdm/skp/{id}/kembalikan_rencana`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdKembalikanRencana(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/kembalikan_rencana', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: kirim
+     *
+     * Kirim realisasi untuk dinilai
+     *
+     * `POST /v1/sdm/skp/{id}/kirim`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdKirim(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/kirim', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: nilai
+     *
+     * Atasan menilai: item[{id, capaian, catatan}] opsional, perilaku {kode: 0-100}; nilai dan predikat dihitung dari rumus versi aturan
+     *
+     * `POST /v1/sdm/skp/{id}/nilai`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdNilai(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/nilai', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: kembalikan
+     *
+     * Atasan mengembalikan realisasi (catatan wajib)
+     *
+     * `POST /v1/sdm/skp/{id}/kembalikan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdKembalikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/kembalikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * SKP: sahkan
+     *
+     * Biro SDM mengesahkan; predikat dibaca syarat kenaikan pangkat
+     *
+     * `POST /v1/sdm/skp/{id}/sahkan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkpByIdSahkan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/skp/{id}/sahkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
