@@ -286,7 +286,7 @@ final class Iku extends Resource
     /**
      * Target IKU: daftar
      *
-     * Target per indikator per tahun. kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. Semua pemilik token ber-scope iku:read.
+     * Target per indikator per tahun, ditetapkan dengan SK (wajib: sk_id dari registri SK atau nomor_sk). kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. ambang_mendekati = batas status "mendekati" dalam persen dari target (kosong = 80). Semua pemilik token ber-scope iku:read.
      *
      * `GET /v1/iku/target`
      *
@@ -311,7 +311,7 @@ final class Iku extends Resource
      *
      * scope: `iku:write`
      *
-     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, target: float|int, keterangan?: string, ...} $body
+     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, target: float|int, ambang_mendekati?: float|int, nomor_sk?: string, tanggal_sk?: string, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -324,7 +324,7 @@ final class Iku extends Resource
     /**
      * Target IKU: detail
      *
-     * Target per indikator per tahun. kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. Semua pemilik token ber-scope iku:read.
+     * Target per indikator per tahun, ditetapkan dengan SK (wajib: sk_id dari registri SK atau nomor_sk). kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. ambang_mendekati = batas status "mendekati" dalam persen dari target (kosong = 80). Semua pemilik token ber-scope iku:read.
      *
      * `GET /v1/iku/target/{id}`
      *
@@ -351,7 +351,7 @@ final class Iku extends Resource
      * scope: `iku:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, target: float|int, keterangan?: string, ...} $body
+     * @param array{indikator_id: int, tahun: int, kode_prodi?: string, target: float|int, ambang_mendekati?: float|int, nomor_sk?: string, tanggal_sk?: string, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -384,7 +384,7 @@ final class Iku extends Resource
     /**
      * Target IKU: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Target per indikator per tahun. kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. Semua pemilik token ber-scope iku:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Target per indikator per tahun, ditetapkan dengan SK (wajib: sk_id dari registri SK atau nomor_sk). kode_prodi kosong = target institusi; target prodi yang tidak diisi memakai target institusi di dasbor. ambang_mendekati = batas status "mendekati" dalam persen dari target (kosong = 80). Semua pemilik token ber-scope iku:read.
      *
      * `GET /v1/iku/target/{id}/riwayat`
      *

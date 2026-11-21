@@ -348,7 +348,7 @@ final class Infra extends Resource
     /**
      * Periksa token (introspeksi)
      *
-     * Body `{"token": "...", "ip": "<IP pengguna>"}`. Jawaban `aktif: false` bila token tidak sah, kedaluwarsa, dicabut, atau klien/pengguna nonaktif; selain itu identitas dan scope efektif.
+     * Body `{"token": "...", "ip": "<IP pengguna>"}`. Jawaban `aktif: false` bila token tidak sah, kedaluwarsa, dicabut, atau klien/pengguna nonaktif; selain itu identitas, scope efektif, dan `lewati_pemeliharaan` (true bila pengguna token, atau admin pelaku saat masuk sebagai pengguna, administrator atau memegang izin `pustikom.pemeliharaan.lewati`: rute yang sedang dipelihara tetap diteruskan).
      *
      * `POST /v1/infra/gerbang/introspeksi`
      *

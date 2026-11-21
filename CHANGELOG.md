@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 1.23.0 (belum dirilis)
+## 2.0.0 (belum dirilis)
 
 - Registri SK tunggal (/v1/sk, SIAKAD docs/SK.md): klien bertipe registriSK(siakad) di Node (cari, periksa nomor ganda, detail, catat/ajukan pencatatan, catatAtauPakai, ubah, verifikasi, cabut, gabung, penerbit, penandatangan, urlBerkas sementara, dariSurat) dan siakad.sk.* / $siakad->sk() (13 operasi; tipe SkRegistri, SkDetail, SkCatat, SkPeriksa, SkPenerbit, SkPenandatangan). Modul lain merujuk SK lewat sk_id.
 - Penandatangan SK tanpa ketergantungan melingkar: `registriSK().bawaan()` (penerbit/perihal/penandatangan bawaan menurut jenis SK dan jabatan yang diangkat), `jabatanPenandatangan()`; tipe `PenandatanganSK` (`tautan`: pejabat, jabatan, teks), `JabatanPenandatanganSK`, `BawaanSK`; `SkCatat` menerima `penandatangan_jabatan_id`/`penandatangan_unit_id` atau teks jabatan + nama.
@@ -11,6 +11,7 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 - Spesifikasi diperbarui dari SIAKAD: 96 operasi baru, 0 operasi hilang (total 3881).
 - Spesifikasi diperbarui dari SIAKAD: 214 operasi baru, 0 operasi hilang (total 4095).
 - Spesifikasi diperbarui dari SIAKAD: 316 operasi baru, 0 operasi hilang (total 4411).
+- Spesifikasi diperbarui dari SIAKAD main 92a7efa5 (+ skema PmbTugasPanitia dari fix/katalog): 206 operasi baru, 1 operasi hilang (DELETE /v1/pimpinan/arahan/{id}, diganti POST /v1/pimpinan/arahan/{id}/batalkan; tidak dipakai aplikasi mana pun). Total 4616. Generator: $ref ke skema yang tidak ada dipetakan ke JsonObject (dengan peringatan) agar typecheck tidak gagal.
 
 ## 1.19.0 (belum dirilis)
 

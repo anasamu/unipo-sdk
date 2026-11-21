@@ -794,7 +794,7 @@ final class Rbac extends Resource
     /**
      * Status database development
      *
-     * Diatur atau belum (DB_DEV_* di .env), terhubung, jumlah tabel, salinan terakhir dan yang sedang berjalan. `?tabel=1` menambah daftar tabel live (perkiraan baris dan ukuran) untuk pilihan "hanya struktur".
+     * Diatur atau belum (DB_DEV_* di .env), terhubung, jumlah tabel, salinan terakhir dan yang sedang berjalan. `pengambil`: detak terakhir penjadwal (`jadwal:jalan`), tugas `dbdev-jalan`, lama permintaan menunggu, `macet` (belum diambil > 10 menit), penyebab, dan perintah server. `?tabel=1` menambah daftar tabel live (perkiraan baris dan ukuran) untuk pilihan "hanya struktur".
      *
      * `GET /v1/rbac/db-dev`
      *
@@ -836,7 +836,10 @@ final class Rbac extends Resource
      * Body: `{"konfirmasi": "SALIN", "pribadi": true, "password": true, "tanpa_data": ["log_besar"]}`.
      * `pribadi` menyamarkan email, telepon, NIK/KTP/NPWP/rekening, alamat, dan nama orang tua; `password` mengganti semua password akun
      * development dengan DB_DEV_PASSWORD_AKUN (bawaan dev12345). Rahasia layanan pihak ketiga selalu dikosongkan.
-     * Salinan dijalankan cron (`php artisan dbdev:jalan`, ikut tools/auto_update.php) dalam beberapa menit; pantau lewat GET salinan/{id}.
+     * Salinan diambil `php artisan dbdev:jalan` yang dijalankan penjadwal tiap menit (tugas bawaan `dbdev-jalan`; juga
+     * tools/auto_update.php), biasanya dalam 1-2 menit; pantau lewat GET salinan/{id}. Bila belum diambil lebih dari 10 menit,
+     * GET db-dev menandai `pengambil.macet` beserta penyebabnya.
+     * Setiap salinan mencatat `jenis` (manual/otomatis) dan `pemicu`; sinkron otomatis terjadwal diatur di POST db-dev/otomatis.
      *
      * `POST /v1/rbac/db-dev/salinan`
      *
@@ -850,6 +853,67 @@ final class Rbac extends Resource
     public function postDbDevSalinan(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/rbac/db-dev/salinan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pengaturan sinkron otomatis
+     *
+     * Jadwal sinkron otomatis live -> development (tugas penjadwal `dbdev-sinkron`, sama dengan di Tugas terjadwal): aktif,
+     * ekspresi cron, 5 jadwal berikutnya (WITA), tabel yang hanya disalin strukturnya, jalan terakhir, dan apakah penjadwal hidup.
+     * Data pribadi selalu disamarkan dan password selalu diganti (`pribadi`/`password` selalu true).
+     *
+     * `GET /v1/rbac/db-dev/otomatis`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDbDevOtomatis(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/db-dev/otomatis', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur sinkron otomatis
+     *
+     * Body (semua opsional): `{"aktif": true, "ekspresi": "0 2 * * *", "tanpa_data": ["m_log"]}`. Paling sering sekali per jam.
+     * Dijalankan penjadwal (`php artisan jadwal:jalan` tiap menit) dengan perintah `php artisan dbdev:otomatis` di proses latar.
+     * Perubahan tercatat di log (induk_log). Izin sama dengan salin manual.
+     *
+     * `POST /v1/rbac/db-dev/otomatis`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDbDevOtomatis(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/rbac/db-dev/otomatis', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pratinjau jadwal sinkron
+     *
+     * 5 jadwal berikutnya (WITA) untuk `?ekspresi=` cron 5 kolom.
+     *
+     * `GET /v1/rbac/db-dev/otomatis/pratinjau`
+     *
+     * scope: `rbac:admin` · hanya token pengguna
+     *
+     * @param array{ekspresi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDbDevOtomatisPratinjau(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/rbac/db-dev/otomatis/pratinjau', [], $query, null, $options, false, false);
     }
 
     /**

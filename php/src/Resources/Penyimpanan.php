@@ -307,7 +307,7 @@ final class Penyimpanan extends Resource
     /**
      * Simpan kebijakan
      *
-     * Body: `lingkup` (bawaan, unit, kelompok, peran, pengguna), `kunci` (kode unit/peran/username), untuk kelompok `unit`+`kelompok`+`mode`; nilai: `kuota_byte`, `bersama_byte`, `boleh_lebih`, `kapasitas_byte` (bawaan), `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`, `maks_jumlah`, `sampah_hari`, `bagi_publik`, `tautan_maks_hari`, `wajib_enkripsi`, `retensi_versi`, `catatan`. null = ikut tingkat di atasnya. Hanya Pustikom: izin RBAC `pustikom.penyimpanan.kelola` atau administrator.
+     * Body: `lingkup` (bawaan, unit, kelompok, peran, pengguna, aplikasi), `kunci` (kode unit/peran/username; aplikasi: client_id, hanya `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`), untuk kelompok `unit`+`kelompok`+`mode`; nilai: `kuota_byte`, `bersama_byte`, `boleh_lebih`, `kapasitas_byte` (bawaan), `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`, `maks_jumlah`, `sampah_hari`, `bagi_publik`, `tautan_maks_hari`, `wajib_enkripsi`, `retensi_versi`, `catatan`. null = ikut tingkat di atasnya. Hanya Pustikom: izin RBAC `pustikom.penyimpanan.kelola` atau administrator.
      *
      * `POST /v1/penyimpanan/kebijakan`
      *
@@ -345,13 +345,13 @@ final class Penyimpanan extends Resource
     /**
      * Simulasi kebijakan efektif
      *
-     * Kebijakan efektif untuk `username` (ruang pribadi) atau `unit` (ruang bersama) beserta asal setiap nilai dan kolam unit yang membatasinya.
+     * Kebijakan efektif untuk kombinasi `username` × `klien` (aplikasi) × ruang (`unit` = ruang bersama unit; kosong = ruang pribadi) beserta asal setiap nilai, `batas_unggah` (ukuran/jenis dan sumbernya), dan kolam unit yang membatasinya.
      *
      * `GET /v1/penyimpanan/simulasi`
      *
      * scope: `berkas:read` · hanya token pengguna
      *
-     * @param array{username?: string, unit?: string, ...} $query
+     * @param array{username?: string, unit?: string, klien?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

@@ -166,7 +166,7 @@ final class Lms extends Resource
     /**
      * Buat kelas untuk semua jadwal satu periode
      *
-     * Hanya pengelola (aplikasi atau ADMIN/BAK/PROGDI). Jadwal yang sudah punya kelas dilewati, jadi aman dijalankan berulang (mis. tiap awal semester).
+     * Hanya pengelola e-learning (token aplikasi, administrator, atau peran Pengelola e-learning berizin lms.kelola, dibatasi prodi unitnya). Jadwal yang sudah punya kelas dilewati, jadi aman dijalankan berulang (mis. tiap awal semester).
      *
      * `POST /v1/lms/kelas/sinkron-jadwal`
      *
@@ -444,7 +444,7 @@ final class Lms extends Resource
     /**
      * Pantau aktivitas lintas kelas
      *
-     * Pengelola LMS (ADMIN, BAK, PROGDI prodinya): per kelas peserta, isi (materi/tugas/kuis), pengguna aktif 7 dan 30 hari, aktivitas terakhir peserta dan pengajar, kelas tanpa konten.
+     * Pengelola e-learning (izin lms.kelola, prodi unit penugasannya): per kelas peserta, isi (materi/tugas/kuis), pengguna aktif 7 dan 30 hari, aktivitas terakhir peserta dan pengajar, kelas tanpa konten.
      *
      * `GET /v1/lms/analitik/kelas`
      *
@@ -1166,6 +1166,88 @@ final class Lms extends Resource
     public function deleteBankSoalById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/lms/bank-soal/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kuis CBT kelas
+     *
+     * Kuis kelas yang memakai mesin ujian CBT (konteks lms). Pengajar: semua beserta ringkasan peserta. Mahasiswa: kuis siap/selesai beserta peserta_id (untuk /v1/cbt/kerjakan/{peserta_id}), status, dan nilai bila ditampilkan.
+     *
+     * `GET /v1/lms/kelas/{id}/ujian`
+     *
+     * scope: `lms:read`
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelasByIdUjian(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/kelas/{id}/ujian', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat kuis CBT kelas
+     *
+     * Body: judul, durasi_menit, mulai, selesai, soal_ids [bank soal], opsional jumlah_soal, acak_soal, acak_opsi, tampil_hasil, nilai_lulus, komponen (bawaan Harian), petunjuk, kunci_perangkat. Membuat ujian CBT konteks lms, sesi tanpa token pada jendela waktu itu, peserta = mahasiswa kelas, dan kolom buku nilai (nilai 0-100 diisi otomatis saat peserta selesai).
+     *
+     * `POST /v1/lms/kelas/{id}/ujian`
+     *
+     * scope: `lms:kelola`
+     *
+     * @param int|string $id ID kelas
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelasByIdUjian(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lms/kelas/{id}/ujian', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tambah peserta kuis CBT
+     *
+     * Mendaftarkan mahasiswa kelas yang belum menjadi peserta (mis. KRS disetujui setelah kuis dibuat).
+     *
+     * `POST /v1/lms/kelas/{id}/ujian/{ujian}/sinkron-peserta`
+     *
+     * scope: `lms:kelola`
+     *
+     * @param int|string $id ID kelas
+     * @param int|string $ujian ID kuis CBT
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelasByIdUjianByUjianSinkronPeserta(int|string $id, int|string $ujian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lms/kelas/{id}/ujian/{ujian}/sinkron-peserta', ['id' => $id, 'ujian' => $ujian], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hasil kuis CBT
+     *
+     * Status dan nilai tiap mahasiswa (pengajar).
+     *
+     * `GET /v1/lms/kelas/{id}/ujian/{ujian}/hasil`
+     *
+     * scope: `lms:kelola`
+     *
+     * @param int|string $id ID kelas
+     * @param int|string $ujian ID kuis CBT
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelasByIdUjianByUjianHasil(int|string $id, int|string $ujian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lms/kelas/{id}/ujian/{ujian}/hasil', ['id' => $id, 'ujian' => $ujian], $query, null, $options, false, false);
     }
 
     /**

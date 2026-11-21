@@ -464,7 +464,7 @@ final class Fakultas extends Resource
     /**
      * Daftar dosen
      *
-     * Dengan jabatan akademik, jumlah bimbingan PA, kelas semester ini, bimbingan tugas akhir. Izin fakultas.dosen.
+     * Dengan jabatan akademik, jumlah bimbingan PA, kelas semester ini, bimbingan tugas akhir, aktif + status_label. Bawaan hanya dosen aktif (m_dosen.status_aktif A). Izin fakultas.dosen.
      *
      * `GET /v1/fakultas/{kode}/dosen`
      *
@@ -1165,6 +1165,27 @@ final class Fakultas extends Resource
     public function postByKodeMatakuliahById(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/{id}', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Nama pendek mata kuliah
+     *
+     * Body: {"nama_pendek": "Pancasila & PKn"} (≤ 22 huruf; kosong/null = hapus, aplikasi meringkas otomatis). Disimpan di akademik_mk_nama_pendek per prodi + kode MK (semua periode); dipakai sidebar E-Learning. Izin fakultas.matakuliah.kelola pada prodi itu (kaprodi/operator prodi).
+     *
+     * `POST /v1/fakultas/{kode}/matakuliah/{id}/nama-pendek`
+     *
+     * scope: `fakultas:write` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $id ID mata kuliah
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByKodeMatakuliahByIdNamaPendek(int|string $kode, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/fakultas/{kode}/matakuliah/{id}/nama-pendek', ['kode' => $kode, 'id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -732,7 +732,7 @@ final class Arsip extends Resource
      *
      * scope: `arsip:read` · berhalaman
      *
-     * @param array{arah?: string, status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, page?: int, per_page?: int, ...} $query
+     * @param array{arah?: string, status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, ids?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -749,7 +749,7 @@ final class Arsip extends Resource
      *
      * scope: `arsip:read` · berhalaman
      *
-     * @param array{status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, page?: int, per_page?: int, ...} $query
+     * @param array{status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, ids?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -785,7 +785,7 @@ final class Arsip extends Resource
      *
      * scope: `arsip:read` · berhalaman
      *
-     * @param array{status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, page?: int, per_page?: int, ...} $query
+     * @param array{status?: string, unit_id?: string, turunan?: string, sifat?: string, keamanan?: string, jenis_id?: string, klasifikasi_id?: string, berkas_id?: string, dari?: string, sampai?: string, tahun?: string, q?: string, lewat_batas?: string, perlu_tindakan?: string, urut?: string, ids?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan
+ * Aturan, Aturan: titik penerapan, Aturan: SK dan pengecualian, Aturan: pengatur dan pemeriksaan, Aturan: persetujuan, Aturan: dasar SK dan validator, Aturan: gerbang SK kebijakan unit, Aturan: kebijakan berakibat, Aturan: templat kasus (kanvas admin), Aturan: titik berbasis rute
  */
 final class Aturan extends Resource
 {
@@ -229,7 +229,7 @@ final class Aturan extends Resource
     /**
      * Hak saya mengatur aturan
      *
-     * Per kategori: boleh mengatur atau tidak, prodi yang boleh diatur (null = semua), dan siapa pengaturnya.
+     * Per kategori: boleh mengatur atau tidak, prodi yang boleh diatur (null = semua), dan siapa pengaturnya. titik_atur = [{titik, kategori, unit}] titik berpengatur sendiri yang boleh saya atur (mis. pmb.* untuk Ketua/Panitia PMB).
      *
      * `GET /v1/aturan/saya`
      *
@@ -360,6 +360,830 @@ final class Aturan extends Resource
     public function getFakultasByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/aturan/fakultas/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Dasar SK aturan: belum berdasar SK & tinjau ulang
+     *
+     * Aturan yang boleh saya atur beserta dasar SK-nya. status = belum (aturan aktif belum berdasar SK, untuk dilengkapi) | tinjau (SK dasar dicabut/ditolak/diubah, belum ditinjau) | berlaku. Jawaban {data: [{id, nama, kategori, titik_judul, status, unit, dasar_sk: {status: berlaku|tidak_berlaku|diubah|belum, label, sk, unit_pengaju, ditinjau}}], kelompok: [{nama, jumlah, aturan: [uuid], unit: [..]}], jumlah: {belum, tinjau, berlaku}}. Memanggil pemantau SK dasar lebih dulu.
+     *
+     * `GET /v1/aturan/dasar-sk`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array{status?: string, kategori?: string, unit?: string, q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDasarSk(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/dasar-sk', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periksa SK dasar sebelum aturan dibuat
+     *
+     * Query sk_dasar_id, unit_pengaju (id/kode unit), prodi & fakultas (kode dipisah koma; kosong = semua). Jawaban sama dengan /v1/aturan/{id}/dasar-sk/periksa.
+     *
+     * `GET /v1/aturan/dasar-sk/periksa`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array{sk_dasar_id?: string, unit_pengaju?: string, prodi?: string, fakultas?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDasarSkPeriksa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/dasar-sk/periksa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tetapkan satu SK dasar untuk banyak aturan
+     *
+     * Body {"aturan": [uuid], "sk_dasar_id": "<uuid SK registri>", "unit_pengaju_id"?, "catatan"?}. Tiap aturan diperiksa kewenangannya sendiri; jawaban {berhasil, gagal, hasil: [{id, nama, ok, pesan}]}.
+     *
+     * `POST /v1/aturan/dasar-sk/massal`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDasarSkMassal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/dasar-sk/massal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Jenis kebijakan yang lewat gerbang SK
+     *
+     * Registri Aturan/Data/kebijakan.php: {jenis: [{kode, judul, kategori, unit (kode induk_unit pemilik), menu, aplikasi, path}], tautan: {pejabat, validator, perlu_sk: {menu, url}}} (tautan untuk peringatan data pejabat/validator kosong di layar unit).
+     *
+     * `GET /v1/aturan/kebijakan/jenis`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanJenis(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan/jenis', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar kerja "Perlu SK" per unit
+     *
+     * Aturan aktif modul Aturan tanpa SK dasar (atau SK dasarnya tidak berlaku) dan kebijakan unit yang berlaku tanpa SK
+     * (AturanVersi SDM/kurikulum, kunci fitur, penyimpanan, kwitansi, syarat keuangan, biaya PMB, kuesioner tracer, kalender,
+     * aturan biaya). Keputusan Anas 2026-11-21: tanpa SK = peringatan, tidak memblokir. Query `unit` (kode induk_unit, mis.
+     * BAUK, PMB) untuk layar unit pemilik; kosong = semua unit (Pustikom). Jawaban `{per_unit: [{unit, aturan, kebijakan,
+     * jumlah}], aturan: [{id, nama, kategori, titik_judul, status_sk, unit, tautan}], kebijakan: [bentuk gerbang], jumlah: {aturan,
+     * kebijakan, total}}`.
+     *
+     * `GET /v1/aturan/kebijakan/perlu-sk`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array{unit?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanPerluSk(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan/perlu-sk', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan gerbang per jenis kebijakan
+     *
+     * Per jenis: {jenis, judul, unit, tunggu_validasi (baru berlaku setelah validasi selesai), bawaan, bisa_diubah, tanpa_validator (berlaku | tahan), tahap_akhir [judul]}. Bawaan tunggu: BKD, DUPAK, SKP (bisa diubah) dan aturan biaya (tetap; penetapan WR II = tahap terakhir rantai).
+     *
+     * `GET /v1/aturan/kebijakan/pengaturan`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah "tunggu validasi sebelum berlaku" satu jenis
+     *
+     * Body {"jenis": "aturan_versi.karier", "tunggu_validasi": true}. Izin aturan.validator.atur (Pustikom) atau aturan:admin; hanya jenis bisa_diubah. Jawaban = daftar pengaturan.
+     *
+     * `POST /v1/aturan/kebijakan/pengaturan`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKebijakanPengaturan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/kebijakan/pengaturan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan menunggu validasi saya
+     *
+     * Kebijakan yang tahap validatornya sedang berjalan dan saya termasuk validatornya (rantai Validator aturan unit pemilik, pengaju dikeluarkan).
+     *
+     * `GET /v1/aturan/kebijakan/antrean`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanAntrean(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan/antrean', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Lampirkan SK dasar ke kebijakan berlaku
+     *
+     * Body {"jenis": "kwitansi.catatan", "baris": "12", "sk_id": "<UUID SK registri>"}. SK diperiksa DasarSk (status terbit, penerbit berwenang, unit pemilik di bawah penerbit); 422 details.dasar_sk bila tidak sah. Tidak mengubah isi kebijakan sehingga tidak memulai rantai validator. Hak: izin pengelola kebijakan itu (registri) atau aturan:admin.
+     *
+     * `POST /v1/aturan/kebijakan/sk`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKebijakanSk(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/kebijakan/sk', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan berlaku beserta SK dasar dan status validasi
+     *
+     * Query jenis, unit (kode), status_sk (belum|berlaku|diubah|tidak_berlaku|perlu), q. Butir: {id (UUID gerbang, null bila belum pernah lewat gerbang), jenis, jenis_judul, baris, nama, kategori, unit, status_sk, label_sk, sk, validasi (berjalan|disetujui|dikembalikan|ditolak|validator_kosong|belum), label_validasi, validasi_rinci, perlu_sk, peringatan[{kode, pesan}], kelola {aplikasi, path, menu, url}}.
+     *
+     * `GET /v1/aturan/kebijakan`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tahap validasi kebijakan
+     *
+     * Bentuk sama dengan usulan.pemeriksa aturan (AlurPemeriksa).
+     *
+     * `GET /v1/aturan/kebijakan/{id}/tahap`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param int|string $id UUID gerbang kebijakan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanByIdTahap(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/kebijakan/{id}/tahap', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Keputusan validator kebijakan
+     *
+     * Body {"keputusan": "setujui" | "kembalikan" | "tolak", "catatan"} (catatan wajib untuk kembalikan/tolak). Pengaju tidak bisa memvalidasi kebijakannya sendiri (403 validasi_sendiri); bukan validator tahap berjalan 403. Kebijakan tetap berlaku; pemilik dikabari bila dikembalikan/ditolak.
+     *
+     * `POST /v1/aturan/kebijakan/{id}/putus`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param int|string $id UUID gerbang kebijakan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKebijakanByIdPutus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/kebijakan/{id}/putus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan berakibat yang berlaku untuk subjek
+     *
+     * Query titik (keuangan.tarif | keuangan.keringanan | nilai.konversi | nilai.bobot | kelulusan.predikat), nim atau prodi, tahun_id?. Jawaban {bawaan: true} bila tidak ada kebijakan (SIAKAD memakai pengaturan bawaannya), atau {kebijakan: {aturan_id, nama, versi, parameter, kalimat}} versi yang berlaku untuk periode itu.
+     *
+     * `GET /v1/aturan/akibat/berlaku`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkibatBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/akibat/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat penyesuaian tagihan saya (mahasiswa)
+     *
+     * Penyesuaian tagihan oleh kebijakan berdasar SK (pemutihan, tarif periode baru, potongan) beserta nilai sebelum/sesudah dan SK dasarnya.
+     *
+     * `GET /v1/aturan/akibat/saya`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkibatSaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/akibat/saya', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat penyesuaian tagihan mahasiswa
+     *
+     * Izin aturan.akibat.lihat (BAUK/BAAK) atau mahasiswa sendiri. [{id, aturan, sk, cara, pemicu, tahun_id, status, alasan, total_sebelum, total_sesudah, oleh, waktu, ubah: [{tahun_id, kode_biaya, jenis, sebelum, sesudah, dibayar, keterangan, dibalik_at}]}].
+     *
+     * `GET /v1/aturan/akibat/mahasiswa/{nim}`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAkibatMahasiswaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/akibat/mahasiswa/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan penerapan kebijakan (rollback)
+     *
+     * Izin aturan.akibat.terapkan. Body {alasan}. Semua tagihan yang diubah penerapan ini kembali ke nilai sebelum. 409 tagihan_berubah bila tagihan sudah diubah pihak lain sejak diterapkan.
+     *
+     * `POST /v1/aturan/akibat/penerapan/{penerapan}/batalkan`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param int|string $penerapan UUID penerapan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAkibatPenerapanByPenerapanBatalkan(int|string $penerapan, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/akibat/penerapan/{penerapan}/batalkan', ['penerapan' => $penerapan], $query, null, $options, false, false);
+    }
+
+    /**
+     * Katalog jenis aturan & templat kasus
+     *
+     * 15 jenis aturan (urut prioritas) masing-masing dengan templat kasus berisian {kode, judul, kalimat dengan {slot}, slot: [{kode, label, tipe: angka|uang|tanggal|teks|tabel, satuan, bawaan, contoh, kolom}], akibat, siap}, dan registri tipe akibat {kode, label, siap}. Templat siap=false tampil "segera".
+     *
+     * `GET /v1/aturan/templat`
+     *
+     * scope: `aturan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/templat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat draf aturan dari templat berisian
+     *
+     * Body {"templat": "sks_menurut_ips", "isian": {"tingkat": [{"ips_min": 3, "sks": 24}], "sks_lain": 15}, "cakupan": {"fakultas": ["01"]}, "nama"?, "keterangan"?, "tingkat"?}. Logika dari data templat; hasil = aturan draf (lalu uji, SK dasar, ajukan). Templat yang belum bermesin: 422.
+     *
+     * `POST /v1/aturan/dari-templat`
+     *
+     * scope: `aturan:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDariTemplat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/dari-templat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Palet kanvas templat (admin)
+     *
+     * Bahan kanvas seret-lepas: 15 jenis, registri akibat (siap = bermesin, langkah = tolak/peringatan/batasi), titik aktif beserta indikatornya, indikator per kelompok awam (tipe, satuan, opsi), operator per tipe dengan label awam, kategori.
+     *
+     * `GET /v1/aturan/templat/palet`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatPalet(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/templat/palet', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar templat kasus (admin)
+     *
+     * Semua templat (draf/terbit/arsip) dengan versi terbit, versi terakhir, ada_draf, sumber awal|kanvas.
+     *
+     * `GET /v1/aturan/templat/kelola`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatKelola(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/templat/kelola', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Templat baru dari kanvas (admin)
+     *
+     * Body {judul, jenis_aturan, kanvas, catatan?, kode?}. Disimpan sebagai draf versi 1; pejabat belum melihatnya sampai diterbitkan. 422 dengan details "kanvas.<id blok>".
+     *
+     * `POST /v1/aturan/templat/kelola`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelola(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pratinjau kanvas (admin)
+     *
+     * Body {kanvas, judul?}. Tanpa menyimpan: {ok, kalimat (celah {slot}), galat: {id blok: pesan}, slot, siap, aturan}. Pohon kanvas dan BUKAN (De Morgan): docs/ATURAN-RUTE.md.
+     *
+     * `POST /v1/aturan/templat/pratinjau`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatPratinjau(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/pratinjau', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail templat (admin)
+     *
+     * Isi + kanvas versi terakhir (templat awal diturunkan ke kanvas bila bisa), riwayat versi.
+     *
+     * `GET /v1/aturan/templat/kelola/{kode}`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTemplatKelolaByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/templat/kelola/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan draf templat (admin)
+     *
+     * Body sama dengan tambah. Draf terakhir ditimpa; bila versi terakhir sudah terbit, dibuat versi baru. Pejabat tetap memakai versi terbit sampai draf diterbitkan.
+     *
+     * `POST /v1/aturan/templat/kelola/{kode}`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelolaByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Terbitkan templat (admin)
+     *
+     * Draf terakhir menjadi versi terbit (yang lama ditandai lama) dan muncul di "Mulai dari contoh". Body {catatan?}. Templat arsip tanpa draf diterbitkan ulang.
+     *
+     * `POST /v1/aturan/templat/kelola/{kode}/terbit`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelolaByKodeTerbit(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola/{kode}/terbit', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Arsipkan templat (admin)
+     *
+     * Tidak tampil lagi untuk pejabat; aturan yang sudah dibuat tidak berubah.
+     *
+     * `POST /v1/aturan/templat/kelola/{kode}/arsip`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelolaByKodeArsip(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola/{kode}/arsip', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Gandakan templat (admin)
+     *
+     * Versi terakhir menjadi templat draf baru.
+     *
+     * `POST /v1/aturan/templat/kelola/{kode}/gandakan`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelolaByKodeGandakan(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola/{kode}/gandakan', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus templat draf (admin)
+     *
+     * Hanya templat yang belum pernah terbit; yang pernah terbit diarsipkan.
+     *
+     * `POST /v1/aturan/templat/kelola/{kode}/hapus`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode templat
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatKelolaByKodeHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/templat/kelola/{kode}/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Katalog aksi API untuk titik rute (admin)
+     *
+     * Semua rute tulis (kecuali /v1/aturan, /v1/auth, /v1/rbac, /v1/sso) per modul: {kunci, metode, path, nama (ringkasan dokumentasi), keterangan, parameter_path, saran: {mahasiswa, pegawai, pendaftar, tahun, prodi: [{sumber, label}]}, titik}. Plus daftar pencarian subjek (cari) dan sumber pengguna.
+     *
+     * `GET /v1/aturan/rute/katalog`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRuteKatalog(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/rute/katalog', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar titik berbasis rute (admin)
+     *
+     * Titik rute.* dengan aksi, subjek & sumbernya, periode, prodi, data tambahan, syarat "hanya bila", jumlah aturan aktif.
+     *
+     * `GET /v1/aturan/rute`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRute(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/rute', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah titik dari aksi API (admin)
+     *
+     * Body `{"judul": "Mahasiswa mendaftar seminar proposal", "rute": "POST /v1/ta/ujian/ajukan", "subjek": "mahasiswa",
+     * "subjek_sumber": ["pengguna:nim"], "tahun_sumber"?: ["body:tahun_id"], "prodi_sumber"?: [], "kategori": ["akademik"],
+     * "jenis"?: ["syarat"], "konteks"?: [{"kode", "judul", "tipe"}], "konteks_sumber"?: {"kode": "body:x"},
+     * "bila"?: [{"sumber": "body:jenis", "nilai": ["proposal"]}], "pengatur"?: [], "aktif"?: true}`. Kode titik `rute.<slug>`
+     * dibuat dari judul. Aturan di titik ini ditegakkan otomatis oleh PenjagaRute sebelum handler (422 aturan_dilanggar) dan tetap
+     * melalui SK dasar & rantai validator. Sumber tanpa SQL bebas: `pengguna:nim|username|nidn`, `path:x`, `query:x`, `body:a.b`,
+     * `cari:<nama>:<sumber>` (Data/rute_cari.php).
+     *
+     * `POST /v1/aturan/rute`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRute(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/rute', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simulasi: aksi ini akan ditolak?
+     *
+     * Body {titik, sebagai? (username/NIM pemilik token tiruan), level?, path?: {param: nilai}, query?, isian? (body JSON), aturan? (UUID draf = hanya aturan itu)}. Memakai PenjagaRute sungguhan tanpa menjalankan aksi: {akan_ditolak, status, alasan, diperiksa, alasan_lewat, subjek, hasil}. Admin atau pengatur aturan.
+     *
+     * `POST /v1/aturan/rute/simulasi`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuteSimulasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/rute/simulasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail titik rute (admin)
+     *
+     * Bentuk sama dengan butir daftar.
+     *
+     * `GET /v1/aturan/rute/{kode}`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode titik rute.*
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRuteByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/rute/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah titik rute (admin)
+     *
+     * Isian sama dengan tambah (sebagian boleh). Subjek tidak bisa diubah bila titik sudah punya aturan.
+     *
+     * `POST /v1/aturan/rute/{kode}`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode titik rute.*
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuteByKode(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/rute/{kode}', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus titik rute (admin)
+     *
+     * Soft delete titik + pemetaan; 409 bila masih ada aturan aktif/diajukan.
+     *
+     * `POST /v1/aturan/rute/{kode}/hapus`
+     *
+     * scope: `aturan:admin` · hanya token pengguna
+     *
+     * @param int|string $kode Kode titik rute.*
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postRuteByKodeHapus(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/rute/{kode}/hapus', ['kode' => $kode], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengaturan validator aturan per unit pengaju
+     *
+     * Rantai tahap validasi per unit/jenis unit (opsional per kategori), templat rantai, pewarisan. Izin aturan.validator.lihat. {data: [{id, nama, jenis_baris: aturan|templat, unit, jenis_unit, kategori, warisi, templat, langkah: [{judul, validator: [{jenis, kode?, unit?}], mode: satu|semua, batas_hari, bila_kosong: eskalasi|lewati|tahan}], opsi: {ulang_dari: awal|tahap_pengembali}, prioritas, aktif, bawaan}], boleh_atur}.
+     *
+     * `GET /v1/aturan/validator`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getValidator(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/validator', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah rantai validator / templat
+     *
+     * Izin aturan.validator.atur. Body {nama, jenis_baris?: aturan|templat, unit_id? | jenis_unit?, kategori?, warisi?, templat_id? | langkah: [...], opsi?: {ulang_dari}, prioritas?, aktif?, keterangan?}.
+     *
+     * `POST /v1/aturan/validator`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postValidator(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/validator', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pilihan editor rantai validator
+     *
+     * Jenis validator, unit relatif (pengaju, induk, fakultas, prodi, biro_kategori), jabatan, peran, unit, jenis unit, kategori.
+     *
+     * `GET /v1/aturan/validator/katalog`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getValidatorKatalog(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/validator/katalog', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simulasi: pengajuan dari unit X kategori Y divalidasi siapa
+     *
+     * Query unit (id/kode induk_unit), kategori, pengaju? (username: dikeluarkan dari validator). Jawaban rantai lengkap: pengaturan yang dipakai & alasannya, tahap [{urut, judul, mode, bila_kosong, validator: [{label, jumlah}], orang: [{username, nama, sebagai}], tindakan: validasi|eskalasi|lewati|tahan}], siap, pesan.
+     *
+     * `GET /v1/aturan/validator/simulasi`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array{unit?: string, kategori?: string, pengaju?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getValidatorSimulasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/validator/simulasi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat perubahan pengaturan validator
+     *
+     * Jejak audit: aksi, oleh, waktu, sebelum, sesudah.
+     *
+     * `GET /v1/aturan/validator/riwayat`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getValidatorRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/validator/riwayat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah rantai validator / templat
+     *
+     * Isian sama dengan tambah. Pengajuan yang sudah berjalan tetap memakai salinan rantai saat diajukan.
+     *
+     * `POST /v1/aturan/validator/{id}`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param int|string $id UUID pengaturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postValidatorById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/validator/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus rantai validator / templat
+     *
+     * Soft delete. Templat yang masih dipakai: 409.
+     *
+     * `POST /v1/aturan/validator/{id}/hapus`
+     *
+     * scope: `aturan:read` · hanya token pengguna
+     *
+     * @param int|string $id UUID pengaturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postValidatorByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/validator/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -500,7 +1324,14 @@ final class Aturan extends Resource
     }
 
     /**
-     * Ajukan aturan untuk disetujui
+     * Ajukan aturan untuk divalidasi
+     *
+     * **Dasar SK wajib** (docs/ATURAN-SK.md): body `sk_dasar_id` (UUID SK induk di Registri SK; kosong = SK dasar yang sudah
+     * tercatat, atau SK registri dari lampiran SK aturan), opsional `unit_pengaju_id` (bawaan: unit pemilik aturan). SK harus
+     * terbit, penerbitnya berwenang menurut Kewenangan SK, unit pengaju berada di bawah penerbit, dan cakupan aturan tidak
+     * melebihi cakupan SK; selain itu 422 `details.dasar_sk.masalah`. Pengajuan lalu berjalan melalui **rantai validator** unit
+     * pengaju (Pustikom » Aturan » Validator aturan; tanpa pengaturan = pejabat penyetuju kategori). Tahap tanpa validator dan
+     * bila_kosong=tahan: 409 `validator_kosong`.
      *
      * Pengatur mengajukan aturan draf/nonaktif (wajib sudah ada SK) atau usulan versi baru aturan aktif (disimpan lewat
      * `POST /v1/aturan/{id}` dengan SK). Body opsional `{"catatan"}`. Status aturan draf menjadi `diajukan`; aturan aktif tetap
@@ -584,6 +1415,86 @@ final class Aturan extends Resource
     public function postByIdKembalikan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/aturan/{id}/kembalikan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tolak pengajuan (validator)
+     *
+     * Validator tahap berjalan menolak pengajuan. Body {"catatan"} wajib. Aturan baru tidak berlaku (nonaktif); usulan versi baru aturan aktif ditolak dan versi lama tetap berlaku. Pengaju tidak bisa menolak/menyetujui pengajuannya sendiri (403 validasi_sendiri).
+     *
+     * `POST /v1/aturan/{id}/tolak`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdTolak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/{id}/tolak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periksa SK dasar (tanpa menyimpan)
+     *
+     * Query sk_dasar_id (UUID SK registri; kosong = SK dasar tercatat / SK lampiran), unit_pengaju_id?. Jawaban {ok, sk, unit_pengaju, penerbit, masalah: [{kode, pesan}], peringatan}. Kode masalah: sk_wajib, sk_tidak_ada, sk_belum_terbit, sk_tidak_berlaku, penerbit_tidak_dikenal, penerbit_tidak_berwenang, unit_di_luar_penerbit, cakupan_melebihi_sk.
+     *
+     * `GET /v1/aturan/{id}/dasar-sk/periksa`
+     *
+     * scope: `aturan:read`
+     *
+     * @param int|string $id UUID aturan
+     * @param array{sk_dasar_id?: string, unit_pengaju_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByIdDasarSkPeriksa(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/{id}/dasar-sk/periksa', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tetapkan/ganti SK dasar aturan
+     *
+     * Untuk melengkapi aturan aktif yang belum berdasar SK, atau mengganti SK dasar yang dicabut. Body {sk_dasar_id, unit_pengaju_id?, catatan?}. Kewenangan SK diperiksa (422 dengan details.dasar_sk). Isi aturan tidak berubah sehingga tidak melewati rantai validasi.
+     *
+     * `POST /v1/aturan/{id}/dasar-sk`
+     *
+     * scope: `aturan:write`
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdDasarSk(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/{id}/dasar-sk', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tinjau ulang aturan yang SK dasarnya tidak berlaku
+     *
+     * Body {keputusan: ganti (sk_dasar_id) | nonaktifkan | tetap, catatan (min. 10 karakter untuk nonaktifkan/tetap)}. Aturan tidak pernah dimatikan otomatis.
+     *
+     * `POST /v1/aturan/{id}/dasar-sk/tinjau`
+     *
+     * scope: `aturan:write`
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdDasarSkTinjau(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/{id}/dasar-sk/tinjau', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -704,6 +1615,71 @@ final class Aturan extends Resource
     public function getByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/aturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simulasi dampak kebijakan berakibat
+     *
+     * Sebelum disahkan dan sebelum penerapan massal. Query: `tahun_id?` (bawaan: mulai berlaku atau periode aktif), `usulan=1`
+     * (pakai isi versi yang sedang diajukan), `nim?` (daftar dipisah koma), `semua=1` (sertakan yang tidak memenuhi dengan
+     * alasannya), `format=csv` (ekspor). Keringanan: `{jumlah_diperiksa, jumlah_memenuhi, total_sebelum, total_sesudah, selisih,
+     * data: [{nim, nama, alasan[], total_sebelum, total_sesudah, ubah: [{tahun_id, kode_biaya, sebelum, sesudah, dibayar, keterangan}]}]}`.
+     * Konversi huruf: nilai periode itu yang hurufnya berubah. Bobot: kelas yang terdampak. Predikat: lulusan yang predikatnya
+     * berubah. Tarif: tagihan sekarang vs tarif aturan.
+     *
+     * `GET /v1/aturan/{id}/akibat/simulasi`
+     *
+     * scope: `aturan:read`
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByIdAkibatSimulasi(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/{id}/akibat/simulasi', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Terapkan kebijakan keringanan/pemutihan (massal)
+     *
+     * Izin aturan.akibat.terapkan (BAUK). Body {tahun_id?, nim?: [], konfirmasi: jumlah memenuhi pada simulasi yang dilihat}. Hanya aturan aktif. Tiap mahasiswa = satu penerapan berjejak (sebelum/sesudah, SK, pelaku), tidak diterapkan dua kali. 409 konfirmasi_berbeda bila hasil simulasi sudah berubah.
+     *
+     * `POST /v1/aturan/{id}/akibat/terapkan`
+     *
+     * scope: `aturan:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdAkibatTerapkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/aturan/{id}/akibat/terapkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftar penerapan kebijakan
+     *
+     * Query status? (diterapkan | dibatalkan). {data: [...penerapan beserta ubah], ringkasan: {jumlah, diterapkan, total_sebelum, total_sesudah}, boleh_terapkan}.
+     *
+     * `GET /v1/aturan/{id}/akibat/penerapan`
+     *
+     * scope: `aturan:read`
+     *
+     * @param int|string $id UUID aturan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByIdAkibatPenerapan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/aturan/{id}/akibat/penerapan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -92,7 +92,7 @@ final class Dasbor extends Resource
     /**
      * Analitik kehadiran mahasiswa
      *
-     * Dari t_mahasiswa_presensi: jumlah hadir/izin/sakit/alpa dan persen hadir, sebaran mahasiswa per rentang persen hadir, jumlah di bawah ambang, per prodi, per minggu, dan per hari.
+     * Dari t_mahasiswa_presensi: jumlah hadir/izin/sakit/alpa dan persen hadir, sebaran mahasiswa per rentang persen hadir, jumlah di bawah ambang, per prodi, per minggu, dan per hari. Ambang bawaan = kehadiran minimal dari aturan syarat ikut UAS (ambang_acuan: nilai dan sumbernya); query ambang menimpa.
      *
      * `GET /v1/dasbor/kehadiran`
      *
@@ -147,6 +147,25 @@ final class Dasbor extends Resource
     }
 
     /**
+     * Ambang akademik yang berlaku
+     *
+     * Kehadiran minimal (syarat ikut UAS), IPK predikat tertinggi, masa studi normal per jenjang, dan batas skor tingkat EWS untuk prodi (kode_prodi) atau universitas, beserta sumbernya: aturan (dengan SK dasar dan versi), periode (pengaturan BAAK lama), atau bawaan sistem.
+     *
+     * `GET /v1/dasbor/ambang`
+     *
+     * scope: `dasbor:read`
+     *
+     * @param array{kode_prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAmbang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dasbor/ambang', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Hitung ulang EWS
      *
      * Menghitung indikator mahasiswa aktif (IPS/IPK rendah, kehadiran, tidak KRS setelah masa KRS, nonaktif/cuti semester lalu, tunggakan, masa studi, SKS tertinggal) dan memperbarui daftar mahasiswa berisiko. Dosen PA mendapat notifikasi untuk kasus baru sedang/tinggi. Body opsional: tahun_id, kode_prodi. Pengelola.
@@ -168,7 +187,7 @@ final class Dasbor extends Resource
     /**
      * Aturan EWS: daftar
      *
-     * Indikator mahasiswa berisiko: ambang dan bobot skor. Skor >= 5 = tinggi, >= 3 = sedang. Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
+     * Indikator mahasiswa berisiko: ambang dan bobot skor. Batas skor tingkat tinggi/sedang mengikuti aturan "Acuan pantauan akademik" (titik akademik.ambang; bawaan 5 dan 3). Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
      *
      * `GET /v1/dasbor/ews-aturan`
      *
@@ -187,7 +206,7 @@ final class Dasbor extends Resource
     /**
      * Aturan EWS: detail
      *
-     * Indikator mahasiswa berisiko: ambang dan bobot skor. Skor >= 5 = tinggi, >= 3 = sedang. Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
+     * Indikator mahasiswa berisiko: ambang dan bobot skor. Batas skor tingkat tinggi/sedang mengikuti aturan "Acuan pantauan akademik" (titik akademik.ambang; bawaan 5 dan 3). Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
      *
      * `GET /v1/dasbor/ews-aturan/{id}`
      *
@@ -227,7 +246,7 @@ final class Dasbor extends Resource
     /**
      * Aturan EWS: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Indikator mahasiswa berisiko: ambang dan bobot skor. Skor >= 5 = tinggi, >= 3 = sedang. Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Indikator mahasiswa berisiko: ambang dan bobot skor. Batas skor tingkat tinggi/sedang mengikuti aturan "Acuan pantauan akademik" (titik akademik.ambang; bawaan 5 dan 3). Kode indikator tetap; ubah ambang, bobot, atau nonaktifkan. Hanya pengelola modul.
      *
      * `GET /v1/dasbor/ews-aturan/{id}/riwayat`
      *

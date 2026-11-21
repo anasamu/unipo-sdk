@@ -54,7 +54,7 @@ final class Kasir extends Resource
     /**
      * Daftarkan perangkat
      *
-     * Body: {"perangkat_id", "nama", "unit_id", "versi", "os"}. Dipanggil setiap masuk; komputer baru mendapat kode loket K01, K02, ...
+     * Body: {"perangkat_id", "nama", "unit_id" (unit yang diminta), "catatan", "ajukan_ulang", "versi", "os", "kunci_publik" (PEM ECDSA P-256), "sidik": {"nama_komputer", "os", "arch", "versi", "pengguna_os"}}. Wajib ditandatangani kunci yang didaftarkan (header X-Kasir-Perangkat/-Waktu/-Tanda, docs/KASIR.md). Komputer baru mendapat kode loket K01, K02, ... berstatus menunggu dan penyetuju (kasir.perangkat.setujui) diberi notifikasi. Kunci berganti = menunggu lagi.
      *
      * `POST /v1/kasir/perangkat`
      *
@@ -68,6 +68,103 @@ final class Kasir extends Resource
     public function postPerangkat(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/kasir/perangkat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Status perangkat & sesi kasir
+     *
+     * Perangkat pengirim (status persetujuan, terverifikasi tanda), sesi terbuka beserta rekap sementara, boleh_buka.
+     *
+     * `GET /v1/kasir/sesi`
+     *
+     * scope: `kasir:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSesi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/sesi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buka sesi kasir
+     *
+     * Body: {"saldo_awal", "catatan"}. Hanya perangkat DISETUJUI dengan tanda sah (403 perangkat_belum_disetujui); satu sesi per perangkat dan per petugas (409).
+     *
+     * `POST /v1/kasir/sesi/buka`
+     *
+     * scope: `kasir:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSesiBuka(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/sesi/buka', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat sesi saya
+     *
+     * Sesi petugas di perangkat ini (?semua=1 = semua perangkat), 30 terbaru.
+     *
+     * `GET /v1/kasir/sesi/riwayat`
+     *
+     * scope: `kasir:read`
+     *
+     * @param array{semua?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSesiRiwayat(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/sesi/riwayat', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Rekap sesi
+     *
+     * Per metode, per jenis biaya, pembayaran di muka, batal, kas seharusnya, uang fisik, setoran, selisih.
+     *
+     * `GET /v1/kasir/sesi/{id}`
+     *
+     * scope: `kasir:read`
+     *
+     * @param int|string $id keu_mhs_transaksi.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSesiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/sesi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tutup sesi kasir
+     *
+     * Body: {"uang_fisik", "setoran", "catatan"}. selisih = uang_fisik - (saldo_awal + tunai diterima). Hanya dari perangkat sesi itu.
+     *
+     * `POST /v1/kasir/sesi/{id}/tutup`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id keu_mhs_transaksi.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSesiByIdTutup(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/sesi/{id}/tutup', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -247,9 +344,9 @@ final class Kasir extends Resource
     }
 
     /**
-     * Batalkan pembayaran
+     * Ajukan pembatalan pembayaran
      *
-     * Izin kasir.batal untuk jenis biaya itu. Body: {"alasan"}. Langkah hapus pembayaran menu Cek Pembayaran.
+     * Izin kasir.batal untuk jenis biaya itu. Body: {"alasan"} (min. 5 karakter). Membuat pengajuan pembatalan (status diajukan) yang disetujui pemegang izin bauk.pembatalan.setujui untuk unit penerbit jenis biaya (bawaan Kepala BAUK) di BAUK » Kasir » Pembatalan; baris pembayaran tidak dihapus (storno). Jawaban {transaksi, pembatalan, kwitansi}; 409 bila sudah menunggu.
      *
      * `POST /v1/kasir/transaksi/{id}/batal`
      *
@@ -514,7 +611,9 @@ final class Kasir extends Resource
     }
 
     /**
-     * Loket kasir unit
+     * Perangkat/loket kasir unit
+     *
+     * Perangkat dalam lingkup kasir.perangkat.setujui atau kasir.pengaturan.
      *
      * `GET /v1/kasir/kelola/perangkat`
      *
@@ -531,9 +630,128 @@ final class Kasir extends Resource
     }
 
     /**
-     * Ubah loket
+     * Persetujuan perangkat kasir
      *
-     * Body: {"nama", "unit_id", "aktif"}.
+     * Perangkat dalam lingkup (status, sidik kunci, sidik komputer, pemohon, unit diminta, sesi aktif), hitungan per status, unit yang boleh dipilih penyetuju, boleh_setujui. Dipakai Pustikom » Perangkat kasir dan tab Perangkat & loket aplikasi unit.
+     *
+     * `GET /v1/kasir/kelola/perangkat-persetujuan`
+     *
+     * scope: `kasir:read`
+     *
+     * @param array{status?: string, q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaPerangkatPersetujuan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/kelola/perangkat-persetujuan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Setujui perangkat
+     *
+     * Izin kasir.perangkat.setujui. Body: {"unit_id" (wajib bagi penyetuju unit; kosong = semua unit), "nama"}. Pemohon diberi notifikasi.
+     *
+     * `POST /v1/kasir/kelola/perangkat/{id}/setujui`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id keu_kasir_perangkat.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaPerangkatByIdSetujui(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/perangkat/{id}/setujui', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tolak perangkat
+     *
+     * Body: {"alasan"}.
+     *
+     * `POST /v1/kasir/kelola/perangkat/{id}/tolak`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id keu_kasir_perangkat.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaPerangkatByIdTolak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/perangkat/{id}/tolak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut persetujuan perangkat
+     *
+     * Body: {"alasan"}. Sesi kasir terbuka di perangkat itu ditutup otomatis; pembayaran berikutnya 403 perangkat_belum_disetujui.
+     *
+     * `POST /v1/kasir/kelola/perangkat/{id}/cabut`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id keu_kasir_perangkat.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaPerangkatByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/perangkat/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ganti nama perangkat
+     *
+     * Body: {"nama"}. Penyetuju atau kasir.pengaturan unit itu.
+     *
+     * `POST /v1/kasir/kelola/perangkat/{id}/nama`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id keu_kasir_perangkat.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaPerangkatByIdNama(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/perangkat/{id}/nama', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat perangkat
+     *
+     * daftar, ajukan, setujui, tolak, cabut, ganti nama, kunci baru, sesi ditutup.
+     *
+     * `GET /v1/kasir/kelola/perangkat/{id}/riwayat`
+     *
+     * scope: `kasir:read`
+     *
+     * @param int|string $id keu_kasir_perangkat.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaPerangkatByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/kelola/perangkat/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah loket (lama)
+     *
+     * Body: {"nama", "unit_id", "aktif"}. Nama = ganti nama; aktif=false = cabut; unit = setujui ulang (izin kasir.perangkat.setujui).
      *
      * `POST /v1/kasir/kelola/perangkat/{id}`
      *
@@ -833,9 +1051,9 @@ final class Kasir extends Resource
     }
 
     /**
-     * Ubah perangkat
+     * Ubah perangkat (lama)
      *
-     * Body: {"nama", "unit_id", "aktif"}. Perangkat nonaktif ditolak saat sinkron.
+     * Sama dengan POST /kelola/perangkat/{id}.
      *
      * `POST /v1/kasir/perangkat/{id}`
      *

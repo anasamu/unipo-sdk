@@ -128,6 +128,25 @@ final class Keu extends Resource
     }
 
     /**
+     * Pilihan saringan jurnal
+     *
+     * Nilai sah status, jenis, dan sumber jurnal beserta label awam: {status: [{nilai, label}], jenis: [...], sumber: [...]}. Dipakai saringan daftar jurnal; GET /jurnal menolak nilai lain (422). Pengelola.
+     *
+     * `GET /v1/keu/jurnal/pilihan`
+     *
+     * scope: `keu:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJurnalPilihan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keu/jurnal/pilihan', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Sinkron jurnal otomatis
      *
      * Admin. Body: dari?, sampai?. Menjurnal saldo awal rekening, pembayaran mahasiswa (t_mahasiswa_bayar per hari/prodi/jenis biaya), pengajuan dana dibayar + selisih SPJ, dan penerimaan lain. Idempoten: nilai sumber yang berubah membuat jurnal pembalik + jurnal baru. Cron: php artisan keu:jurnal.

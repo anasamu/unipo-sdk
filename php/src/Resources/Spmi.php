@@ -1449,7 +1449,7 @@ final class Spmi extends Resource
     /**
      * Riwayat akreditasi unit
      *
-     * Semua akreditasi unit (terkini dulu) dengan SK registri, sertifikat (file SPMI entitas akreditasi), waktu tulis ke SIAKAD lama, dan persiapan/rencana reakreditasi yang berjalan.
+     * Semua akreditasi unit (terkini dulu) dengan SK registri, sertifikat (file SPMI entitas akreditasi, beserta tempatnya di Arsip universitas), anomali data (nomor SK kosong, masa berlaku janggal, peringkat tanpa kode lama, pemetaan status lama), integrasi (kelengkapan persiapan aktif, usulan prodi yang menunggu, tautan lampiran data otomatis), waktu tulis ke SIAKAD lama, dan persiapan/rencana reakreditasi yang berjalan.
      *
      * `GET /v1/spmi/akreditasi/unit/{unit}`
      *
@@ -1564,7 +1564,7 @@ final class Spmi extends Resource
     /**
      * Hapus akreditasi
      *
-     * Riwayat sebelumnya kembali menjadi terkini dan ditulis ulang ke SIAKAD lama (tanpa riwayat = tabel lama tidak diubah).
+     * Hanya untuk entri salah input: body {alasan} (atau ?alasan=) wajib, min. 5 karakter, tercatat di log. Riwayat sebelumnya kembali menjadi terkini dan ditulis ulang ke SIAKAD lama (tanpa riwayat = tabel lama tidak diubah).
      *
      * `DELETE /v1/spmi/akreditasi/{id}`
      *
@@ -2040,7 +2040,7 @@ final class Spmi extends Resource
     /**
      * Isian pelaporan SPMI periode
      *
-     * Butir pelaporan untuk spmi.kemdiktisaintek.go.id dengan cek kelengkapan (tautan kosong, dokumen tidak publik, tanggal penetapan).
+     * Admin SPMI. Butir pelaporan untuk spmi.kemdiktisaintek.go.id dengan cek kelengkapan (tautan kosong, dokumen tidak publik, tanggal penetapan). Periode tidak ada = 404.
      *
      * `GET /v1/spmi/pelaporan/{periode}`
      *
@@ -2173,6 +2173,145 @@ final class Spmi extends Resource
     public function postFileByEntitasById(int|string $entitas, int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/spmi/file/{entitas}/{id}', ['entitas' => $entitas, 'id' => $id], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Menunggu keputusan saya
+     *
+     * Target dan dokumen mutu unit yang sedang diproses dan tahap berjalannya diputus pemilik token menurut alur pengesahan yang berlaku (/v1/spmi/alur), termasuk pelaku izin:<kode> tanpa peran SPMI. Buka detail lewat /target/{id} atau /dokumen/{id}; putus lewat /setujui atau /kembalikan.
+     *
+     * `GET /v1/spmi/menunggu-saya`
+     *
+     * scope: `spmi:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getMenungguSaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/menunggu-saya', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Target: ajukan
+     *
+     * Pengusul (tahap pertama alur target yang berlaku; bawaan pengelola/pimpinan unit/PIC) mengajukan draf atau data yang dikembalikan ke tahap berikutnya. Body opsional: catatan.
+     *
+     * `POST /v1/spmi/target/{id}/ajukan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTargetByIdAjukan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/target/{id}/ajukan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Target: setujui
+     *
+     * Pelaku tahap berjalan (bawaan: validasi SPMI lalu pengesahan pimpinan unit). Tahap terakhir = disahkan; hanya data disahkan yang berlaku. Pengusul tidak memutus usulannya sendiri. Body opsional: catatan.
+     *
+     * `POST /v1/spmi/target/{id}/setujui`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTargetByIdSetujui(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/target/{id}/setujui', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Target: kembalikan
+     *
+     * Pelaku tahap berjalan mengembalikan usulan ke pengusul. Body: catatan (wajib, alasan).
+     *
+     * `POST /v1/spmi/target/{id}/kembalikan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTargetByIdKembalikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/target/{id}/kembalikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen mutu: ajukan
+     *
+     * Pengusul (tahap pertama alur dokumen yang berlaku; bawaan pengelola/pimpinan unit) mengajukan draf atau data yang dikembalikan ke tahap berikutnya. Body opsional: catatan.
+     *
+     * `POST /v1/spmi/dokumen/{id}/ajukan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDokumenByIdAjukan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/dokumen/{id}/ajukan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen mutu: setujui
+     *
+     * Pelaku tahap berjalan (bawaan: validasi SPMI lalu pengesahan pimpinan unit). Tahap terakhir = disahkan; hanya data disahkan yang berlaku. Pengusul tidak memutus usulannya sendiri. Body opsional: catatan.
+     *
+     * `POST /v1/spmi/dokumen/{id}/setujui`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDokumenByIdSetujui(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/dokumen/{id}/setujui', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Dokumen mutu: kembalikan
+     *
+     * Pelaku tahap berjalan mengembalikan usulan ke pengusul. Body: catatan (wajib, alasan).
+     *
+     * `POST /v1/spmi/dokumen/{id}/kembalikan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDokumenByIdKembalikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/dokumen/{id}/kembalikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -2406,7 +2545,7 @@ final class Spmi extends Resource
     /**
      * Auditor: daftar
      *
-     * Terlihat oleh semua pemilik spmi:read. Filter: aktif, unit_asal_id, q (cari).
+     * Terlihat oleh admin SPMI, personel mutu, dan auditor; kolom nidn, nomor_sertifikat, penyelenggara_pelatihan, tanggal_sertifikat, berlaku_sampai, tautan_sertifikat, catatan hanya untuk admin SPMI. Filter: aktif, unit_asal_id, q (cari).
      *
      * `GET /v1/spmi/auditor`
      *
@@ -2634,7 +2773,7 @@ final class Spmi extends Resource
     /**
      * Dokumen mutu: daftar
      *
-     * Yang berstatus disahkan terlihat oleh semua; lainnya oleh personel terkait. Filter: unit_id, jenis, tahap, status, publik, q (cari).
+     * Yang berstatus disahkan terlihat oleh semua; lainnya oleh personel unit terkait. Filter: unit_id, jenis, tahap, status, publik, q (cari).
      *
      * `GET /v1/spmi/dokumen`
      *
@@ -2653,7 +2792,7 @@ final class Spmi extends Resource
     /**
      * Dokumen mutu: tambah
      *
-     * Dikelola LPM atau pengelola mutu unit (unit_id); unit_id kosong = LPM.
+     * Dokumen unit: draf disusun pengusul menurut alur yang berlaku (/v1/spmi/alur objek dokumen), lalu diajukan, divalidasi, dan disahkan lewat /dokumen/{id}/ajukan|setujui|kembalikan; status tidak diisi langsung (kecuali kedaluwarsa/dicabut setelah sah). Dokumen tanpa unit (universitas) oleh LPM.
      *
      * `POST /v1/spmi/dokumen`
      *
@@ -2708,7 +2847,7 @@ final class Spmi extends Resource
     /**
      * Dokumen mutu: ubah
      *
-     * Dikelola LPM atau pengelola mutu unit (unit_id); unit_id kosong = LPM. Kirim hanya kolom yang berubah.
+     * Dokumen unit: draf disusun pengusul menurut alur yang berlaku (/v1/spmi/alur objek dokumen), lalu diajukan, divalidasi, dan disahkan lewat /dokumen/{id}/ajukan|setujui|kembalikan; status tidak diisi langsung (kecuali kedaluwarsa/dicabut setelah sah). Dokumen tanpa unit (universitas) oleh LPM. Kirim hanya kolom yang berubah.
      *
      * `PUT /v1/spmi/dokumen/{id}`
      *
@@ -2748,7 +2887,7 @@ final class Spmi extends Resource
     /**
      * Standar: daftar
      *
-     * Yang berstatus berlaku terlihat oleh semua; lainnya oleh personel terkait. Filter: bidang, kelompok, sumber, status, induk_id, dokumen_id, q (cari).
+     * Yang berstatus berlaku,dicabut terlihat oleh semua; lainnya oleh admin SPMI saja. Filter: bidang, kelompok, sumber, status, induk_id, dokumen_id, q (cari).
      *
      * `GET /v1/spmi/standar`
      *
@@ -2976,13 +3115,13 @@ final class Spmi extends Resource
     /**
      * Target: daftar
      *
-     * Terlihat oleh semua pemilik spmi:read. Filter: indikator_id, periode_id, unit_id, q (cari).
+     * Terlihat oleh LPM dan personel unit (serta pengawas unit induk). Filter: indikator_id, periode_id, unit_id, status, q (cari).
      *
      * `GET /v1/spmi/target`
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, indikator_id?: string, periode_id?: string, unit_id?: string, ...} $query
+     * @param array{q?: string, page?: int, per_page?: int, indikator_id?: string, periode_id?: string, unit_id?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2995,7 +3134,7 @@ final class Spmi extends Resource
     /**
      * Target: tambah
      *
-     * Dikelola admin SPMI (LPM/ADMIN).
+     * Target unit: draf disusun pengusul menurut alur yang berlaku (/v1/spmi/alur objek target), lalu diajukan, divalidasi, dan disahkan lewat /target/{id}/ajukan|setujui|kembalikan. Target tanpa unit (universitas) oleh LPM.
      *
      * `POST /v1/spmi/target`
      *
@@ -3050,7 +3189,7 @@ final class Spmi extends Resource
     /**
      * Target: ubah
      *
-     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     * Target unit: draf disusun pengusul menurut alur yang berlaku (/v1/spmi/alur objek target), lalu diajukan, divalidasi, dan disahkan lewat /target/{id}/ajukan|setujui|kembalikan. Target tanpa unit (universitas) oleh LPM. Kirim hanya kolom yang berubah.
      *
      * `PUT /v1/spmi/target/{id}`
      *
@@ -3088,9 +3227,123 @@ final class Spmi extends Resource
     }
 
     /**
+     * Alur pengesahan: daftar
+     *
+     * Terlihat oleh admin SPMI, personel mutu, dan auditor. Filter: objek, status, unit_id, q (cari).
+     *
+     * `GET /v1/spmi/alur`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, objek?: string, status?: string, unit_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAlur(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/alur', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Alur pengesahan: tambah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN).
+     *
+     * `POST /v1/spmi/alur`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array{objek: string, unit_id?: int|null, nama: string|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, status?: string, tahap: list<mixed>, pengusul_bukan_pemutus?: bool, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAlur(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/alur', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Alur pengesahan: riwayat perubahan
+     *
+     * `GET /v1/spmi/alur/{id}/riwayat`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAlurByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/alur/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Alur pengesahan: detail
+     *
+     * `GET /v1/spmi/alur/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAlurById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/alur/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Alur pengesahan: ubah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/spmi/alur/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array{objek: string, unit_id?: int|null, nama: string|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, status?: string, tahap: list<mixed>, pengusul_bukan_pemutus?: bool, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAlurById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/alur/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Alur pengesahan: hapus
+     *
+     * Ditolak bila masih dipakai data lain.
+     *
+     * `DELETE /v1/spmi/alur/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAlurById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/alur/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Kegiatan PPEPP: daftar
      *
-     * Terlihat oleh semua pemilik spmi:read. Filter: periode_id, unit_id, tahap, jenis, status, q (cari).
+     * Terlihat oleh LPM dan personel unit (serta pengawas unit induk). Filter: periode_id, unit_id, tahap, jenis, status, q (cari).
      *
      * `GET /v1/spmi/kegiatan`
      *
@@ -3313,6 +3566,120 @@ final class Spmi extends Resource
     public function deleteAuditById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/spmi/audit/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: daftar
+     *
+     * Hanya admin SPMI (LPM/ADMIN). Filter: status, q (cari).
+     *
+     * `GET /v1/spmi/kebijakan-auditor`
+     *
+     * scope: `spmi:read` · berhalaman
+     *
+     * @param array{q?: string, page?: int, per_page?: int, status?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanAuditor(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/kebijakan-auditor', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: tambah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN).
+     *
+     * `POST /v1/spmi/kebijakan-auditor`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array{nama: string|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, status?: string, status_auditee_aktif: string|null, masa_tenggang_hari?: int, batasi_periode?: bool, batasi_standar?: bool, buka_dokumen_unit?: bool, catat_akses?: bool, larang_unit_sendiri?: bool, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKebijakanAuditor(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/kebijakan-auditor', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: riwayat perubahan
+     *
+     * `GET /v1/spmi/kebijakan-auditor/{id}/riwayat`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanAuditorByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/kebijakan-auditor/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: detail
+     *
+     * `GET /v1/spmi/kebijakan-auditor/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKebijakanAuditorById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/kebijakan-auditor/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: ubah
+     *
+     * Dikelola admin SPMI (LPM/ADMIN). Kirim hanya kolom yang berubah.
+     *
+     * `PUT /v1/spmi/kebijakan-auditor/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array{nama: string|null, nomor_sk?: string|null, tanggal_sk?: string|null, berlaku_mulai?: string|null, status?: string, status_auditee_aktif: string|null, masa_tenggang_hari?: int, batasi_periode?: bool, batasi_standar?: bool, buka_dokumen_unit?: bool, catat_akses?: bool, larang_unit_sendiri?: bool, catatan?: string|null, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putKebijakanAuditorById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/kebijakan-auditor/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kebijakan akses auditor: hapus
+     *
+     * Ditolak bila masih dipakai data lain.
+     *
+     * `DELETE /v1/spmi/kebijakan-auditor/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKebijakanAuditorById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/spmi/kebijakan-auditor/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

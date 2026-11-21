@@ -20,6 +20,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const specPath = process.argv[2] ?? join(ROOT, 'openapi.json');
 const spec = JSON.parse(readFileSync(specPath, 'utf8'));
 const schemas = spec.components?.schemas ?? {};
+/** $ref yang menunjuk skema yang tidak ada di components.schemas. */
+const refHilang = new Set();
 
 const VERBS = ['get', 'post', 'put', 'patch', 'delete'];
 const SKIP = (path) => path === '/' || path === '/docs' || path.startsWith('/v1/auth/');
@@ -129,7 +131,14 @@ const tsKey = (k) => (IDENT.test(k) ? k : JSON.stringify(k));
 
 function tsType(s, ref = 'S.', indent = '') {
   if (!s || typeof s !== 'object') return 'any';
-  if (s.$ref) return ref + s.$ref.split('/').pop();
+  if (s.$ref) {
+    const nama = s.$ref.split('/').pop();
+    if (schemas[nama]) return ref + nama;
+    // Skema dirujuk tetapi tidak didefinisikan di components (bug spesifikasi SIAKAD): pakai objek bebas supaya
+    // typecheck tidak gagal dan endpoint lain tetap terbit; nama skemanya dilaporkan di akhir.
+    refHilang.add(nama);
+    return ref + 'JsonObject';
+  }
   if (s.oneOf || s.anyOf) return [...new Set((s.oneOf ?? s.anyOf).map((x) => tsType(x, ref, indent)))].join(' | ');
   if (s.allOf) return s.allOf.map((x) => wrap(tsType(x, ref, indent))).join(' & ');
   const types = Array.isArray(s.type) ? s.type : s.type ? [s.type] : [];
@@ -448,3 +457,6 @@ genTs();
 genPhp();
 genIndex();
 console.log(`Selesai: ${mods.length} modul, ${total} endpoint.`);
+if (refHilang.size) {
+  console.warn(`PERINGATAN: ${refHilang.size} skema dirujuk tetapi tidak ada di components.schemas (dipakai JsonObject): ${[...refHilang].join(', ')}. Daftarkan skemanya di api_schemas.php modul SIAKAD.`);
+}

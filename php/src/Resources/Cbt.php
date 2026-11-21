@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian
+ * CBT: Nilai ke SIAKAD, CBT: Ujian percobaan, CBT: Koreksi dan hasil, CBT: Peserta ujian, CBT: Sesi dan pengawasan, CBT: Soal, CBT: Peserta, CBT: Ujian dari jadwal, CBT: Ujian
  */
 final class Cbt extends Resource
 {
@@ -393,6 +393,44 @@ final class Cbt extends Resource
     }
 
     /**
+     * Jadwal UTS/UAS untuk ujian CBT
+     *
+     * Jadwal ujian prodi (t_jadwal_ujian, disusun BAAK/prodi) satu periode beserta ujian CBT yang sudah dibuat darinya (`ujian_id`). Pengelola ujian perkuliahan dalam lingkup prodinya.
+     *
+     * `GET /v1/cbt/jadwal-ujian`
+     *
+     * scope: `cbt:read`
+     *
+     * @param array{kode_prodi?: string, tahun_id?: string, ujian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getJadwalUjian(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/cbt/jadwal-ujian', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Buat ujian CBT dari jadwal ujian
+     *
+     * Body: jadwal_id (dari GET /cbt/jadwal-ujian), opsional nama, durasi_menit, acak_soal, acak_opsi, tampil_hasil, nilai_lulus, petunjuk. Membuat ujian konteks kuliah (draf), satu sesi pada tanggal & jam jadwal dengan pengawas pertama, dan peserta dari KRS yang disetujui. Soal lalu diisi (bank soal/impor) dan ujian disiapkan.
+     *
+     * `POST /v1/cbt/ujian/dari-jadwal`
+     *
+     * scope: `cbt:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianDariJadwal(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/cbt/ujian/dari-jadwal', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Ujian: daftar
      *
      * Ujian berbasis komputer. Soal hanya bisa diubah selama belum ada peserta yang mulai. Aksi `siapkan` memeriksa soal dan sesi sebelum ujian bisa dikerjakan. Pengawas melihat ujian yang sesinya ia awasi. Hanya pengelola modul.
@@ -401,7 +439,7 @@ final class Cbt extends Resource
      *
      * scope: `cbt:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, jenis?: string, tahun_id?: string, kode_prodi?: string, acak_soal?: string, acak_opsi?: string, tampil_hasil?: string, kunci_perangkat?: string, latihan?: string, status?: string, kode_mk?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, jenis?: string, konteks?: string, tahun_id?: string, kode_prodi?: string, acak_soal?: string, acak_opsi?: string, tampil_hasil?: string, kunci_perangkat?: string, latihan?: string, status?: string, kode_mk?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -420,7 +458,7 @@ final class Cbt extends Resource
      *
      * scope: `cbt:write`
      *
-     * @param array{kode: string, nama: string, jenis?: string, tahun_id?: string, kode_prodi?: string, kode_mk?: string, kelas?: string, durasi_menit?: int, jumlah_soal?: int, acak_soal?: bool, acak_opsi?: bool, nilai_lulus?: float|int, tampil_hasil?: bool, kunci_perangkat?: bool, latihan?: bool, petunjuk?: string, ...} $body
+     * @param array{kode: string, nama: string, jenis?: string, konteks?: string, tahun_id?: string, kode_prodi?: string, kode_mk?: string, kelas?: string, durasi_menit?: int, jumlah_soal?: int, acak_soal?: bool, acak_opsi?: bool, nilai_lulus?: float|int, tampil_hasil?: bool, kunci_perangkat?: bool, latihan?: bool, petunjuk?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -460,7 +498,7 @@ final class Cbt extends Resource
      * scope: `cbt:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, jenis?: string, tahun_id?: string, kode_prodi?: string, kode_mk?: string, kelas?: string, durasi_menit?: int, jumlah_soal?: int, acak_soal?: bool, acak_opsi?: bool, nilai_lulus?: float|int, tampil_hasil?: bool, kunci_perangkat?: bool, latihan?: bool, petunjuk?: string, ...} $body
+     * @param array{kode: string, nama: string, jenis?: string, konteks?: string, tahun_id?: string, kode_prodi?: string, kode_mk?: string, kelas?: string, durasi_menit?: int, jumlah_soal?: int, acak_soal?: bool, acak_opsi?: bool, nilai_lulus?: float|int, tampil_hasil?: bool, kunci_perangkat?: bool, latihan?: bool, petunjuk?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

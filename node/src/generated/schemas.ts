@@ -286,7 +286,12 @@ export type Dosen = {
   nama_prodi?: string | null;
   kode_jenjang?: string | null;
   jenis_kelamin?: string | null;
+  /** Kode r_kode 15 (A aktif mengajar) */
   status_aktif?: string | null;
+  /** true bila status_aktif A */
+  aktif?: boolean;
+  /** Label status dari r_kode 15, mis. KELUAR */
+  status_label?: string | null;
   status_pegawai?: string | null;
   ikatan_kerja?: string | null;
   pendidikan?: string | null;
@@ -1017,6 +1022,8 @@ export type AdmisiAturanNim = {
   mulai?: number;
   urut_per?: "pola" | "prodi_periode";
   prioritas?: number;
+  nomor_sk?: string;
+  sk_id?: string;
   aktif?: boolean;
   keterangan?: string;
   created_at?: string | null;
@@ -1040,6 +1047,8 @@ export type AdmisiAturanNimInput = {
   mulai?: number;
   urut_per?: "pola" | "prodi_periode";
   prioritas?: number;
+  nomor_sk?: string;
+  sk_id?: string;
   aktif?: boolean;
   keterangan?: string;
   [key: string]: any;
@@ -1481,6 +1490,11 @@ export type ApiPortalPengajuan = {
   diajukan_at?: string | null;
   ditinjau_at?: string | null;
   bisa_diubah?: boolean;
+  /** Untuk peninjau: boleh diarsipkan */
+  bisa_diarsipkan?: boolean;
+  diarsipkan_at?: string | null;
+  diarsipkan_oleh?: string | null;
+  aplikasi_dihapus_at?: string | null;
   riwayat?: Array<{
     aksi?: string;
     oleh?: string;
@@ -1541,6 +1555,7 @@ export type ApiPortalAplikasi = {
   client_id_api?: string | null;
   client_id_sso?: string | null;
   aktif?: boolean;
+  dihapus_at?: string | null;
   api?: {
     ada?: boolean;
     scopes?: Array<string>;
@@ -2734,6 +2749,8 @@ export type Berkas = {
   penyimpanan?: string | null;
   /** username pengunggah */
   pemilik?: string | null;
+  /** nama pengguna pemilik (null bila akun tidak ditemukan) */
+  pemilik_nama?: string | null;
   klien_id?: string | null;
   jumlah_unduh?: number | null;
   dibuat_at?: string | null;
@@ -3133,6 +3150,7 @@ export type CbtUjian = {
   kode?: string;
   nama?: string;
   jenis?: "uts" | "uas" | "kuis" | "pmb" | "komprehensif" | "bahasa" | "sertifikasi" | "lainnya";
+  konteks?: "kuliah" | "lms" | "pmb";
   /** m_tahun.tahun_id */
   tahun_id?: string;
   /** m_program_studi.kode_prodi */
@@ -3160,6 +3178,7 @@ export type CbtUjianInput = {
   kode: string;
   nama: string;
   jenis?: "uts" | "uas" | "kuis" | "pmb" | "komprehensif" | "bahasa" | "sertifikasi" | "lainnya";
+  konteks?: "kuliah" | "lms" | "pmb";
   /** m_tahun.tahun_id */
   tahun_id?: string;
   /** m_program_studi.kode_prodi */
@@ -3186,6 +3205,7 @@ export type CbtSoal = {
   /** (hanya baca) Hanya dibaca. */
   bank_soal_id?: number;
   jenis?: "pilihan_ganda" | "pilihan_ganda_banyak" | "benar_salah" | "isian_singkat" | "esai" | "menjodohkan";
+  /** HTML aman (HtmlBersih) */
   pertanyaan?: string;
   /** Nilai JSON apa pun */
   opsi?: any;
@@ -3203,6 +3223,7 @@ export type CbtSoalInput = {
   /** ID di cbt_ujian */
   ujian_id: number;
   jenis?: "pilihan_ganda" | "pilihan_ganda_banyak" | "benar_salah" | "isian_singkat" | "esai" | "menjodohkan";
+  /** HTML aman (HtmlBersih) */
   pertanyaan: string;
   /** Nilai JSON apa pun */
   opsi?: any;
@@ -4347,6 +4368,9 @@ export type IkuTarget = {
   tahun?: number;
   kode_prodi?: string;
   target?: number;
+  ambang_mendekati?: number;
+  nomor_sk?: string;
+  tanggal_sk?: string;
   keterangan?: string;
   created_at?: string | null;
   updated_at?: string | null;
@@ -4359,6 +4383,9 @@ export type IkuTargetInput = {
   tahun: number;
   kode_prodi?: string;
   target: number;
+  ambang_mendekati?: number;
+  nomor_sk?: string;
+  tanggal_sk?: string;
   keterangan?: string;
   [key: string]: any;
 };
@@ -5298,6 +5325,10 @@ export type IntegrasiEmail = {
   html?: string | null;
   balas_ke?: string | null;
   penyedia?: string | null;
+  /** Contoh: `Kode templat email sistem (GET /v1/surel/templat), mis. sso.reset_password` */
+  templat?: string | null;
+  /** Nilai penanda templat, mis. {nama_penerima, tautan} */
+  data?: JsonObject;
   [key: string]: any;
 };
 
@@ -8922,6 +8953,8 @@ export type LmsKelas = {
   kode_mk?: string | null;
   kelas?: string | null;
   judul?: string | null;
+  /** Nama pendek MK dari prodi (akademik_mk_nama_pendek, ≤ 22 huruf); null = aplikasi meringkas judul */
+  nama_pendek?: string | null;
   /** HTML; tag/atribut berbahaya dibuang server */
   ringkasan?: string | null;
   format?: "mingguan" | "topik";
@@ -9031,6 +9064,8 @@ export type LmsKonten = {
     kode_mk?: string | null;
     kelas?: string | null;
     judul?: string | null;
+    /** Nama pendek MK dari prodi (akademik_mk_nama_pendek, ≤ 22 huruf); null = aplikasi meringkas judul */
+    nama_pendek?: string | null;
     /** HTML; tag/atribut berbahaya dibuang server */
     ringkasan?: string | null;
     format?: "mingguan" | "topik";
@@ -10315,6 +10350,10 @@ export type LppmMasterSkema = {
   keterangan?: string;
   aktif?: boolean;
   urut?: number;
+  /** Review buta. double_blind (bawaan): reviewer tidak melihat identitas pengusul dan pengusul tidak melihat reviewer; single_blind: reviewer melihat pengusul; terbuka: saling tahu. Komentar internal reviewer tidak pernah terlihat pengusul. */
+  mode_review?: "double_blind" | "single_blind" | "terbuka";
+  /** Penyetuju fakultas, penugas reviewer, atau penetap yang termasuk tim pengusul: dilarang (bawaan, ditolak) atau dicatat (boleh, tercatat di riwayat). Reviewer anggota tim selalu ditolak. */
+  konflik_kepentingan?: "dilarang" | "dicatat";
   [key: string]: any;
 };
 
@@ -11245,6 +11284,40 @@ export type PimpinanArahanBatalkanInput = {
   [key: string]: any;
 };
 
+/** Tugas panitia (tabel pmb_panitia_tugas) */
+export type PmbTugasPanitia = {
+  id?: number;
+  username?: string;
+  tugas?: "konfigurasi" | "konten" | "verifikasi" | "seleksi" | "nim" | "keuangan";
+  /** ID di pmb_gelombang */
+  gelombang_id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  mulai?: string;
+  selesai?: string;
+  aktif?: boolean;
+  nomor_sk?: string;
+  keterangan?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+export type PmbTugasPanitiaInput = {
+  username: string;
+  tugas: "konfigurasi" | "konten" | "verifikasi" | "seleksi" | "nim" | "keuangan";
+  /** ID di pmb_gelombang */
+  gelombang_id?: number;
+  /** m_program_studi.kode_prodi */
+  kode_prodi?: string;
+  mulai?: string;
+  selesai?: string;
+  aktif?: boolean;
+  nomor_sk?: string;
+  keterangan?: string;
+  [key: string]: any;
+};
+
 export type PmbGelombang = {
   id?: number | null;
   slug?: string | null;
@@ -11659,7 +11732,8 @@ export type PmbVerifikasi = {
 export type PmbDaftarUlang = {
   /** dari detail pendaftaran / info daftar ulang */
   id_pilihan: number | null;
-  nim: string | null;
+  /** Opsional; kosong = dihitung server dari aturan NIM */
+  nim?: string | null;
   /** Contoh: `20271` */
   tahun_id?: string | null;
   [key: string]: any;
@@ -13430,7 +13504,11 @@ export type RbacAksesLive = {
 
 export type RbacSalinanDev = {
   id?: string;
-  status?: "menunggu" | "berjalan" | "selesai" | "gagal" | "dibatalkan";
+  status?: "menunggu" | "berjalan" | "selesai" | "gagal" | "dibatalkan" | "dilewati";
+  jenis?: "manual" | "otomatis";
+  pemicu?: string;
+  /** Ukuran database development setelah selesai (byte) */
+  ukuran?: number | null;
   opsi?: JsonObject;
   dibuat_oleh?: string;
   dibuat_at?: string;
@@ -15603,6 +15681,12 @@ export type SkDetail = SkRegistri & {
     [key: string]: any;
   }>;
   ganda?: Array<SkRegistri>;
+  pihak?: Array<{
+    username?: string | null;
+    nama?: string | null;
+    keterangan?: string | null;
+    [key: string]: any;
+  }>;
   boleh?: {
     catat?: boolean;
     [key: string]: any;
@@ -15650,6 +15734,14 @@ export type SkCatat = {
   abaikan_mirip?: boolean;
   /** Ubah: penerbit menerbitkan draf */
   status?: "terbit";
+  /** Orang yang disebut di SK (maks. 300); ubah = ganti seluruh daftar, [] = kosongkan. Dikabari saat SK terbit. */
+  pihak?: Array<{
+    /** Akun yang disebut di SK (pilih dari /v1/induk/orang) */
+    username?: string | null;
+    /** Peran di SK, mis. Ketua panitia */
+    keterangan?: string | null;
+    [key: string]: any;
+  }>;
   [key: string]: any;
 };
 
@@ -15814,6 +15906,84 @@ export type SpmiAuditorInput = {
   [key: string]: any;
 };
 
+export type SpmiKebijakanAuditor = {
+  id?: number;
+  nama?: string | null;
+  nomor_sk?: string | null;
+  tanggal_sk?: string | null;
+  berlaku_mulai?: string | null;
+  status?: "draf" | "berlaku" | "dicabut";
+  status_auditee_aktif?: string | null;
+  masa_tenggang_hari?: number;
+  batasi_periode?: boolean;
+  batasi_standar?: boolean;
+  buka_dokumen_unit?: boolean;
+  catat_akses?: boolean;
+  larang_unit_sendiri?: boolean;
+  catatan?: string | null;
+  dibuat_oleh?: string | null;
+  diubah_oleh?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+/** Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SpmiKebijakanAuditorInput = {
+  nama: string | null;
+  nomor_sk?: string | null;
+  tanggal_sk?: string | null;
+  berlaku_mulai?: string | null;
+  status?: "draf" | "berlaku" | "dicabut";
+  status_auditee_aktif: string | null;
+  masa_tenggang_hari?: number;
+  batasi_periode?: boolean;
+  batasi_standar?: boolean;
+  buka_dokumen_unit?: boolean;
+  catat_akses?: boolean;
+  larang_unit_sendiri?: boolean;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
+export type SpmiAlur = {
+  id?: number;
+  objek?: "target" | "dokumen";
+  /** ID unit */
+  unit_id?: number | null;
+  nama?: string | null;
+  nomor_sk?: string | null;
+  tanggal_sk?: string | null;
+  berlaku_mulai?: string | null;
+  status?: "draf" | "berlaku" | "dicabut";
+  /** Daftar objek (JSON) */
+  tahap?: Array<JsonObject>;
+  pengusul_bukan_pemutus?: boolean;
+  catatan?: string | null;
+  dibuat_oleh?: string | null;
+  diubah_oleh?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
+
+/** Saat ubah (PUT), kirim hanya kolom yang berubah. */
+export type SpmiAlurInput = {
+  objek: "target" | "dokumen";
+  /** ID unit */
+  unit_id?: number | null;
+  nama: string | null;
+  nomor_sk?: string | null;
+  tanggal_sk?: string | null;
+  berlaku_mulai?: string | null;
+  status?: "draf" | "berlaku" | "dicabut";
+  /** Daftar objek (JSON) */
+  tahap: Array<JsonObject>;
+  pengusul_bukan_pemutus?: boolean;
+  catatan?: string | null;
+  [key: string]: any;
+};
+
 export type SpmiPeriode = {
   id?: number;
   tahun?: number;
@@ -15858,7 +16028,7 @@ export type SpmiDokumen = {
   judul?: string | null;
   versi?: string | null;
   ringkasan?: string | null;
-  status?: "draf" | "ditinjau" | "disahkan" | "kedaluwarsa" | "dicabut";
+  status?: "draf" | "ditinjau" | "dikembalikan" | "disahkan" | "kedaluwarsa" | "dicabut";
   tanggal_penetapan?: string | null;
   berlaku_mulai?: string | null;
   tinjau_berikutnya?: string | null;
@@ -15870,6 +16040,17 @@ export type SpmiDokumen = {
   menggantikan_id?: number | null;
   dibuat_oleh?: string | null;
   diubah_oleh?: string | null;
+  tahap_ke?: number;
+  /** Tahap alur yang menunggu keputusan */
+  tahap_judul?: string | null;
+  diusulkan_oleh?: string | null;
+  diusulkan_pada?: string | null;
+  /** migrasi = sah sebelum alur pengesahan */
+  disahkan_oleh?: string | null;
+  disahkan_pada?: string | null;
+  catatan_alur?: string | null;
+  boleh_ajukan?: boolean;
+  boleh_putus?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -15885,7 +16066,7 @@ export type SpmiDokumenInput = {
   judul: string | null;
   versi?: string | null;
   ringkasan?: string | null;
-  status?: "draf" | "ditinjau" | "disahkan" | "kedaluwarsa" | "dicabut";
+  status?: "draf" | "ditinjau" | "dikembalikan" | "disahkan" | "kedaluwarsa" | "dicabut";
   tanggal_penetapan?: string | null;
   berlaku_mulai?: string | null;
   tinjau_berikutnya?: string | null;
@@ -16007,6 +16188,18 @@ export type SpmiTarget = {
   target?: number | null;
   target_teks?: string | null;
   keterangan?: string | null;
+  status?: "draf" | "proses" | "dikembalikan" | "disahkan";
+  tahap_ke?: number;
+  /** Tahap alur yang menunggu keputusan */
+  tahap_judul?: string | null;
+  diusulkan_oleh?: string | null;
+  diusulkan_pada?: string | null;
+  /** migrasi = sah sebelum alur pengesahan */
+  disahkan_oleh?: string | null;
+  disahkan_pada?: string | null;
+  catatan_alur?: string | null;
+  boleh_ajukan?: boolean;
+  boleh_putus?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -16912,6 +17105,36 @@ export type TemaInput = {
   /** Tata letak milik aplikasi (kunci huruf kecil, teks tanpa HTML) */
   tata?: JsonObject;
   /** Catatan perubahan (maks. 255) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type TemaHalamanInput = {
+  /** Isi halaman: {versi: 1, halaman: {judul, deskripsi}, blok: [{id, tipe, isi, gaya}]}. Tipe blok: hero, fitur, statistik, langkah, kabar, ajakan, faq, testimoni, logo, galeri, kontak, teks, media, kaki, slot. */
+  dokumen?: {
+    halaman?: {
+      /** Judul tab peramban (maks. 120) */
+      judul?: string;
+      /** Deskripsi mesin pencari (maks. 300) */
+      deskripsi?: string;
+      [key: string]: any;
+    };
+    blok?: Array<{
+      /** 8 huruf/angka Contoh: `a1b2c3d4` */
+      id?: string;
+      /** Tipe blok Contoh: `hero` */
+      tipe?: string;
+      /** Kolom isi per tipe (lihat docs/TEMA.md) */
+      isi?: JsonObject;
+      /** latar (polos|lembut|utama|gelap|aksen|gambar), latar_gambar, jarak (tanpa|rapat|normal|lega), rata (kiri|tengah), lebar (sempit|normal|lebar|penuh), sembunyi (ponsel|desktop), jangkar, menu, animasi */
+      gaya?: JsonObject;
+      [key: string]: any;
+    }>;
+    [key: string]: any;
+  };
+  /** Revisi draf yang dibuka penyunting (cegah saling menimpa) Contoh: `3` */
+  revisi?: number;
+  /** Catatan terbitan (maks. 255) */
   catatan?: string;
   [key: string]: any;
 };

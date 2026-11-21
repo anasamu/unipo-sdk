@@ -236,7 +236,7 @@ final class Biaya extends Resource
     /**
      * Setujui dan tetapkan
      *
-     * Izin biaya.setujui (WR bidang keuangan). Wajib klop, ada SK, tidak bertumpang dengan aturan berlaku lain. Pembayaran sejak tanggal mulai berlaku langsung dibagi (hasil di `pembagian`). Body: {"catatan"?}.
+     * Bila rantai validator gerbang berjalan (docs/ATURAN-SK.md), ini keputusan validator tahap berjalan; penetapan WR II = tahap terakhir. Tanpa rantai: izin biaya.setujui (WR bidang keuangan). Wajib klop, ada SK, tidak bertumpang dengan aturan berlaku lain. Pembayaran sejak tanggal mulai berlaku langsung dibagi (hasil di `pembagian`). Body: {"catatan"?}.
      *
      * `POST /v1/biaya/aturan/{id}/setujui`
      *

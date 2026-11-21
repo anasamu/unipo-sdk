@@ -1594,7 +1594,7 @@ final class Admisi extends Resource
     /**
      * Aturan NIM otomatis: daftar
      *
-     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Versi aturan = rentang tahun_mulai..tahun_selesai dengan nomor_sk/sk_id SK yang menetapkannya; aplikasi PMB menampilkan aturan dan SK yang dipakai saat menetapkan NIM. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
      *
      * `GET /v1/admisi/aturan-nim`
      *
@@ -1619,7 +1619,7 @@ final class Admisi extends Resource
      *
      * scope: `admisi:write`
      *
-     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, nomor_sk?: string, sk_id?: string, aktif?: bool, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1632,7 +1632,7 @@ final class Admisi extends Resource
     /**
      * Aturan NIM otomatis: detail
      *
-     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     * Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Versi aturan = rentang tahun_mulai..tahun_selesai dengan nomor_sk/sk_id SK yang menetapkannya; aplikasi PMB menampilkan aturan dan SK yang dipakai saat menetapkan NIM. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
      *
      * `GET /v1/admisi/aturan-nim/{id}`
      *
@@ -1659,7 +1659,7 @@ final class Admisi extends Resource
      * scope: `admisi:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, aktif?: bool, keterangan?: string, ...} $body
+     * @param array{nama: string, kode_prodi?: string, kode_fakultas?: string, kode_jenjang?: string, jalur_masuk?: string, tahun_mulai?: string, tahun_selesai?: string, pola: string, kode_khusus?: string, mulai?: int, urut_per?: string, prioritas?: int, nomor_sk?: string, sk_id?: string, aktif?: bool, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1692,7 +1692,7 @@ final class Admisi extends Resource
     /**
      * Aturan NIM otomatis: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Aturan NIM dinamis bertingkat. Yang dipakai: aturan aktif yang cocok (prodi, fakultas, jenjang, jalur masuk, rentang periode masuk) dengan prioritas tertinggi, lalu yang paling spesifik (prodi > jalur > jenjang > fakultas). Tanpa aturan yang cocok dipakai format NIM per prodi (/admisi/format-nim), lalu tebakan dari NIM angkatan terakhir. Token pola: {YYYY} tahun masuk, {YY} dua digit tahun, {S} semester masuk (1 ganjil, 2 genap), {PRODI} kode prodi, {PRODI:n} n digit terakhir kode prodi, {FAK} kode fakultas, {JENJANG} kode jenjang, {JALUR} kode jalur masuk, {KODE} kode_khusus aturan, {NNN} nomor urut (panjang = jumlah N). urut_per=prodi_periode: nomor urut dihitung per prodi dan periode masuk. Versi aturan = rentang tahun_mulai..tahun_selesai dengan nomor_sk/sk_id SK yang menetapkannya; aplikasi PMB menampilkan aturan dan SK yang dipakai saat menetapkan NIM. Coba dulu dengan GET /admisi/nim/pratinjau. Hanya pengelola modul.
      *
      * `GET /v1/admisi/aturan-nim/{id}/riwayat`
      *
