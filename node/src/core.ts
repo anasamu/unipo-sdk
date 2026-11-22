@@ -216,6 +216,10 @@ export class SiakadCore {
       }
       return this.userToken.access;
     }
+    if (this.options.getAccessToken) {
+      // Token dari luar (sesi peramban, NextAuth, proxy yang menempelkan token sendiri): null = tanpa header Authorization.
+      return (await this.options.getAccessToken()) ?? null;
+    }
     if (!this.options.clientId || !this.options.clientSecret) {
       if (isPublic) return null;
       throw new AuthenticationError(
