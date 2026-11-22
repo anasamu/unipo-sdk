@@ -17,6 +17,8 @@ SDK dipakai bersama unipo-ui di peramban, di server Node (Next.js, NestJS, Expre
 2. **unslop** (`heydamir/unslop`)
    - Dipakai untuk contoh antarmuka di dokumentasi, playground, dan templat proyek per framework, supaya contoh yang disalin pengembang tidak terlihat buatan AI.
 
+Skill desain yang juga wajib (sudah terpasang di Mac Anas, dipakai bersama dua skill di atas): **frontend-design**, **ui-ux-pro-max**, **design-system**, **ui-styling**, dan **design**. Di lingkungan yang tidak memilikinya, ikuti token dan pola unipo-ui yang ada lalu catat di PR bahwa skill itu tidak tersedia.
+
 Pasang di Claude Code lokal bila belum ada:
 ```sh
 claude plugin marketplace add googlechrome/modern-web-guidance
