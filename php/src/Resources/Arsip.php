@@ -876,7 +876,7 @@ final class Arsip extends Resource
     /**
      * Hapus surat
      *
-     * Hanya konsep/revisi atau surat yang dibatalkan.
+     * Konsep (draf/revisi) surat keluar atau surat yang dibatalkan; konseptor atau pengelola unit (403 `bukan_pemilik`, 409 `bukan_draf`). File lampiran konsep ikut dihapus lunak.
      *
      * `DELETE /v1/arsip/surat/{ref}`
      *

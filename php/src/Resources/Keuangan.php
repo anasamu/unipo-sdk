@@ -1432,6 +1432,44 @@ final class Keuangan extends Resource
     }
 
     /**
+     * KPI keuangan mahasiswa (Beranda BAUK)
+     *
+     * Pengelola keuangan (lingkup prodi kelolanya). Penerimaan periode (dibayar dibanding tagihan terbit), piutang seluruh periode dengan umur piutang (periode berjalan, lewat 1, 2-3, >3 semester), tunggakan per prodi, tren enam periode, dan realisasi anggaran periode anggaran berjalan.
+     *
+     * `GET /v1/keuangan/ringkasan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getRingkasan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/ringkasan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan realisasi anggaran per unit
+     *
+     * Admin keuangan. Pagu RKA disetujui, realisasi dibayar/selesai (nilai SPJ bila sudah), dana dalam proses, sisa, dan persen per unit untuk periode_id (bawaan periode berjalan).
+     *
+     * `GET /v1/keuangan/laporan/realisasi-anggaran`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{periode_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLaporanRealisasiAnggaran(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/laporan/realisasi-anggaran', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Penerimaan harian
      *
      * Total t_mahasiswa_bayar per tanggal + rincian metode dari transaksi API.
@@ -3191,6 +3229,44 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Jenis biaya untuk skema keringanan
+     *
+     * Pengelola keuangan. Setiap jenis biaya (m_item_biaya): nama, tarif terendah-tertinggi (setup biaya periode terakhir + kelompok UKT aktif), kelompok UKT, contoh tarif per prodi/angkatan/kelompok, dan jumlah tagihan periode acuan (tahun_id, bawaan tahun aktif). Dipakai wizard skema agar potongan mengikuti biaya yang ditagih.
+     *
+     * `GET /v1/keuangan/skema-potongan/biaya`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSkemaPotonganBiaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/skema-potongan/biaya', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pratinjau dampak skema keringanan
+     *
+     * Pengelola keuangan; tidak menyimpan apa pun. Body: {"rincian": [{kode_biaya, dasar, nilai, maks}], "maks_periode"?, "sasaran"?, "kode_prodi"?: [..], "angkatan_min"?, "angkatan_maks"?, "kelompok_ukt"?: [..], "kuota"?, "tahun_id"?}. Mahasiswa aktif periode acuan yang cocok (lingkup prodi pengelola), tagihan terbit atau tarif berlaku, total potongan per biaya dan per prodi, perkiraan bila dibatasi kuota.
+     *
+     * `POST /v1/keuangan/skema-potongan/simulasi`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSkemaPotonganSimulasi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/skema-potongan/simulasi', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Statistik keringanan dan beasiswa
      *
      * Transparansi: per skema (pengajuan, menunggu, disetujui, ditolak, total potongan, kuota), per kategori, per unit penanggung biaya, per prodi, dan persentase potongan terhadap tagihan periode. Hanya pengelola keuangan (berlingkup unit: prodinya) atau pimpinan bidang keuangan (izin dashboard.bidang.keuangan global); selain itu 403.
@@ -3271,13 +3347,13 @@ final class Keuangan extends Resource
     /**
      * Skema potongan, keringanan, dan beasiswa: daftar
      *
-     * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+     * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan) yang MENGIKUTI BIAYA YANG DITAGIH: rincian [{kode_biaya, dasar: persen|nominal, nilai, maks}] berurutan per jenis biaya (UKT, BPP, ...; kode dari /keuangan/tarif/item), persen dari tagihan atau nominal tetap (tidak melebihi tarif tertinggi biaya itu), batas total per periode (maks_periode, dipakai menurut urutan rincian). Kode dibuat otomatis bila kosong. Sasaran maba/mahasiswa, prodi, angkatan, kelompok UKT (kelompok_ukt), lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], dasar SK program (nomor_sk), persetujuan wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Kolom dasar/nilai/maks_nominal/kode_biaya = cermin butir pertama rincian untuk pembaca lama. Pratinjau dampak: POST /keuangan/skema-potongan/simulasi. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
      *
      * `GET /v1/keuangan/skema-potongan`
      *
      * scope: `keuangan:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, kategori?: string, dasar?: string, sasaran?: string, angkatan_min?: string, angkatan_maks?: string, wajib_sk?: string, perlu_verifikasi?: string, unit_id?: string, beasiswa_id?: string, gabung?: string, status?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, kategori?: string, dasar?: string, sasaran?: string, cara_penerima?: string, angkatan_min?: string, angkatan_maks?: string, wajib_sk?: string, perlu_verifikasi?: string, unit_id?: string, beasiswa_id?: string, gabung?: string, status?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3296,7 +3372,7 @@ final class Keuangan extends Resource
      *
      * scope: `keuangan:write`
      *
-     * @param array{kode: string, nama: string, kategori?: string, dasar?: string, nilai: float|int, maks_nominal?: float|int, kode_biaya?: array<string, mixed>, sasaran?: string, kode_prodi?: array<string, mixed>, angkatan_min?: string, angkatan_maks?: string, lama_semester?: int, syarat?: array<string, mixed>, wajib_sk?: bool, perlu_verifikasi?: bool, kuota?: int, daftar_mulai?: string, daftar_selesai?: string, unit_id?: int, beasiswa_id?: int, gabung?: bool, status?: string, keterangan?: string, ...} $body
+     * @param array{kode?: string, nama: string, nomor_sk?: string, kategori?: string, rincian?: array<string, mixed>, maks_periode?: float|int, dasar?: string, nilai?: float|int, maks_nominal?: float|int, kode_biaya?: array<string, mixed>, sasaran?: string, cara_penerima?: string, kode_prodi?: array<string, mixed>, kelompok_ukt?: array<string, mixed>, angkatan_min?: string, angkatan_maks?: string, lama_semester?: int, syarat?: array<string, mixed>, wajib_sk?: bool, perlu_verifikasi?: bool, kuota?: int, daftar_mulai?: string, daftar_selesai?: string, unit_id?: int, beasiswa_id?: int, gabung?: bool, status?: string, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3309,7 +3385,7 @@ final class Keuangan extends Resource
     /**
      * Skema potongan, keringanan, dan beasiswa: detail
      *
-     * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+     * Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan) yang MENGIKUTI BIAYA YANG DITAGIH: rincian [{kode_biaya, dasar: persen|nominal, nilai, maks}] berurutan per jenis biaya (UKT, BPP, ...; kode dari /keuangan/tarif/item), persen dari tagihan atau nominal tetap (tidak melebihi tarif tertinggi biaya itu), batas total per periode (maks_periode, dipakai menurut urutan rincian). Kode dibuat otomatis bila kosong. Sasaran maba/mahasiswa, prodi, angkatan, kelompok UKT (kelompok_ukt), lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], dasar SK program (nomor_sk), persetujuan wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Kolom dasar/nilai/maks_nominal/kode_biaya = cermin butir pertama rincian untuk pembaca lama. Pratinjau dampak: POST /keuangan/skema-potongan/simulasi. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
      *
      * `GET /v1/keuangan/skema-potongan/{id}`
      *
@@ -3336,7 +3412,7 @@ final class Keuangan extends Resource
      * scope: `keuangan:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, kategori?: string, dasar?: string, nilai: float|int, maks_nominal?: float|int, kode_biaya?: array<string, mixed>, sasaran?: string, kode_prodi?: array<string, mixed>, angkatan_min?: string, angkatan_maks?: string, lama_semester?: int, syarat?: array<string, mixed>, wajib_sk?: bool, perlu_verifikasi?: bool, kuota?: int, daftar_mulai?: string, daftar_selesai?: string, unit_id?: int, beasiswa_id?: int, gabung?: bool, status?: string, keterangan?: string, ...} $body
+     * @param array{kode?: string, nama: string, nomor_sk?: string, kategori?: string, rincian?: array<string, mixed>, maks_periode?: float|int, dasar?: string, nilai?: float|int, maks_nominal?: float|int, kode_biaya?: array<string, mixed>, sasaran?: string, cara_penerima?: string, kode_prodi?: array<string, mixed>, kelompok_ukt?: array<string, mixed>, angkatan_min?: string, angkatan_maks?: string, lama_semester?: int, syarat?: array<string, mixed>, wajib_sk?: bool, perlu_verifikasi?: bool, kuota?: int, daftar_mulai?: string, daftar_selesai?: string, unit_id?: int, beasiswa_id?: int, gabung?: bool, status?: string, keterangan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3369,7 +3445,7 @@ final class Keuangan extends Resource
     /**
      * Skema potongan, keringanan, dan beasiswa: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan). Besaran persen atau nominal per jenis biaya per periode (kode_biaya kosong = semua tagihan), sasaran maba/mahasiswa, prodi dan angkatan, lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Program potongan biaya (mis. potongan anak dosen/tendik, saudara kandung, prestasi, keringanan ekonomi, kerja sama instansi, beasiswa yayasan) yang MENGIKUTI BIAYA YANG DITAGIH: rincian [{kode_biaya, dasar: persen|nominal, nilai, maks}] berurutan per jenis biaya (UKT, BPP, ...; kode dari /keuangan/tarif/item), persen dari tagihan atau nominal tetap (tidak melebihi tarif tertinggi biaya itu), batas total per periode (maks_periode, dipakai menurut urutan rincian). Kode dibuat otomatis bila kosong. Sasaran maba/mahasiswa, prodi, angkatan, kelompok UKT (kelompok_ukt), lama berlaku dalam semester, syarat berkas [{kode, nama, keterangan, wajib}], dasar SK program (nomor_sk), persetujuan wajib SK, kuota, masa pengajuan, unit penanggung biaya (unit_id, kosong = universitas/yayasan). Bila beasiswa_id diisi, penerima program beasiswa kemahasiswaan otomatis mendapat potongan ini. Kolom dasar/nilai/maks_nominal/kode_biaya = cermin butir pertama rincian untuk pembaca lama. Pratinjau dampak: POST /keuangan/skema-potongan/simulasi. Semua orang bertoken boleh membaca (transparansi). Semua pemilik token ber-scope keuangan:read.
      *
      * `GET /v1/keuangan/skema-potongan/{id}/riwayat`
      *

@@ -464,6 +464,27 @@ final class Admisi extends Resource
     }
 
     /**
+     * Hapus draf keringanan
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Hanya pengajuan milik pendaftar ini yang masih draf; selain draf 409.
+     *
+     * `POST /v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/hapus`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id UUID pendaftaran PMB
+     * @param int|string $nomor Nomor pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaPendaftaranByIdPotonganByNomorHapus(int|string $id, int|string $nomor, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/admisi/saya/pendaftaran/{id}/potongan/{nomor}/hapus', ['id' => $id, 'nomor' => $nomor], $query, null, $options, false, false);
+    }
+
+    /**
      * Ajukan keringanan (kirim ke petugas)
      *
      * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token. Syarat berkas wajib harus sudah diunggah.

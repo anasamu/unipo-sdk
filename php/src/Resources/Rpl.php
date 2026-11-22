@@ -154,6 +154,26 @@ final class Rpl extends Resource
     }
 
     /**
+     * Hapus draf pengajuan RPL
+     *
+     * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token (pemohon yang masuk di aplikasi PMB). Hanya pemilik (akun pendaftar) dan hanya selama berstatus draf; pengalaman, klaim, dan dokumennya ikut dihapus (hapus lunak, tercatat di jejak). Pengajuan yang sudah diajukan tidak bisa dihapus (409).
+     *
+     * `DELETE /v1/rpl/saya/pengajuan/{id}`
+     *
+     * scope: `pmb:pendaftar`
+     *
+     * @param int|string $id ID pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteSayaPengajuanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/rpl/saya/pengajuan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Ajukan RPL
      *
      * Token klien ber-scope pmb:pendaftar + header X-Pmb-Akun-Token (pemohon yang masuk di aplikasi PMB). Perlu minimal satu klaim, satu pengalaman, dan satu dokumen. Setelah diajukan pemohon tidak bisa mengubah kecuali dikembalikan panitia.

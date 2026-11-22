@@ -16,13 +16,13 @@ final class Sk extends Resource
     /**
      * Cari SK
      *
-     * Cari di registri SK tunggal: q (nomor dinormalisasi atau perihal), jenis, status (terbit, draf, dicabut, diubah, ditolak; dipisah koma), penerbit (induk_unit.id), arsip=0 untuk tidak menawarkan surat keluar arsip berjenis SK yang belum tercatat (id "surat:<uuid>"). Draf dan SK terbatas hanya tampil untuk penerbit/pengajunya. meta.unit_catat = unit tempat pengguna boleh mencatat (null = semua).
+     * Cari di registri SK tunggal: q (nomor dinormalisasi atau perihal), jenis, status (terbit, draf, dicabut, diubah, ditolak; dipisah koma), penerbit (induk_unit.id), arsip=0 untuk tidak menawarkan surat keluar arsip berjenis SK yang belum tercatat (id "surat:<uuid>"). Draf dan SK terbatas hanya tampil untuk penerbit/pengajunya. meta.unit_catat = unit tempat pengguna boleh mencatat (null = semua). Aplikasi satu fakultas (header X-Unipo-Fakultas): hanya SK yang diterbitkan fakultas itu dan unit di bawahnya; untuk=rujuk (pemilih SK dasar di form) ditambah SK Universitas/Rektor dan Yayasan serta SK yang dicatat atau menyebut pengguna. meta.lingkup = batas itu (null = semua unit).
      *
      * `GET /v1/sk`
      *
      * scope: `berkas:read`
      *
-     * @param array{q?: string, jenis?: string, status?: string, penerbit?: string, per_page?: string, arsip?: string, belum_verifikasi?: string, ...} $query
+     * @param array{untuk?: string, q?: string, jenis?: string, status?: string, penerbit?: string, per_page?: string, arsip?: string, belum_verifikasi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -73,13 +73,13 @@ final class Sk extends Resource
     /**
      * Unit penerbit
      *
-     * Unit organisasi (induk_unit) dengan boleh_catat = pengguna memegang sk.catat di unit itu.
+     * Unit organisasi (induk_unit) dengan boleh_catat = pengguna memegang sk.catat di unit itu. Aplikasi satu fakultas (header X-Unipo-Fakultas): hanya fakultas itu dan unit di bawahnya; untuk=rujuk ditambah unit di atasnya (Universitas, Yayasan).
      *
      * `GET /v1/sk/penerbit`
      *
      * scope: `berkas:read`
      *
-     * @param array<string, mixed> $query
+     * @param array{untuk?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -460,9 +460,9 @@ final class Sk extends Resource
     }
 
     /**
-     * Hapus SK dicabut dari registri
+     * Hapus SK dicabut dari registri, atau ajuan draf oleh pengajunya
      *
-     * Body: {"alasan" (wajib, min. 5 karakter)}. Izin sk.registri.hapus (bawaan admin-pustikom, superadmin). Hanya SK berstatus dicabut; ditolak (409 sk_masih_dirujuk, alasan[]) bila masih dirujuk modul (Dipakai di), terhubung SK lain di riwayat perubahan/pencabutan, atau menjadi dasar pengurus Yayasan/kampus/usulan akreditasi. Catatan dihapus lunak; berkas SK masuk sampah arsip (bisa dipulihkan selama masa sampah); tercatat di log.
+     * Ajuan pencatatan berstatus draf (belum diverifikasi): pengajunya sendiri tanpa alasan (403 `bukan_pemilik`; 409 bila sudah dirujuk); berkas SK dilepas dan pindah ke Sampah bila tidak dipakai data lain (juga bila sudah di ruang arsip; bisa dipulihkan dari Sampah Kelola berkas). Selain itu: body {"alasan" (wajib, min. 5 karakter)}. Izin sk.registri.hapus (bawaan admin-pustikom, superadmin). Hanya SK berstatus dicabut; ditolak (409 sk_masih_dirujuk, alasan[]) bila masih dirujuk modul (Dipakai di), terhubung SK lain di riwayat perubahan/pencabutan, atau menjadi dasar pengurus Yayasan/kampus/usulan akreditasi. Catatan dihapus lunak; berkas SK masuk sampah arsip (bisa dipulihkan selama masa sampah); tercatat di log.
      *
      * `POST /v1/sk/{id}/hapus`
      *

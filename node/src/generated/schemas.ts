@@ -7019,7 +7019,14 @@ export type KeuPeriode = {
   nama?: string;
   mulai?: string;
   selesai?: string;
+  /** (hanya baca) Hanya dibaca. */
   status?: "perencanaan" | "berjalan" | "tutup";
+  /** user.username (hanya baca) Hanya dibaca. */
+  ditutup_oleh?: string;
+  /** (hanya baca) Hanya dibaca. */
+  ditutup_pada?: string;
+  /** (hanya baca) Hanya dibaca. */
+  catatan_tutup?: string;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: any;
@@ -7031,7 +7038,16 @@ export type KeuPeriodeInput = {
   nama: string;
   mulai: string;
   selesai: string;
-  status?: "perencanaan" | "berjalan" | "tutup";
+  [key: string]: any;
+};
+
+export type KeuPeriodeTutupInput = {
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type KeuPeriodeBukaKembaliInput = {
+  alasan: string;
   [key: string]: any;
 };
 
@@ -7875,13 +7891,18 @@ export type KeuanganSkemaPotongan = {
   /** (unik) */
   kode?: string;
   nama?: string;
+  nomor_sk?: string;
   kategori?: "potongan" | "keringanan" | "beasiswa" | "prestasi" | "keluarga" | "kerjasama" | "lainnya";
+  rincian?: JsonObject;
+  maks_periode?: number;
   dasar?: "persen" | "nominal";
   nilai?: number;
   maks_nominal?: number;
   kode_biaya?: JsonObject;
   sasaran?: "maba" | "mahasiswa" | "semua";
+  cara_penerima?: "pengajuan" | "petugas" | "beasiswa";
   kode_prodi?: JsonObject;
+  kelompok_ukt?: JsonObject;
   /** m_tahun.tahun_id */
   angkatan_min?: string;
   /** m_tahun.tahun_id */
@@ -7907,15 +7928,20 @@ export type KeuanganSkemaPotongan = {
 
 export type KeuanganSkemaPotonganInput = {
   /** (unik) */
-  kode: string;
+  kode?: string;
   nama: string;
+  nomor_sk?: string;
   kategori?: "potongan" | "keringanan" | "beasiswa" | "prestasi" | "keluarga" | "kerjasama" | "lainnya";
+  rincian?: JsonObject;
+  maks_periode?: number;
   dasar?: "persen" | "nominal";
-  nilai: number;
+  nilai?: number;
   maks_nominal?: number;
   kode_biaya?: JsonObject;
   sasaran?: "maba" | "mahasiswa" | "semua";
+  cara_penerima?: "pengajuan" | "petugas" | "beasiswa";
   kode_prodi?: JsonObject;
+  kelompok_ukt?: JsonObject;
   /** m_tahun.tahun_id */
   angkatan_min?: string;
   /** m_tahun.tahun_id */
@@ -16100,6 +16126,8 @@ export type SpmiStandar = {
   status?: "draf" | "berlaku" | "dicabut";
   berlaku_mulai?: string | null;
   urut?: number;
+  /** ID standar */
+  menggantikan_id?: number | null;
   dibuat_oleh?: string | null;
   diubah_oleh?: string | null;
   created_at?: string | null;
@@ -16128,6 +16156,8 @@ export type SpmiStandarInput = {
   status?: "draf" | "berlaku" | "dicabut";
   berlaku_mulai?: string | null;
   urut?: number;
+  /** ID standar */
+  menggantikan_id?: number | null;
   [key: string]: any;
 };
 

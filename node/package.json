@@ -1,6 +1,6 @@
 {
   "name": "unipo-siakad-sdk",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "SDK resmi API SIAKAD UNIPO untuk Node.js, Bun, Deno, dan framework modern (Next.js, NestJS, Express, Nuxt, SvelteKit). TypeScript, ESM + CommonJS, token OAuth2 otomatis.",
   "keywords": [
     "siakad",

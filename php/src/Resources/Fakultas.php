@@ -421,6 +421,27 @@ final class Fakultas extends Resource
     }
 
     /**
+     * Statistik fakultas (kesehatan)
+     *
+     * Dasbor kesehatan fakultas/prodi per bagian: ringkasan, akademik (status, rasio, IPS/IPK, lulusan tepat waktu, DO, EWS), dosen (jabatan, pendidikan, serdos, BKD), kesejahteraan (median/kuartil penghasilan, honor, tunjangan profesi; kelompok < 3 dirahasiakan; beban SKS vs batas BKD; kenaikan tertunda), kehadiran (pertemuan terlaksana vs seharusnya, ambang dari aturan akademik.ambang), keuangan (agregat tagihan/penerimaan/piutang per prodi, realisasi anggaran unit; izin fakultas.statistik.keuangan), mutu (EDOM, akreditasi, IKU), tren. Izin fakultas.statistik. Data per dosen hanya untuk pemegang fakultas.statistik.kehadiran.individu / fakultas.statistik.honor.individu (eksplisit) di semua prodi lingkup; dosen selalu mendapat baris dirinya (saya).
+     *
+     * `GET /v1/fakultas/{kode}/kesehatan/{bagian}`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param int|string $bagian ringkasan|akademik|dosen|kesejahteraan|kehadiran|keuangan|mutu|tren
+     * @param array{tahun_id?: string, prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeKesehatanByBagian(int|string $kode, int|string $bagian, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/kesehatan/{bagian}', ['kode' => $kode, 'bagian' => $bagian], $query, null, $options, false, false);
+    }
+
+    /**
      * Daftar mahasiswa
      *
      * Izin fakultas.mahasiswa; dosen tanpa izin itu (fakultas.pribadi) hanya melihat mahasiswa bimbingan PA-nya (meta.mode = pribadi).
@@ -2209,6 +2230,26 @@ final class Fakultas extends Resource
     public function getByKodeDosenByNidn(int|string $kode, int|string $nidn, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/fakultas/{kode}/dosen/{nidn}', ['kode' => $kode, 'nidn' => $nidn], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kehadiran dosen di kelas saya
+     *
+     * Mahasiswa: persentase pertemuan terlaksana dibanding seharusnya untuk tiap kelas KRS-nya semester itu (hanya kelasnya sendiri). Izin fakultas.mahasiswa.kehadiran_dosen.
+     *
+     * `GET /v1/fakultas/{kode}/ruang-mahasiswa/kehadiran-dosen`
+     *
+     * scope: `fakultas:read` · hanya token pengguna
+     *
+     * @param int|string $kode Kode fakultas (m_fakultas), kode unit induk (FAK-05), singkatan, atau kode/domain situs portal
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByKodeRuangMahasiswaKehadiranDosen(int|string $kode, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/fakultas/{kode}/ruang-mahasiswa/kehadiran-dosen', ['kode' => $kode], $query, null, $options, false, false);
     }
 
     /**

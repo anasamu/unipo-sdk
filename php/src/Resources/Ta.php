@@ -133,6 +133,8 @@ final class Ta extends Resource
     /**
      * Hapus lampiran
      *
+     * Mahasiswa pemilik, selama pengajuan draf/revisi (403 `bukan_pemilik`, 409 bila sudah diajukan). Berkas dilepas dan pindah ke Sampah bila tidak dipakai data lain (bisa dipulihkan dari Sampah Kelola berkas).
+     *
      * `POST /v1/ta/pengajuan/{id}/berkas/{bid}/hapus`
      *
      * scope: `ta:write` · hanya token pengguna
@@ -208,6 +210,26 @@ final class Ta extends Resource
     public function postPengajuanByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/ta/pengajuan/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus konsep pengajuan
+     *
+     * Mahasiswa pemilik; hanya status draf (409 `bukan_draf`, 403 `bukan_pemilik`; yang sudah diajukan dibatalkan lewat /batal). Lampiran dilepas dan berkasnya pindah ke Sampah bila tidak dipakai data lain.
+     *
+     * `POST /v1/ta/pengajuan/{id}/hapus`
+     *
+     * scope: `ta:write` · hanya token pengguna
+     *
+     * @param int|string $id ID atau UUID pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPengajuanByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/pengajuan/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

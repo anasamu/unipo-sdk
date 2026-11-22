@@ -4,6 +4,10 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 
 Catatan: tag 1.18.0 sampai 1.23.0 sudah dibuat di GitHub, tetapi terbit ke npm gagal sejak 2026-11-18 (workflow Rilis: npm 403 "account has been temporarily suspended"); versi itu tidak diterbitkan ke npm (isinya sudah tercakup di 2.0.0, yang terbit 2026-11-22).
 
+## 2.1.0 (belum dirilis)
+
+- Spesifikasi diperbarui dari SIAKAD: 27 operasi baru, 0 operasi hilang (total 4643).
+
 ## 2.0.0 (2026-11-22)
 
 Versi mayor karena ada metode yang dihapus mengikuti API SIAKAD. Lihat **Migrasi dari 1.x** di bawah.

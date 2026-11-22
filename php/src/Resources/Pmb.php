@@ -405,6 +405,25 @@ final class Pmb extends Resource
     }
 
     /**
+     * Cari kecamatan
+     *
+     * Referensi wilayah PDDikti (r_wilayah level kecamatan) untuk alamat pendaftar, maksimal 20 hasil. Kolom: kode, nama, kabupaten, provinsi. Kode disimpan di alamat.kecamatan formulir (sama dengan m_mahasiswa.kecamatan).
+     *
+     * `GET /v1/pmb/info/wilayah`
+     *
+     * publik (tanpa token)
+     *
+     * @param array{q: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getInfoWilayah(array $query, array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/info/wilayah', [], $query, null, $options, false, true);
+    }
+
+    /**
      * Cari perguruan tinggi asal
      *
      * Dari referensi perguruan tinggi SIAKAD (r_perguruan_tinggi, menu PMB > Setup > Sekolah & PT), maksimal 20 hasil. Untuk pendaftar pindahan/alih jenjang. Kolom: kode, nama, singkatan, kota, jenis.
@@ -1356,6 +1375,26 @@ final class Pmb extends Resource
     }
 
     /**
+     * Ruang tes gelombang
+     *
+     * Ruang di Setup Periode PMB untuk periode gelombang ini (`ruang_id`, `nama`, `kapasitas`): pilihan ruang sesi tes, bukan kode yang diketik.
+     *
+     * `GET /v1/pmb/admin/gelombang/{id}/ruang`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID gelombang
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminGelombangByIdRuang(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/gelombang/{id}/ruang', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tambah/ubah prodi gelombang
      *
      * Body `kode_prodi`, `kuota`, `nilai_minimal`. Ditulis ke t_pmb_periode_prodi (prodi periode di Setup Periode PMB).
@@ -1884,7 +1923,7 @@ final class Pmb extends Resource
      *
      * scope: `pmb:read` · berhalaman
      *
-     * @param array{gelombang_id?: string, status?: string, prodi?: string, bayar?: string, lulus?: string, berkas?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{gelombang_id?: string, status?: string, prodi?: string, bayar?: string, lulus?: string, berkas?: string, urut?: string, q?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2323,7 +2362,7 @@ final class Pmb extends Resource
     /**
      * Dashboard PMB
      *
-     * Corong pendaftaran (akun, draf, diajukan, bayar, verifikasi, lulus, daftar ulang), per prodi, per sumber informasi, per referal, dan tren 30 hari.
+     * Corong pendaftaran (akun, draf, diajukan, bayar, verifikasi, lulus, daftar ulang), per prodi, corong per jalur dan per gelombang (`per_jalur`, `per_gelombang`), per sumber informasi, per referal, dan tren 30 hari.
      *
      * `GET /v1/pmb/admin/statistik`
      *

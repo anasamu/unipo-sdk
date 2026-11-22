@@ -1465,7 +1465,7 @@ final class Lppm extends Resource
     /**
      * Hapus kegiatan
      *
-     * Draf oleh ketua; selebihnya admin.
+     * Ketua: hanya draf miliknya (409 `bukan_draf`, 403 `bukan_pemilik`; yang sudah diajukan dibatalkan lewat /batal), lampiran usulan ikut terhapus dan berkas terpusat pindah ke Sampah. Admin LPPM: semua status, lampiran tetap.
      *
      * `DELETE /v1/lppm/kegiatan/{id}`
      *
@@ -2055,6 +2055,28 @@ final class Lppm extends Resource
     public function putKegiatanByIdLaporanByJenisByTahunKe(int|string $id, int|string $jenis, int|string $tahun_ke, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}', ['id' => $id, 'jenis' => $jenis, 'tahun_ke' => $tahun_ke], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus draf laporan
+     *
+     * Pemilik saja (ketua; monev: pembuatnya), hanya draf yang belum pernah diajukan. Berkas laporan ke Sampah. Jawaban {id, berkas}.
+     *
+     * `DELETE /v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID kegiatan
+     * @param int|string $jenis Jenis
+     * @param int|string $tahun_ke Tahun ke
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKegiatanByIdLaporanByJenisByTahunKe(int|string $id, int|string $jenis, int|string $tahun_ke, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}', ['id' => $id, 'jenis' => $jenis, 'tahun_ke' => $tahun_ke], $query, null, $options, false, false);
     }
 
     /**
@@ -3171,6 +3193,26 @@ final class Lppm extends Resource
     public function postKknProposalById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/lppm/kkn/proposal/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus draf proposal KKN
+     *
+     * Mahasiswa pengusul; hanya draf yang belum pernah diajukan (409 `bukan_draf`, 403 `bukan_pemilik`; yang sudah diajukan dibatalkan lewat /batal). Berkas proposal ikut terhapus, berkas terpusat pindah ke Sampah.
+     *
+     * `DELETE /v1/lppm/kkn/proposal/{id}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKknProposalById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/lppm/kkn/proposal/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

@@ -4062,6 +4062,26 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hapus draf laporan kinerja (BKD/SKP)
+     *
+     * Pegawai pemilik atau petugas SDM unitnya; hanya status draft yang belum pernah dikirim (SKP: rencana belum diajukan ke atasan). 409 `bukan_draf`, 403 `bukan_pemilik`. Kegiatan, data pelengkap BKD/SKP, penilaian, tautan asesor, dan linimasa ikut terhapus; bukti berkas terpusat pindah ke Sampah.
+     *
+     * `DELETE /v1/sdm/kinerja/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteKinerjaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/kinerja/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tambah butir kegiatan
      *
      * `POST /v1/sdm/kinerja/{id}/item`
@@ -4774,6 +4794,26 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hapus draf laporan BKD
+     *
+     * Pegawai pemilik atau petugas SDM unitnya; hanya status draft yang belum pernah dikirim (SKP: rencana belum diajukan ke atasan). 409 `bukan_draf`, 403 `bukan_pemilik`. Kegiatan, data pelengkap BKD/SKP, penilaian, tautan asesor, dan linimasa ikut terhapus; bukti berkas terpusat pindah ke Sampah.
+     *
+     * `DELETE /v1/sdm/bkd/laporan/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteBkdLaporanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/bkd/laporan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Tambah kegiatan BKD
      *
      * `POST /v1/sdm/bkd/laporan/{id}/kegiatan`
@@ -5086,6 +5126,26 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hapus draf usulan
+     *
+     * Pegawai pengusul atau petugas SDM unitnya; hanya status draft (yang sudah diajukan: /batal). 409 `bukan_draf`, 403 `bukan_pemilik`. Dihapus lunak, tercatat di linimasa dan log; file pendukung ke Sampah.
+     *
+     * `DELETE /v1/sdm/usulan/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteUsulanById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/usulan/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
      * Usulan: Ajukan (berjenjang: ke Kaprodi; ajukan ulang setelah dikembalikan)
      *
      * `POST /v1/sdm/usulan/{id}/ajukan`
@@ -5324,6 +5384,26 @@ final class Sdm extends Resource
     public function putUsulanPejabatById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/sdm/usulan-pejabat/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus draf usulan pejabat
+     *
+     * Pengusul atau yang berhak mengusulkan di unit itu; hanya status draft (yang sudah diajukan: /batal). 409 `bukan_draf`, 403 `bukan_pemilik`. Dihapus lunak, tercatat di linimasa dan log.
+     *
+     * `DELETE /v1/sdm/usulan-pejabat/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteUsulanPejabatById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/usulan-pejabat/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -5986,6 +6066,8 @@ final class Sdm extends Resource
     /**
      * Hapus draf DUPAK
      *
+     * Dosen pemilik atau petugas SDM unitnya; hanya status draf (409 `bukan_draf`; yang sudah diajukan dibatalkan lewat /batal). Butir, linimasa, dan bukti ikut terhapus; bukti berkas terpusat pindah ke Sampah. Respons: jumlah butir dan berkas.
+     *
      * `DELETE /v1/sdm/dupak/{id}`
      *
      * scope: `sdm:write`
@@ -6416,6 +6498,26 @@ final class Sdm extends Resource
     public function getSkpById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/skp/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus draf SKP
+     *
+     * Pegawai pemilik atau petugas SDM unitnya; hanya status draft yang belum pernah dikirim (SKP: rencana belum diajukan ke atasan). 409 `bukan_draf`, 403 `bukan_pemilik`. Kegiatan, data pelengkap BKD/SKP, penilaian, tautan asesor, dan linimasa ikut terhapus; bukti berkas terpusat pindah ke Sampah.
+     *
+     * `DELETE /v1/sdm/skp/{id}`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteSkpById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/sdm/skp/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

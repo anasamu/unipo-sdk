@@ -16,7 +16,7 @@ final class Akun extends Resource
     /**
      * Daftar akun
      *
-     * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`.
+     * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`, `arsip` (kosong = akun diarsipkan disembunyikan, `ya` = hanya yang diarsipkan, `semua`), `sampah=1` (tanda akun sampah: pendaftar nonaktif tanpa pendaftaran, atau email sekali pakai; hanya penanda, tidak dihapus otomatis). Tiap baris memuat `diarsipkan` dan `sampah`.
      *
      * Hak: administrator (peran superadmin) atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
      *
@@ -24,7 +24,7 @@ final class Akun extends Resource
      *
      * scope: `akun:read` · hanya token pengguna · berhalaman
      *
-     * @param array{q?: string, jenis?: string, level?: string, aktif?: string, kode_prodi?: string, page?: int, per_page?: int, ...} $query
+     * @param array{q?: string, jenis?: string, level?: string, aktif?: string, kode_prodi?: string, arsip?: string, sampah?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -135,6 +135,28 @@ final class Akun extends Resource
     public function postMassal(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akun/massal', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus/arsipkan/pulihkan akun massal
+     *
+     * Body `{"aksi": "hapus|arsipkan|pulihkan", "username": ["..."], "alasan": "...", "konfirmasi": "HAPUS"}` (konfirmasi
+     * hanya untuk hapus), paling banyak 100 akun. Tiap akun diperiksa sama seperti aksi satu per satu: yang tidak memenuhi syarat
+     * (punya data terkait untuk hapus, akun sendiri, administrator, pegawai SDM aktif, dst.) dilewati dengan alasan. Jawaban:
+     * `hasil[]` per akun (`status` dihapus/diarsipkan/dipulihkan/dilewati, `alasan`) dan `jumlah`. Hak: administrator atau izin `akun.hapus`.
+     *
+     * `POST /v1/akun/bersihkan`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBersihkan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/bersihkan', [], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -261,6 +283,101 @@ final class Akun extends Resource
     public function postByUsernameAkhiriSesi(int|string $username, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akun/{username}/akhiri-sesi', ['username' => $username], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Data terkait akun
+     *
+     * Pemeriksaan sebelum menghapus: data yang terkait dengan akun, dikelompokkan dalam bahasa awam (`kelompok[]`: data
+     * akademik, mengajar, kepegawaian, keuangan, pendaftaran PMB, peran/kepanitiaan/petugas, berkas, dan riwayat). Kelompok
+     * `penting: true` menghalangi hapus permanen; riwayat & pengaturan (`penting: false`) tetap disimpan dan tidak menghalangi.
+     *
+     * Jawaban juga memuat `ringkas` (satu kalimat), `bisa_hapus`, `bisa_arsip`, `bisa_pulihkan`, `saran`
+     * (hapus | arsipkan | lewat_sdm | pulihkan | tidak_bisa), `alasan_tolak`, `arsip` (bila sedang diarsipkan), dan
+     * `pegawai_aktif` (pegawai SDM aktif: offboarding lewat SDM » Pegawai keluar & nonaktif). Hak membaca sama dengan detail akun.
+     *
+     * `GET /v1/akun/{username}/keterkaitan`
+     *
+     * scope: `akun:read` · hanya token pengguna
+     *
+     * @param int|string $username Username SIAKAD
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByUsernameKeterkaitan(int|string $username, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akun/{username}/keterkaitan', ['username' => $username], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus akun permanen
+     *
+     * Hanya untuk akun TANPA data penting (lihat `/keterkaitan`): baris tabel lama `user` dihapus (cara yang sama dengan hapus
+     * pendaftar/dosen/karyawan di SIAKAD lama; data master pemilik tidak disentuh), token API dan sesi SSO dicabut, dan jejaknya
+     * dicatat di log akun (aksi `hapus`: pelaku, waktu, alasan, cuplikan identitas tersamar). Tidak bisa dipulihkan.
+     *
+     * Body `{"alasan": "...", "konfirmasi": "<username>"}` (alasan min. 5 huruf). 409 `ada_keterkaitan` bila ada data terkait
+     * (arsipkan saja), 409 `tidak_boleh` untuk akun sendiri, administrator/superadmin, akun khusus, atau level ADMIN lama.
+     * Hak: administrator atau izin `akun.hapus`.
+     *
+     * `POST /v1/akun/{username}/hapus`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $username Username SIAKAD
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByUsernameHapus(int|string $username, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/{username}/hapus', ['username' => $username], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Arsipkan akun (hapus lunak)
+     *
+     * Untuk akun yang punya data terkait: login SIAKAD lama, API, dan SSO ditolak (`user.aktif = 'N'`), token & sesi dicabut,
+     * penugasan peran yang berlaku diakhiri, dan akun disembunyikan dari daftar bawaan (tab Diarsipkan). Bisa dipulihkan.
+     * Body `{"alasan": "..."}`. 409 `lewat_sdm` untuk pegawai SDM yang masih aktif (offboarding lewat SDM), `sudah_diarsipkan`,
+     * `tidak_boleh`. Hak: administrator atau izin `akun.hapus`.
+     *
+     * `POST /v1/akun/{username}/arsipkan`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $username Username SIAKAD
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByUsernameArsipkan(int|string $username, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/{username}/arsipkan', ['username' => $username], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pulihkan akun yang diarsipkan
+     *
+     * Status aktif dikembalikan seperti sebelum diarsipkan, dan peran yang dicabut saat diarsipkan diberikan ulang sebagai penugasan baru (kecuali `pulihkan_peran: false`). Body `{"alasan": "...", "pulihkan_peran": true}`. Hak: administrator atau izin `akun.hapus`.
+     *
+     * `POST /v1/akun/{username}/pulihkan`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $username Username SIAKAD
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByUsernamePulihkan(int|string $username, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/{username}/pulihkan', ['username' => $username], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

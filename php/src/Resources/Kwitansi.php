@@ -16,7 +16,7 @@ final class Kwitansi extends Resource
     /**
      * Hak kwitansi saya
      *
-     * atur/lihat, global, unit yang boleh diatur/dilihat, daftar varian, variabel catatan, catatan bawaan. Token pengguna aplikasi mana pun; tanpa scope khusus.
+     * atur (hanya pengatur Pustikom: kwitansi.atur global), lihat, global, unit yang boleh diatur/dilihat, pengatur + tautan_pengatur (halaman Kwitansi di Pustikom), daftar varian, variabel catatan, catatan bawaan. Token pengguna aplikasi mana pun; tanpa scope khusus.
      *
      * `GET /v1/kwitansi/saya`
      *
@@ -54,7 +54,7 @@ final class Kwitansi extends Resource
     /**
      * Simpan pengaturan unit penerbit
      *
-     * Izin kwitansi.atur untuk unit itu. Body: {"unit_id", "kode_nomor" (2-12 huruf/angka, unik), "label", "varian": "klasik|modern|minimal|a5|arsip|thermal80|thermal58", "warna" (#RRGGBB), "judul", "kota", "jabatan_penerima", "ttd"/"stempel" (data URI PNG/JPG/WebP maks. 400 KB; "" = hapus), "kaki", "tampil_logo", "tampil_qr"}. Tercatat di log.
+     * Hanya pengatur Pustikom (kwitansi.atur global); selain itu 403. Body: {"unit_id", "kode_nomor" (2-12 huruf/angka, unik), "label", "varian": "klasik|modern|minimal|a5|arsip|thermal80|thermal58", "warna" (#RRGGBB), "judul", "kota", "jabatan_penerima", "ttd"/"stempel" (data URI PNG/JPG/WebP maks. 400 KB; "" = hapus), "kaki", "tampil_logo", "tampil_qr"}. Tercatat di log.
      *
      * `POST /v1/kwitansi/penerbit`
      *
@@ -72,6 +72,8 @@ final class Kwitansi extends Resource
 
     /**
      * Kembalikan pengaturan unit ke bawaan
+     *
+     * Hanya pengatur Pustikom (kwitansi.atur global).
      *
      * `POST /v1/kwitansi/penerbit/{id}/bawaan`
      *
@@ -110,7 +112,7 @@ final class Kwitansi extends Resource
     /**
      * Tambah/ubah aturan catatan
      *
-     * Body: {"id" (ubah), "unit_id" (kosong = semua unit, hanya izin global), "jenis_bayar" (idib m_item_biaya, pmb:formulir|pmb:daftar_ulang|pmb:lainnya; kosong = semua jenis), "teks" (maks. 6 baris, variabel {nama} {nomor_induk} {nomor} {tanggal} {jenis_biaya} {periode} {jumlah} {sisa} {batas_tanggal} {unit}), "berlaku_mulai", "berlaku_sampai", "urutan", "aktif"}. Tercatat di log; kwitansi yang sudah terbit tidak berubah.
+     * Hanya pengatur Pustikom (kwitansi.atur global). Body: {"id" (ubah), "unit_id" (kosong = semua unit), "jenis_bayar" (idib m_item_biaya, pmb:formulir|pmb:daftar_ulang|pmb:lainnya; kosong = semua jenis), "teks" (maks. 6 baris, variabel {nama} {nomor_induk} {nomor} {tanggal} {jenis_biaya} {periode} {jumlah} {sisa} {batas_tanggal} {unit}), "berlaku_mulai", "berlaku_sampai", "urutan", "aktif"}. Tercatat di log; kwitansi yang sudah terbit tidak berubah.
      *
      * `POST /v1/kwitansi/catatan`
      *
@@ -128,6 +130,8 @@ final class Kwitansi extends Resource
 
     /**
      * Hapus aturan catatan
+     *
+     * Hanya pengatur Pustikom (kwitansi.atur global).
      *
      * `POST /v1/kwitansi/catatan/{id}/hapus`
      *
@@ -185,7 +189,7 @@ final class Kwitansi extends Resource
     /**
      * Log perubahan pengaturan kwitansi
      *
-     * induk_log modul kwitansi; pengatur unit hanya melihat log unitnya.
+     * induk_log modul kwitansi; pengatur Pustikom melihat semua, unit penerbit (kwitansi.lihat) hanya log unitnya.
      *
      * `GET /v1/kwitansi/log`
      *

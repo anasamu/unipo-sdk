@@ -595,13 +595,13 @@ final class Keu extends Resource
     /**
      * Periode anggaran: daftar
      *
-     * Hanya pengelola modul.
+     * Periode anggaran sekaligus periode akuntansi. Status tidak diubah lewat form: aksi mulai (perencanaan -> berjalan), tutup buku (berjalan -> tutup; ditolak bila masih ada jurnal draf atau pengajuan dana yang belum dibayar/ditolak pada rentang periode; setelah tutup, jurnal otomatis dan perubahan data periode itu ditolak), dan buka kembali (tutup -> berjalan, admin, alasan wajib, tercatat). Tanggal tidak boleh tumpang tindih dengan periode lain. Hanya pengelola modul.
      *
      * `GET /v1/keu/periode`
      *
      * scope: `keu:read` · berhalaman
      *
-     * @param array{page?: int, per_page?: int, status?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, status?: string, ditutup_oleh?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -620,7 +620,7 @@ final class Keu extends Resource
      *
      * scope: `keu:write`
      *
-     * @param array{kode: string, nama: string, mulai: string, selesai: string, status?: string, ...} $body
+     * @param array{kode: string, nama: string, mulai: string, selesai: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -633,7 +633,7 @@ final class Keu extends Resource
     /**
      * Periode anggaran: detail
      *
-     * Hanya pengelola modul.
+     * Periode anggaran sekaligus periode akuntansi. Status tidak diubah lewat form: aksi mulai (perencanaan -> berjalan), tutup buku (berjalan -> tutup; ditolak bila masih ada jurnal draf atau pengajuan dana yang belum dibayar/ditolak pada rentang periode; setelah tutup, jurnal otomatis dan perubahan data periode itu ditolak), dan buka kembali (tutup -> berjalan, admin, alasan wajib, tercatat). Tanggal tidak boleh tumpang tindih dengan periode lain. Hanya pengelola modul.
      *
      * `GET /v1/keu/periode/{id}`
      *
@@ -660,7 +660,7 @@ final class Keu extends Resource
      * scope: `keu:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{kode: string, nama: string, mulai: string, selesai: string, status?: string, ...} $body
+     * @param array{kode: string, nama: string, mulai: string, selesai: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -693,7 +693,7 @@ final class Keu extends Resource
     /**
      * Periode anggaran: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Hanya pengelola modul.
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Periode anggaran sekaligus periode akuntansi. Status tidak diubah lewat form: aksi mulai (perencanaan -> berjalan), tutup buku (berjalan -> tutup; ditolak bila masih ada jurnal draf atau pengajuan dana yang belum dibayar/ditolak pada rentang periode; setelah tutup, jurnal otomatis dan perubahan data periode itu ditolak), dan buka kembali (tutup -> berjalan, admin, alasan wajib, tercatat). Tanggal tidak boleh tumpang tindih dengan periode lain. Hanya pengelola modul.
      *
      * `GET /v1/keu/periode/{id}/riwayat`
      *
@@ -708,6 +708,66 @@ final class Keu extends Resource
     public function getPeriodeByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/keu/periode/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periode anggaran: Mulai periode
+     *
+     * Admin modul. Status harus perencanaan, menjadi berjalan.
+     *
+     * `POST /v1/keu/periode/{id}/mulai`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByIdMulai(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/periode/{id}/mulai', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Periode anggaran: Tutup buku
+     *
+     * Admin modul. Status harus berjalan, menjadi tutup.
+     *
+     * `POST /v1/keu/periode/{id}/tutup`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{catatan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByIdTutup(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/periode/{id}/tutup', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Periode anggaran: Buka kembali
+     *
+     * Admin modul. Status harus tutup, menjadi berjalan.
+     *
+     * `POST /v1/keu/periode/{id}/buka-kembali`
+     *
+     * scope: `keu:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{alasan: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPeriodeByIdBukaKembali(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keu/periode/{id}/buka-kembali', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

@@ -149,6 +149,25 @@ final class Spmi extends Resource
     }
 
     /**
+     * KPI mutu per unit
+     *
+     * Siklus terpilih: capaian indikator vs target per unit, status AMI per unit, temuan terbuka dan umurnya, tindak lanjut lewat tenggat, akreditasi yang akan/sudah kedaluwarsa. Hanya unit yang terlihat.
+     *
+     * `GET /v1/spmi/dasbor/kpi`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{periode_id?: int, unit_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDasborKpi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/dasbor/kpi', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Tugas SPMI saya
      *
      * Capaian belum diajukan, temuan yang perlu ditindaklanjuti, penugasan audit, tindak lanjut yang perlu diverifikasi, survei yang belum diisi, butir akreditasi dan keputusan RTM yang menjadi PIC saya.
@@ -1494,7 +1513,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, lingkup?: string, lembaga?: string, status?: string, terkini?: string, sumber?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, unit_id?: string, lingkup?: string, lembaga?: string, status?: string, terkini?: string, sumber?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2323,7 +2342,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, jenis?: string, induk_id?: string, aktif?: string, kode_fakultas?: string, kode_prodi?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, jenis?: string, induk_id?: string, aktif?: string, kode_fakultas?: string, kode_prodi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2437,7 +2456,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, username?: string, peran?: string, aktif?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, unit_id?: string, username?: string, peran?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2551,7 +2570,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, aktif?: string, unit_asal_id?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, aktif?: string, unit_asal_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2665,7 +2684,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2779,7 +2798,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, jenis?: string, tahap?: string, status?: string, publik?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, unit_id?: string, jenis?: string, tahap?: string, status?: string, publik?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2893,7 +2912,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, bidang?: string, kelompok?: string, sumber?: string, status?: string, induk_id?: string, dokumen_id?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, bidang?: string, kelompok?: string, sumber?: string, status?: string, induk_id?: string, dokumen_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2912,7 +2931,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:write`
      *
-     * @param array{induk_id?: int|null, kode: string, nama: string|null, bidang: string, kelompok?: string, sumber?: string, rasional?: string|null, pernyataan?: string|null, strategi?: string|null, pihak_terkait?: string|null, definisi_istilah?: string|null, referensi?: string|null, dokumen_id?: int|null, versi?: string|null, status?: string, berlaku_mulai?: string|null, urut?: int, ...} $body
+     * @param array{induk_id?: int|null, kode: string, nama: string|null, bidang: string, kelompok?: string, sumber?: string, rasional?: string|null, pernyataan?: string|null, strategi?: string|null, pihak_terkait?: string|null, definisi_istilah?: string|null, referensi?: string|null, dokumen_id?: int|null, versi?: string|null, status?: string, berlaku_mulai?: string|null, urut?: int, menggantikan_id?: int|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2968,7 +2987,7 @@ final class Spmi extends Resource
      * scope: `spmi:write`
      *
      * @param int|string $id ID
-     * @param array{induk_id?: int|null, kode: string, nama: string|null, bidang: string, kelompok?: string, sumber?: string, rasional?: string|null, pernyataan?: string|null, strategi?: string|null, pihak_terkait?: string|null, definisi_istilah?: string|null, referensi?: string|null, dokumen_id?: int|null, versi?: string|null, status?: string, berlaku_mulai?: string|null, urut?: int, ...} $body
+     * @param array{induk_id?: int|null, kode: string, nama: string|null, bidang: string, kelompok?: string, sumber?: string, rasional?: string|null, pernyataan?: string|null, strategi?: string|null, pihak_terkait?: string|null, definisi_istilah?: string|null, referensi?: string|null, dokumen_id?: int|null, versi?: string|null, status?: string, berlaku_mulai?: string|null, urut?: int, menggantikan_id?: int|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3007,7 +3026,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, standar_id?: string, tipe?: string, lingkup?: string, metrik?: string, aktif?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, standar_id?: string, tipe?: string, lingkup?: string, metrik?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3121,7 +3140,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, indikator_id?: string, periode_id?: string, unit_id?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, indikator_id?: string, periode_id?: string, unit_id?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3235,7 +3254,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, objek?: string, status?: string, unit_id?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, objek?: string, status?: string, unit_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3349,7 +3368,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, tahap?: string, jenis?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, tahap?: string, jenis?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3463,7 +3482,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, periode_id?: string, jenis?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, periode_id?: string, jenis?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3577,7 +3596,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3691,7 +3710,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3805,7 +3824,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, rtm_id?: string, jenis?: string, status?: string, temuan_id?: string, standar_id?: string, pic_username?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, rtm_id?: string, jenis?: string, status?: string, temuan_id?: string, standar_id?: string, pic_username?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -3919,7 +3938,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, standar_id?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, standar_id?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4033,7 +4052,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, sasaran?: string, status?: string, indikator_id?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, periode_id?: string, unit_id?: string, sasaran?: string, status?: string, indikator_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4147,7 +4166,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, survei_id?: string, dimensi?: string, tipe?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, survei_id?: string, dimensi?: string, tipe?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4279,7 +4298,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, lembaga?: string, lingkup?: string, aktif?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, lembaga?: string, lingkup?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4393,7 +4412,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, instrumen_id?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, instrumen_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4507,7 +4526,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, unit_id?: string, instrumen_id?: string, jenis?: string, status?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, unit_id?: string, instrumen_id?: string, jenis?: string, status?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4621,7 +4640,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, persiapan_id?: string, status?: string, pic_username?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, persiapan_id?: string, status?: string, pic_username?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4735,7 +4754,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, lingkup?: string, aktif?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, lingkup?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4849,7 +4868,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, status?: string, aktif?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, status?: string, aktif?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -4963,7 +4982,7 @@ final class Spmi extends Resource
      *
      * scope: `spmi:read` · berhalaman
      *
-     * @param array{q?: string, page?: int, per_page?: int, instrumen_id?: string, kriteria_id?: string, jenis?: string, ...} $query
+     * @param array{q?: string, urut?: string, page?: int, per_page?: int, instrumen_id?: string, kriteria_id?: string, jenis?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
