@@ -268,12 +268,12 @@ final class Aturan extends Resource
      * Atur siapa pengatur (admin)
      *
      * Body: `{"kategori": "akademik", "titik": "nilai.input.dosen" (opsional), "pengatur": [{"jenis": "peran", "kode": "bak"}, {"jenis": "peran", "kode": "kaprodi"}, {"jenis": "izin", "kode": "aturan:akademik"}]}`.
-     * Mengganti seluruh daftar pengatur kategori itu (atau titik itu saja). `"pengatur": []` = kembali ke izin bawaan.
+     * Mengganti seluruh daftar pengatur kategori itu (atau titik itu saja). `"pengatur": []` = kembali ke izin bawaan. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin.
      * Peran berlingkup unit (mis. kaprodi, dekan) hanya bisa mengatur aturan yang cakupannya di unit itu.
      *
      * `POST /v1/aturan/pengatur`
      *
-     * scope: `aturan:admin` · hanya token pengguna
+     * scope: `aturan:read` · hanya token pengguna
      *
      * @param array{kategori?: string|null, titik?: string|null, pengatur?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
@@ -307,11 +307,11 @@ final class Aturan extends Resource
     /**
      * Atur penyetuju (admin)
      *
-     * Body: {"penyetuju": [{"kategori": "akun", "bidang": "akademik", "jabatan": ["WR1", "REKTOR"], "keterangan": "..."}]}. Hanya kategori yang dikirim yang diubah. bidang = kode bidang pimpinan (/v1/pimpinan/bidang), jabatan = satu atau beberapa kode induk_jabatan (salah satu cukup); tanpa pejabat/pemegang = Rektor.
+     * Body: {"penyetuju": [{"kategori": "akun", "bidang": "akademik", "jabatan": ["WR1", "REKTOR"], "keterangan": "..."}]}. Hanya kategori yang dikirim yang diubah. bidang = kode bidang pimpinan (/v1/pimpinan/bidang), jabatan = satu atau beberapa kode induk_jabatan (salah satu cukup); tanpa pejabat/pemegang = Rektor. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin.
      *
      * `POST /v1/aturan/penyetuju`
      *
-     * scope: `aturan:admin` · hanya token pengguna
+     * scope: `aturan:read` · hanya token pengguna
      *
      * @param array<string, mixed> $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
@@ -484,7 +484,7 @@ final class Aturan extends Resource
     /**
      * Ubah "tunggu validasi sebelum berlaku" satu jenis
      *
-     * Body {"jenis": "aturan_versi.karier", "tunggu_validasi": true}. Izin aturan.validator.atur (Pustikom) atau aturan:admin; hanya jenis bisa_diubah. Jawaban = daftar pengaturan.
+     * Body {"jenis": "aturan_versi.karier", "tunggu_validasi": true}. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin. Izin aturan.validator.atur (Pustikom) atau aturan:admin; hanya jenis bisa_diubah. Jawaban = daftar pengaturan.
      *
      * `POST /v1/aturan/kebijakan/pengaturan`
      *
@@ -1073,7 +1073,7 @@ final class Aturan extends Resource
     /**
      * Tambah rantai validator / templat
      *
-     * Izin aturan.validator.atur. Body {nama, jenis_baris?: aturan|templat, unit_id? | jenis_unit?, kategori?, warisi?, templat_id? | langkah: [...], opsi?: {ulang_dari}, prioritas?, aktif?, keterangan?}.
+     * Izin aturan.validator.atur. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin. Body {nama, jenis_baris?: aturan|templat, unit_id? | jenis_unit?, kategori?, warisi?, templat_id? | langkah: [...], opsi?: {ulang_dari}, prioritas?, aktif?, keterangan?}.
      *
      * `POST /v1/aturan/validator`
      *
@@ -1149,7 +1149,7 @@ final class Aturan extends Resource
     /**
      * Ubah rantai validator / templat
      *
-     * Isian sama dengan tambah. Pengajuan yang sudah berjalan tetap memakai salinan rantai saat diajukan.
+     * Isian sama dengan tambah. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin. Pengajuan yang sudah berjalan tetap memakai salinan rantai saat diajukan.
      *
      * `POST /v1/aturan/validator/{id}`
      *
@@ -1169,7 +1169,7 @@ final class Aturan extends Resource
     /**
      * Hapus rantai validator / templat
      *
-     * Soft delete. Templat yang masih dipakai: 409.
+     * Soft delete. Tulis hanya lewat klien aplikasi Pustikom: klien lain (SDM, BAAK, ...) 403 diatur_di_pustikom walau superadmin. Templat yang masih dipakai: 409.
      *
      * `POST /v1/aturan/validator/{id}/hapus`
      *

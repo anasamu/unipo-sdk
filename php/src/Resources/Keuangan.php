@@ -565,7 +565,7 @@ final class Keuangan extends Resource
     /**
      * Hak akses keuangan saya
      *
-     * Pengelola keuangan (administrator, peran keuangan:kelola; level KEUANGAN lewat peran setara levelnya; level BAK hanya melihat ringkasan mahasiswa lewat izin baak.keuangan.lihat) atau mahasiswa, prodi yang boleh, tahun aktif, mode tagihan SIAKAD, dan sesi kasir terbuka.
+     * Pengelola keuangan (administrator, peran keuangan:kelola; level KEUANGAN lewat peran setara levelnya; level BAK hanya melihat ringkasan mahasiswa lewat izin baak.keuangan.lihat) atau mahasiswa, prodi yang boleh, tahun aktif, mode tagihan SIAKAD, sesi kasir terbuka, dan laporan.realisasi_anggaran (boleh melihat laporan realisasi anggaran: admin atau izin keuangan.laporan.realisasi.lihat).
      *
      * `GET /v1/keuangan/saya`
      *
@@ -617,6 +617,25 @@ final class Keuangan extends Resource
     public function postTarif(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keuangan/tarif', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tarif satu jenis biaya di semua prodi
+     *
+     * Query kode_biaya (wajib), tahun_id (bawaan aktif). Baris m_biaya jenis biaya itu untuk semua prodi yang dikelola pengguna, dengan nama prodi dan kampus, serta pilihan shift (dari data mahasiswa), kampus, dan apakah angkatan/nominal wajib. Dipakai halaman Komponen biaya BAUK.
+     *
+     * `GET /v1/keuangan/tarif/biaya`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{kode_biaya?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTarifBiaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/tarif/biaya', [], $query, null, $options, false, false);
     }
 
     /**
@@ -1453,7 +1472,7 @@ final class Keuangan extends Resource
     /**
      * Laporan realisasi anggaran per unit
      *
-     * Admin keuangan. Pagu RKA disetujui, realisasi dibayar/selesai (nilai SPJ bila sudah), dana dalam proses, sisa, dan persen per unit untuk periode_id (bawaan periode berjalan).
+     * Admin keuangan, atau pemegang izin baca keuangan.laporan.realisasi.lihat (staf BAUK; bisa dicabut dari peran). Hanya membaca. Pagu RKA disetujui, realisasi dibayar/selesai (nilai SPJ bila sudah), dana dalam proses, sisa, dan persen per unit untuk periode_id (bawaan periode berjalan).
      *
      * `GET /v1/keuangan/laporan/realisasi-anggaran`
      *

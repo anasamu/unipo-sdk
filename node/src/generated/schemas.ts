@@ -416,8 +416,13 @@ export type Krs = {
     disetujui?: boolean;
     hari?: string | null;
     jam_ke?: number | null;
+    /** Dari m_jam prodi jadwal */
+    jam_mulai?: string | null;
+    jam_selesai?: string | null;
     ruang?: string | null;
+    nama_ruang?: string | null;
     nidn_dosen?: string | null;
+    nama_dosen?: string | null;
     ujian?: {
       uts_ruang?: string | null;
       uts_meja?: string | null;
@@ -467,8 +472,13 @@ export type KrsPenawaran = {
       kelas?: string | null;
       hari?: string | null;
       jamke?: number | null;
+      /** Dari m_jam prodi jadwal */
+      jam_mulai?: string | null;
+      jam_selesai?: string | null;
       ruang?: string | null;
+      nama_ruang?: string | null;
       nidn?: string | null;
+      nama_dosen?: string | null;
       kapasitas?: number | null;
       [key: string]: any;
     }>;
@@ -5618,8 +5628,8 @@ export type KalenderKegiatan = {
   jam_mulai?: string;
   jam_selesai?: string;
   libur?: boolean;
-  /** m_tahun.tahun_id */
-  tahun_id?: string;
+  sasaran_libur?: "semua" | "pegawai" | "mahasiswa";
+  jenis_libur?: "nasional" | "cuti_bersama" | "kampus" | "kepegawaian" | "akademik";
   /** ID di induk_unit */
   unit_id?: number;
   /** m_program_studi.kode_prodi */
@@ -5643,8 +5653,8 @@ export type KalenderKegiatanInput = {
   jam_mulai?: string;
   jam_selesai?: string;
   libur?: boolean;
-  /** m_tahun.tahun_id */
-  tahun_id?: string;
+  sasaran_libur?: "semua" | "pegawai" | "mahasiswa";
+  jenis_libur?: "nasional" | "cuti_bersama" | "kampus" | "kepegawaian" | "akademik";
   /** ID di induk_unit */
   unit_id?: number;
   /** m_program_studi.kode_prodi */
@@ -13562,6 +13572,8 @@ export type RbacKlienApi = {
   prodi?: Array<string>;
   rate_limit?: number | null;
   active?: boolean;
+  /** Klien publik aplikasi desktop/ponsel: tanpa secret, hanya tukar token SSO dan refresh_token */
+  publik?: boolean;
   created_at?: string;
   logo_uri?: string | null;
   /** Kode aplikasi bawaan pemilik klien (null = klien biasa) */
@@ -13585,6 +13597,8 @@ export type RbacKlienApiInput = {
   prodi?: Array<string>;
   rate_limit?: number | null;
   active?: boolean;
+  /** Klien publik aplikasi desktop/ponsel: tanpa secret, hanya tukar token SSO dan refresh_token */
+  publik?: boolean;
   [key: string]: any;
 };
 
@@ -15428,8 +15442,8 @@ export type SdmMasterTunjanganInput = {
 /** Hari libur. Saat ubah (PUT), kirim hanya kolom yang berubah. */
 export type SdmMasterHariLiburInput = {
   tanggal: string | null;
+  selesai?: string | null;
   nama: string | null;
-  jenis?: "nasional" | "cuti_bersama" | "kampus";
   [key: string]: any;
 };
 
@@ -17160,6 +17174,29 @@ export type TemaHalamanInput = {
       gaya?: JsonObject;
       [key: string]: any;
     }>;
+    [key: string]: any;
+  };
+  /** Revisi draf yang dibuka penyunting (cegah saling menimpa) Contoh: `3` */
+  revisi?: number;
+  /** Catatan terbitan (maks. 255) */
+  catatan?: string;
+  [key: string]: any;
+};
+
+export type TemaSitusInput = {
+  /** Kerangka situs: {versi: 1, pita, atas, kepala, menu[], kaki, sidebar}. Rincian kolom di docs/TEMA.md bagian Kerangka situs. */
+  dokumen?: {
+    /** aktif, nada (utama|aksen|lembut|gelap), tutup, butir[] {teks, url, label} */
+    pita?: JsonObject;
+    /** aktif, telepon, surel, whatsapp, jam, tautan[] {label, url, baru}, sosial[] {jenis, url} */
+    atas?: JsonObject;
+    /** tampilan (aplikasi|portal|ringkas), lengket, transparan, rata (kiri|tengah), cari, cari_url, cari_contoh, menu_bagian, tombol[] */
+    kepala?: JsonObject;
+    menu?: Array<JsonObject>;
+    /** aktif, tampilan (gelap|terang|ringkas), teks, alamat, telepon, surel, whatsapp, jam, peta_url, kolom[] {judul, tautan[]}, sosial[], tautan_bawah[], hak_cipta, ke_atas, ajakan_judul, ajakan_teks, ajakan_tombol[] */
+    kaki?: JsonObject;
+    /** aktif, posisi (kiri|kanan), lengket, widget[] {id, jenis (kabar|tautan|teks|kontak|ajakan|cari), judul, sumber, situs, jumlah, teks, tautan[], tombol[]} */
+    sidebar?: JsonObject;
     [key: string]: any;
   };
   /** Revisi draf yang dibuka penyunting (cegah saling menimpa) Contoh: `3` */

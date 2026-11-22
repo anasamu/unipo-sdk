@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File
+ * SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: aturan IKU 1, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File
  */
 final class Spmi extends Resource
 {
@@ -335,9 +335,9 @@ final class Spmi extends Resource
     }
 
     /**
-     * Buat unit dari data SIAKAD
+     * Selaraskan unit dengan unit SIAKAD
      *
-     * Admin SPMI. Membuat unit universitas, LPM, fakultas (m_fakultas), dan prodi (m_program_studi) yang belum ada; dekan dan kaprodi yang punya akun menjadi personel peran pimpinan. Aman diulang.
+     * Admin SPMI. Unit SPMI = unit organisasi SIAKAD (induk_unit): memetakan unit SPMI lama yang cocok tepat (universitas, kode fakultas, kode prodi, kode/singkatan, alias katalog), membuat jembatan untuk unit SIAKAD yang belum ada, menyelaraskan nama/induk/aktif; dekan dan kaprodi yang punya akun menjadi personel peran pimpinan. Aman diulang. Klien boleh mengirim `induk_unit_id` (ID unit SIAKAD, nilai PilihUnit) sebagai ganti `unit_id` di semua isian dan saringan SPMI.
      *
      * `POST /v1/spmi/unit/sinkron-siakad`
      *
@@ -351,6 +351,252 @@ final class Spmi extends Resource
     public function postUnitSinkronSiakad(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/spmi/unit/sinkron-siakad', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tahun akademik untuk siklus
+     *
+     * Daftar tahun akademik kalender (m_tahun + tanggal kal_periode) untuk pemilih awal/akhir siklus, dan bawaan siklus baru: Ganjil s.d. Genap tahun akademik yang sedang berjalan atau terdekat.
+     *
+     * `GET /v1/spmi/tahun-akademik`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getTahunAkademik(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/tahun-akademik', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ambang mutu yang berlaku
+     *
+     * Ambang terpenuhi/melampaui capaian, skor tingkat risiko, masa berlaku & pengingat akreditasi, skor EDOM untuk siklus `periode_id` (bawaan: siklus berjalan). Sumber: aturan ber-SK titik spmi.ambang (diatur LPM, izin aturan:mutu, lewat /v1/aturan) atau bawaan sistem; `peringatan` bila memakai bawaan atau aturan belum ber-SK. `boleh_atur` = pemilik token boleh mengatur.
+     *
+     * `GET /v1/spmi/ambang`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{periode_id?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAmbang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/ambang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: ringkasan
+     *
+     * Kebijakan yang berlaku sekarang (versi terbit berdasar SK, atau nilai bawaan sistem beserta peringatan), nilai bawaan, daftar versi, dan boleh_kelola. Pemilik: LPM (Staf/Kepala LPM).
+     *
+     * `GET /v1/spmi/aturan-iku1`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/aturan-iku1', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: yang berlaku
+     *
+     * {sumber: aturan|bawaan, versi, isi, peringatan}. Query tanggal=YYYY-MM-DD (bawaan hari ini).
+     *
+     * `GET /v1/spmi/aturan-iku1/berlaku`
+     *
+     * scope: `spmi:read`
+     *
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1Berlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/aturan-iku1/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: draf versi baru
+     *
+     * Body {nama, dasar_hukum?, berlaku_tanggal?, catatan_perubahan?, isi?, sk_id?}. Isi kosong = nilai bawaan.
+     *
+     * `POST /v1/spmi/aturan-iku1/versi`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1Versi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/aturan-iku1/versi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: detail versi
+     *
+     * Isi, SK, riwayat, perubahan dari versi induk.
+     *
+     * `GET /v1/spmi/aturan-iku1/versi/{id}`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1VersiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/aturan-iku1/versi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: ubah draf
+     *
+     * Versi terbit dikunci; salin menjadi versi baru untuk mengubah.
+     *
+     * `PUT /v1/spmi/aturan-iku1/versi/{id}`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAturanIku1VersiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/spmi/aturan-iku1/versi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: salin jadi versi baru
+     *
+     * `POST /v1/spmi/aturan-iku1/versi/{id}/salin`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/aturan-iku1/versi/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: banding versi
+     *
+     * Perubahan dibanding versi `dengan` (bawaan: yang berlaku; tanpa versi terbit: nilai bawaan).
+     *
+     * `GET /v1/spmi/aturan-iku1/versi/{id}/banding`
+     *
+     * scope: `spmi:read`
+     *
+     * @param int|string $id ID versi
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1VersiByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/aturan-iku1/versi/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Terbitkan (wajib alasan perubahan; SK dianjurkan)
+     *
+     * `POST /v1/spmi/aturan-iku1/versi/{id}/terbitkan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/aturan-iku1/versi/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Arsipkan versi terbit
+     *
+     * `POST /v1/spmi/aturan-iku1/versi/{id}/arsipkan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/aturan-iku1/versi/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Hapus draf
+     *
+     * `POST /v1/spmi/aturan-iku1/versi/{id}/hapus`
+     *
+     * scope: `spmi:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/aturan-iku1/versi/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan pemetaan unit SPMI ke unit SIAKAD
+     *
+     * Admin SPMI. Jumlah unit SPMI terpetakan per cara (universitas, kode_fakultas, kode_prodi, kode, katalog, cermin) dan daftar unit SPMI lama yang tidak terpetakan beserta jumlah data yang merujuknya (dilaporkan, tidak ditebak).
+     *
+     * `GET /v1/spmi/unit/pemetaan`
+     *
+     * scope: `spmi:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUnitPemetaan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/spmi/unit/pemetaan', [], $query, null, $options, false, false);
     }
 
     /**
@@ -1292,6 +1538,25 @@ final class Spmi extends Resource
     }
 
     /**
+     * Tetapkan hasil EDOM periode dan kirim kabar pembinaan
+     *
+     * Pengelola SPMI universitas (LPM). Body: {"tahun_id": "20251"}. Hanya setelah masa pengisian EDOM periode itu selesai (tahapan Pengisian EDOM di kalender; periode berjalan tanpa tahapan ditolak 409). Dosen dengan rata-rata EDOM di bawah edom_skor_minimal (aturan spmi.ambang siklus itu) mendapat kabar pembinaan, juga kaprodi homebase-nya, lewat pemicu notifikasi spmi.edom_pembinaan & spmi.edom_pembinaan_prodi (penerima tambahan diatur Pustikom di /v1/notif/pemicu). Idempoten: satu kabar per penerima per dosen per periode.
+     *
+     * `POST /v1/spmi/survei/edom/pembinaan`
+     *
+     * scope: `spmi:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSurveiEdomPembinaan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/spmi/survei/edom/pembinaan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Formulir survei
      *
      * Butir survei dan jawaban saya sebelumnya.
@@ -1741,13 +2006,13 @@ final class Spmi extends Resource
     /**
      * Ringkasan kelengkapan per prodi
      *
-     * Prodi yang terlihat (SPMI: semua; Fakultas: prodi berizin fakultas.akreditasi): akreditasi terkini (SPMI), persiapan aktif, jumlah dokumen, lengkap, menunggu periksa, perbaikan, terlambat, persen, hak. ?fakultas=.
+     * Prodi yang terlihat (SPMI: semua; Fakultas: prodi berizin fakultas.akreditasi): akreditasi terkini (SPMI), persiapan aktif, jumlah dokumen, lengkap, menunggu periksa, perbaikan, terlambat, persen, hak. ?fakultas=, ?prodi=. Dari aplikasi satu fakultas (header X-Unipo-Fakultas) hanya prodi fakultas itu.
      *
      * `GET /v1/spmi/akreditasi-kelengkapan`
      *
      * scope: `spmi:read`
      *
-     * @param array{fakultas?: string, ...} $query
+     * @param array{fakultas?: string, prodi?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

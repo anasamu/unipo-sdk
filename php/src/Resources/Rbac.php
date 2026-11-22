@@ -492,12 +492,13 @@ final class Rbac extends Resource
      * Membuat klien API baru. `client_secret` hanya muncul sekali di jawaban ini, simpan di server aplikasi.
      * Body: `{"name": "LMS", "scopes": ["krs:read"], "allow_user_login": false, "sso_audience": "lms", "allowed_ips": [], "allowed_origins": [], "prodi": [], "rate_limit": null}`.
      * `sso_audience` = client_id aplikasi di SSO yang id_token-nya boleh ditukar menjadi token API (grant token-exchange).
+     * `publik: true` untuk aplikasi desktop/ponsel (mis. UNIPO Kasir, UNIPO Feeder): tanpa secret, wajib `sso_audience`, tidak boleh `allow_user_login`.
      *
      * `POST /v1/rbac/klien-api`
      *
      * scope: `rbac:admin` · hanya token pengguna
      *
-     * @param array{name?: string, scopes?: list<mixed>, allow_user_login?: bool, trust_user_ip?: bool, sso_audience?: string|null, allowed_ips?: list<mixed>, allowed_origins?: list<mixed>, prodi?: list<mixed>, rate_limit?: int|null, active?: bool, ...} $body
+     * @param array{name?: string, scopes?: list<mixed>, allow_user_login?: bool, trust_user_ip?: bool, sso_audience?: string|null, allowed_ips?: list<mixed>, allowed_origins?: list<mixed>, prodi?: list<mixed>, rate_limit?: int|null, active?: bool, publik?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -577,7 +578,7 @@ final class Rbac extends Resource
      * scope: `rbac:admin` · hanya token pengguna
      *
      * @param int|string $id client_id
-     * @param array{name?: string, scopes?: list<mixed>, allow_user_login?: bool, trust_user_ip?: bool, sso_audience?: string|null, allowed_ips?: list<mixed>, allowed_origins?: list<mixed>, prodi?: list<mixed>, rate_limit?: int|null, active?: bool, ...} $body
+     * @param array{name?: string, scopes?: list<mixed>, allow_user_login?: bool, trust_user_ip?: bool, sso_audience?: string|null, allowed_ips?: list<mixed>, allowed_origins?: list<mixed>, prodi?: list<mixed>, rate_limit?: int|null, active?: bool, publik?: bool, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

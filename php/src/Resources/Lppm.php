@@ -52,6 +52,44 @@ final class Lppm extends Resource
     }
 
     /**
+     * Pola ID usulan BIMA
+     *
+     * Pola yang berlaku (bawaan bila belum diatur): panjang_min, panjang_maks, huruf, angka, simbol (dari - / . _), tepi_simbol, huruf_besar, contoh; plus regex rakitan (untuk pemeriksaan langsung di form), uraian dan pesan_galat berbahasa awam, sumber (bawaan|diatur).
+     *
+     * `GET /v1/lppm/pengaturan/pola-bima`
+     *
+     * scope: `lppm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPengaturanPolaBima(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/pengaturan/pola-bima', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Atur pola ID usulan BIMA
+     *
+     * Admin/operator/pimpinan LP2M. Body sebagian: panjang_min, panjang_maks (1-100), huruf, angka, simbol, tepi_simbol, huruf_besar, contoh (wajib cocok dengan pola). Isian id_bima kegiatan divalidasi pola ini (422 dengan pesan awam + contoh).
+     *
+     * `PUT /v1/lppm/pengaturan/pola-bima`
+     *
+     * scope: `lppm:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putPengaturanPolaBima(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/lppm/pengaturan/pola-bima', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Notifikasi saya
      *
      * `GET /v1/lppm/notifikasi`
@@ -2080,6 +2118,28 @@ final class Lppm extends Resource
     }
 
     /**
+     * Batalkan draf monev (admin LP2M)
+     *
+     * Admin LP2M tidak bisa menghapus draf monev orang lain, tetapi bisa membatalkannya. Body {alasan} wajib. Status menjadi dibatalkan, data dan berkas tetap tersimpan, tercatat di riwayat, pembuat diberi tahu. Hanya jenis monev berstatus draf yang belum pernah diajukan (409 selain itu).
+     *
+     * `POST /v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}/batalkan`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID angka atau UUID kegiatan
+     * @param int|string $jenis Jenis (monev)
+     * @param int|string $tahun_ke Tahun ke
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKegiatanByIdLaporanByJenisByTahunKeBatalkan(int|string $id, int|string $jenis, int|string $tahun_ke, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}/batalkan', ['id' => $id, 'jenis' => $jenis, 'tahun_ke' => $tahun_ke], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Ajukan laporan
      *
      * `POST /v1/lppm/kegiatan/{id}/laporan/{jenis}/{tahun_ke}/ajukan`
@@ -2814,6 +2874,46 @@ final class Lppm extends Resource
     }
 
     /**
+     * Bobot penilaian periode
+     *
+     * Aturan bobot yang berlaku (sumber aturan|bawaan; bawaan = sama rata), status SK dari gerbang kebijakan (peringatan perlu SK), dan riwayat versi.
+     *
+     * `GET /v1/lppm/kkn/periode/{id}/bobot`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKknPeriodeByIdBobot(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kkn/periode/{id}/bobot', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tetapkan bobot penilaian periode
+     *
+     * Admin/operator/pimpinan LP2M. Body {nilai_dpl, nilai_mitra, nilai_laporan} persen (jumlah 100), keterangan, sk_id (UUID Registri SK; tanpa SK tetap berlaku dengan peringatan perlu SK, SK tidak sah 422). Versi baru; versi lama tersimpan. Nilai peserta yang sudah ada tidak dihitung ulang.
+     *
+     * `PUT /v1/lppm/kkn/periode/{id}/bobot`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID periode
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putKknPeriodeByIdBobot(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/lppm/kkn/periode/{id}/bobot', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Kelompok/lokasi periode
      *
      * `GET /v1/lppm/kkn/periode/{id}/kelompok`
@@ -3028,7 +3128,7 @@ final class Lppm extends Resource
     /**
      * Nilai peserta
      *
-     * DPL kelompok atau pengelola. nilai_dpl, nilai_mitra, nilai_laporan (0-100), bobot {nilai_dpl: 50, ...}, tetapkan_kelulusan. Huruf dari skala nilai SIAKAD (m_nilai) prodi peserta; tidak ditulis ke KHS.
+     * DPL kelompok atau pengelola. nilai_dpl, nilai_mitra, nilai_laporan (0-100), tetapkan_kelulusan. Nilai akhir = rata-rata tertimbang komponen terisi dengan bobot aturan periode (GET/PUT /v1/lppm/kkn/periode/{id}/bobot; bawaan sama rata); `bobot` tidak lagi diterima (422). Bobot yang dipakai tersimpan di bobot_dipakai. Huruf dari skala nilai SIAKAD (m_nilai) prodi peserta; tidak ditulis ke KHS.
      *
      * `POST /v1/lppm/kkn/peserta/{id}/nilai`
      *

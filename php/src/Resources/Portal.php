@@ -564,7 +564,7 @@ final class Portal extends Resource
     /**
      * Struktur: daftar
      *
-     * Pimpinan dan struktur organisasi (nama dosen dari SIAKAD bila NIDN diisi). Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
+     * Pimpinan situs. Baris `sumber=struktur` diambil otomatis dari pejabat aktif Organisasi & pejabat (universitas: Rektor/WR tampil, pimpinan fakultas dan kepala lembaga tersedia; fakultas: Dekan/WD, kaprodi; prodi: kaprodi); jabatan, nama, dan masa jabatan mengikuti SK dan tidak bisa diubah di sini, Humas mengatur foto, sambutan, urutan, dan aktif (tampil). Baris `sumber=manual` = isian lama. Tanpa `situs` = semua situs aktif. Dengan `situs`, konten sindikasi yang disetujui ikut tampil.
      *
      * `GET /v1/portal/struktur`
      *

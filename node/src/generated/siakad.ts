@@ -42,7 +42,7 @@ export class Siakad extends SiakadCore {
     return this.resource('akademik', () => new R.AkademikResource(this));
   }
 
-  /** Akun pengguna (19 endpoint) */
+  /** Akun pengguna (23 endpoint) */
   get akun(): R.AkunResource {
     return this.resource('akun', () => new R.AkunResource(this));
   }
@@ -172,7 +172,7 @@ export class Siakad extends SiakadCore {
     return this.resource('karier', () => new R.KarierResource(this));
   }
 
-  /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Pengaturan unit, Kasir: Migrasi aplikasi lama (62 endpoint) */
+  /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Pengaturan unit, Kasir: Migrasi aplikasi lama (66 endpoint) */
   get kasir(): R.KasirResource {
     return this.resource('kasir', () => new R.KasirResource(this));
   }
@@ -202,7 +202,7 @@ export class Siakad extends SiakadCore {
     return this.resource('keu', () => new R.KeuResource(this));
   }
 
-  /** Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keuangan saya (mahasiswa), Keuangan: petunjuk bayar (BAUK) (221 endpoint) */
+  /** Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keuangan saya (mahasiswa), Keuangan: petunjuk bayar (BAUK) (222 endpoint) */
   get keuangan(): R.KeuanganResource {
     return this.resource('keuangan', () => new R.KeuanganResource(this));
   }
@@ -242,7 +242,7 @@ export class Siakad extends SiakadCore {
     return this.resource('lms', () => new R.LmsResource(this));
   }
 
-  /** LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File, LPPM: paket kebijakan hibah (185 endpoint) */
+  /** LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File, LPPM: paket kebijakan hibah (190 endpoint) */
   get lppm(): R.LppmResource {
     return this.resource('lppm', () => new R.LppmResource(this));
   }
@@ -252,7 +252,7 @@ export class Siakad extends SiakadCore {
     return this.resource('lulusan', () => new R.LulusanResource(this));
   }
 
-  /** Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan, Akademik: Sanggah nilai (18 endpoint) */
+  /** Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan, Akademik: Sanggah nilai (19 endpoint) */
   get mahasiswa(): R.MahasiswaResource {
     return this.resource('mahasiswa', () => new R.MahasiswaResource(this));
   }
@@ -332,7 +332,7 @@ export class Siakad extends SiakadCore {
     return this.resource('plagiasi', () => new R.PlagiasiResource(this));
   }
 
-  /** PMB, PMB: kebijakan kelulusan seleksi, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (144 endpoint) */
+  /** PMB, PMB: kebijakan kelulusan seleksi, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (145 endpoint) */
   get pmb(): R.PmbResource {
     return this.resource('pmb', () => new R.PmbResource(this));
   }
@@ -362,7 +362,7 @@ export class Siakad extends SiakadCore {
     return this.resource('rbac', () => new R.RbacResource(this));
   }
 
-  /** Referensi (14 endpoint) */
+  /** Referensi (15 endpoint) */
   get referensi(): R.ReferensiResource {
     return this.resource('referensi', () => new R.ReferensiResource(this));
   }
@@ -382,7 +382,7 @@ export class Siakad extends SiakadCore {
     return this.resource('sarpras', () => new R.SarprasResource(this));
   }
 
-  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: DUPAK, SDM: SKP, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (420 endpoint) */
+  /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: DUPAK, SDM: SKP, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (421 endpoint) */
   get sdm(): R.SdmResource {
     return this.resource('sdm', () => new R.SdmResource(this));
   }
@@ -397,7 +397,7 @@ export class Siakad extends SiakadCore {
     return this.resource('sk', () => new R.SkResource(this));
   }
 
-  /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File (264 endpoint) */
+  /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: aturan IKU 1, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File (278 endpoint) */
   get spmi(): R.SpmiResource {
     return this.resource('spmi', () => new R.SpmiResource(this));
   }
@@ -417,12 +417,12 @@ export class Siakad extends SiakadCore {
     return this.resource('ta', () => new R.TaResource(this));
   }
 
-  /** Tema, Tema: Halaman landing (13 endpoint) */
+  /** Tema, Tema: Halaman landing, Tema: Kerangka situs (20 endpoint) */
   get tema(): R.TemaResource {
     return this.resource('tema', () => new R.TemaResource(this));
   }
 
-  /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi, Tracer Study: aturan IKU 1 (91 endpoint) */
+  /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi, Tracer Study: aturan IKU 1 (87 endpoint) */
   get tracer(): R.TracerResource {
     return this.resource('tracer', () => new R.TracerResource(this));
   }

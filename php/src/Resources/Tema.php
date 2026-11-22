@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Tema, Tema: Halaman landing
+ * Tema, Tema: Halaman landing, Tema: Kerangka situs
  */
 final class Tema extends Resource
 {
@@ -305,5 +305,166 @@ final class Tema extends Resource
     public function postByAplikasiHalamanByHalamanRiwayatByIdPulihkan(int|string $aplikasi, int|string $halaman, int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/tema/{aplikasi}/halaman/{halaman}/riwayat/{id}/pulihkan', ['aplikasi' => $aplikasi, 'halaman' => $halaman, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kerangka situs terbit
+     *
+     * Publik. Pengaturan kerangka situs publik aplikasi yang terbit: `terbit` = `{versi: 1, pita, atas, kepala, menu, kaki,
+     * sidebar}` atau null (belum pernah diterbitkan: aplikasi memakai kerangka bawaan unipo-ui), `versi`, `berkas` (peta
+     * uuid → URL untuk `berkas:<uuid>` di gambar dan tautan unduhan; hanya berkas publik). Lingkup tanpa pengaturan sendiri
+     * memakai pengaturan aplikasinya.
+     *
+     * - `pita`: pengumuman berjalan di paling atas (`butir[]` teks + tautan, `nada`, `tutup` = pengunjung boleh menutup).
+     * - `atas`: bilah atas (telepon, surel, WhatsApp, jam layanan, `tautan[]` cepat, `sosial[]`).
+     * - `kepala`: navbar (`tampilan` aplikasi|portal|ringkas, `lengket`, `transparan` di atas hero, `rata`, kotak `cari`
+     *   + `cari_url`, `tombol[]` ajakan, `menu_bagian` = tambahkan bagian halaman bertanda menu).
+     * - `menu`: menu utama maks. 3 tingkat (`label`, `url`, `keterangan`, `ikon`, `lencana`, `baru`, `anak[]`, `sorot` =
+     *   kartu sorotan mega menu). Tingkat 2 yang punya anak menjadikan menu itu mega menu berkolom.
+     * - `kaki`: kaki situs (`tampilan`, `teks`, kontak + `peta_url`, `kolom[]` tautan, `sosial[]`, `tautan_bawah[]`,
+     *   `hak_cipta`, pita ajakan, `ke_atas`).
+     * - `sidebar`: sidebar halaman dalam (`posisi`, `lengket`, `widget[]` kabar|tautan|teks|kontak|ajakan|cari).
+     *
+     * `draf=1` (butuh token pengguna yang berhak mengubah tema aplikasi): ikut `draf`, `revisi`, `draf_oleh`, `draf_pada`.
+     * Render dengan `<SitusAplikasi aplikasi="...">` atau `<KerangkaSitus situs={...}>` dari unipo-ui.
+     *
+     * `GET /v1/tema/{aplikasi}/situs`
+     *
+     * publik (tanpa token)
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param array{draf?: string, lingkup?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByAplikasiSitus(int|string $aplikasi, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tema/{aplikasi}/situs', ['aplikasi' => $aplikasi], $query, null, $options, false, true);
+    }
+
+    /**
+     * Simpan draf kerangka situs
+     *
+     * Body `{"dokumen": {...}, "revisi": 3}`. Menyimpan draf saja; pengunjung belum melihat perubahan sampai diterbitkan.
+     * Isi dibersihkan di server (kolom tidak dikenal dibuang, teks tanpa HTML, tautan hanya #jangkar, /alamat, http(s),
+     * mailto:, tel:, aksi:<kunci>, berkas:<uuid>; gambar hanya berkas:<uuid>, https, /alamat). Maks. 10 menu utama
+     * (16 anak, 12 cucu), 200 KB. 409 `draf_berubah` bila penyunting lain sudah menyimpan. Hak: `<aplikasi>.tema`.
+     *
+     * `POST /v1/tema/{aplikasi}/situs/draf`
+     *
+     * scope: `tema:write`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param array{dokumen?: array<string, mixed>, revisi?: int, catatan?: string, ...} $body
+     * @param array{query?: array{lingkup?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByAplikasiSitusDraf(int|string $aplikasi, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tema/{aplikasi}/situs/draf', ['aplikasi' => $aplikasi], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Terbitkan kerangka situs
+     *
+     * Body `{"dokumen"?: {...}, "revisi"?: 3, "catatan"?: "..."}`. Tanpa `dokumen` = terbitkan draf tersimpan. Versi naik, draf dikosongkan, salinan masuk riwayat.
+     *
+     * `POST /v1/tema/{aplikasi}/situs/terbit`
+     *
+     * scope: `tema:write`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param array{dokumen?: array<string, mixed>, revisi?: int, catatan?: string, ...} $body
+     * @param array{query?: array{lingkup?: string, ...}, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByAplikasiSitusTerbit(int|string $aplikasi, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tema/{aplikasi}/situs/terbit', ['aplikasi' => $aplikasi], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Buang draf kerangka situs
+     *
+     * Draf dihapus; kerangka yang terbit tidak berubah.
+     *
+     * `POST /v1/tema/{aplikasi}/situs/draf/buang`
+     *
+     * scope: `tema:write`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param array{lingkup?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByAplikasiSitusDrafBuang(int|string $aplikasi, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tema/{aplikasi}/situs/draf/buang', ['aplikasi' => $aplikasi], $query, null, $options, false, false);
+    }
+
+    /**
+     * Riwayat terbit kerangka situs
+     *
+     * Terbitan terakhir (bawaan 30, `batas` maks. 100): versi, jumlah butir menu (`jumlah_blok`), catatan, oleh, waktu.
+     *
+     * `GET /v1/tema/{aplikasi}/situs/riwayat`
+     *
+     * scope: `tema:read`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param array{batas?: string, lingkup?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByAplikasiSitusRiwayat(int|string $aplikasi, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tema/{aplikasi}/situs/riwayat', ['aplikasi' => $aplikasi], $query, null, $options, false, false);
+    }
+
+    /**
+     * Isi satu versi kerangka situs
+     *
+     * Untuk pratinjau versi lama sebelum dipulihkan.
+     *
+     * `GET /v1/tema/{aplikasi}/situs/riwayat/{id}`
+     *
+     * scope: `tema:read`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param int|string $id ID riwayat
+     * @param array{lingkup?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByAplikasiSitusRiwayatById(int|string $aplikasi, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tema/{aplikasi}/situs/riwayat/{id}', ['aplikasi' => $aplikasi, 'id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pulihkan versi kerangka situs ke draf
+     *
+     * Menyalin versi lama ke draf. Pengunjung baru melihatnya setelah draf diterbitkan.
+     *
+     * `POST /v1/tema/{aplikasi}/situs/riwayat/{id}/pulihkan`
+     *
+     * scope: `tema:write`
+     *
+     * @param int|string $aplikasi Kode aplikasi di katalog RBAC (pmb, lms, tracer, humas, fakultas, ...) atau `kampus` untuk tema bersama
+     * @param int|string $id ID riwayat
+     * @param array{lingkup?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByAplikasiSitusRiwayatByIdPulihkan(int|string $aplikasi, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tema/{aplikasi}/situs/riwayat/{id}/pulihkan', ['aplikasi' => $aplikasi, 'id' => $id], $query, null, $options, false, false);
     }
 }

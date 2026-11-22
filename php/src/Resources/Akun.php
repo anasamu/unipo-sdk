@@ -16,7 +16,7 @@ final class Akun extends Resource
     /**
      * Daftar akun
      *
-     * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`, `arsip` (kosong = akun diarsipkan disembunyikan, `ya` = hanya yang diarsipkan, `semua`), `sampah=1` (tanda akun sampah: pendaftar nonaktif tanpa pendaftaran, atau email sekali pakai; hanya penanda, tidak dihapus otomatis). Tiap baris memuat `diarsipkan` dan `sampah`.
+     * Akun di tabel user yang boleh dikelola pemanggil, tanpa password. Saring `q` (username/nama/email), `jenis` (dosen, tendik, mahasiswa, pendaftar, lain = tanpa pemilik), `level`, `aktif` (Y/N), `kode_prodi`, `arsip` (kosong = akun diarsipkan disembunyikan, `ya` = hanya yang diarsipkan, `semua`), `sampah=1` (tanda akun sampah: pendaftar nonaktif tanpa pendaftaran, email domain sekali pakai dari `/v1/akun/email-sekali-pakai`, atau akun tanpa pemilik yang tidak punya data penting apa pun; hanya penanda, tidak dihapus otomatis). Tiap baris memuat `diarsipkan` dan `sampah`.
      *
      * Hak: administrator (peran superadmin) atau izin `pustikom.akun` (semua jenis), `sdm.akun` (dosen, tendik), `baak.akun` atau level BAK (mahasiswa, pendaftar). Token pengguna saja.
      *
@@ -157,6 +157,84 @@ final class Akun extends Resource
     public function postBersihkan(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akun/bersihkan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Domain email sekali pakai
+     *
+     * Daftar domain email sekali pakai (disposable) yang dipakai penanda Akun sampah (`GET /v1/akun?sampah=1`): hanya domain `aktif` yang dipakai. Saring `q`, `aktif` (1/0), urut `urut` (domain|aktif|sumber|diubah) + `arah` (asc|desc). Tiap baris memuat `jumlah_akun` (akun ber-email domain itu) dan `sumber` (bawaan dari migration atau manual). Hak: administrator atau izin `akun.hapus`.
+     *
+     * `GET /v1/akun/email-sekali-pakai`
+     *
+     * scope: `akun:read` · hanya token pengguna · berhalaman
+     *
+     * @param array{q?: string, aktif?: string, urut?: string, arah?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getEmailSekaliPakai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akun/email-sekali-pakai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tambah domain email sekali pakai
+     *
+     * Body `{"domain": "satu atau beberapa domain dipisah baris/koma/spasi", "keterangan": "..."}` (maks. 200 sekali simpan; awalan @ atau http:// dibuang). Jawaban `ditambah[]` dan `dilewati[]` (domain tidak sah atau sudah ada) dengan alasan. Tercatat di induk_log. Hak: administrator atau izin `akun.hapus`.
+     *
+     * `POST /v1/akun/email-sekali-pakai`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postEmailSekaliPakai(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akun/email-sekali-pakai', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ubah domain email sekali pakai
+     *
+     * Body `{"aktif": true|false, "keterangan": "..."}`. Domain nonaktif tidak dipakai penanda. Hak: administrator atau izin `akun.hapus`.
+     *
+     * `PATCH /v1/akun/email-sekali-pakai/{id}`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $id ID domain
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function patchEmailSekaliPakaiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PATCH', '/v1/akun/email-sekali-pakai/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus domain email sekali pakai
+     *
+     * Menghapus domain dari daftar (akun tidak tersentuh). Hak: administrator atau izin `akun.hapus`.
+     *
+     * `DELETE /v1/akun/email-sekali-pakai/{id}`
+     *
+     * scope: `akun:write` · hanya token pengguna
+     *
+     * @param int|string $id ID domain
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteEmailSekaliPakaiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/akun/email-sekali-pakai/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

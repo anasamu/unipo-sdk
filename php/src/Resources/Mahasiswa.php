@@ -139,6 +139,28 @@ final class Mahasiswa extends Resource
     }
 
     /**
+     * Batalkan mata kuliah dari KRS
+     *
+     * Hanya token pengguna mahasiswa itu sendiri. Body `{"idkrs": 123}` (dari `GET /krs`). Diizinkan selama masa pengisian
+     * masih dibuka (syarat sama dengan `/krs/penawaran`: `boleh_ambil`), baris belum disetujui dosen PA (`status_krs` bukan T),
+     * dan belum bernilai. KRS yang sudah disetujui diubah lewat dosen PA atau kaprodi (409).
+     *
+     * `POST /v1/mahasiswa/{nim}/krs/batal`
+     *
+     * scope: `krs:write` · hanya token pengguna
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByNimKrsBatal(int|string $nim, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/mahasiswa/{nim}/krs/batal', ['nim' => $nim], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
      * Pesan konsultasi KRS dengan dosen PA
      *
      * `GET /v1/mahasiswa/{nim}/krs/pesan`

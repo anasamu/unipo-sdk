@@ -130,7 +130,7 @@ final class Sdm extends Resource
     /**
      * Struktur organisasi
      *
-     * Pohon unit kerja beserta kepala unit dan jumlah pegawai.
+     * Pohon unit kerja (= unit organisasi SIAKAD, Pustikom » Organisasi) beserta kepala unit dari pejabat Organisasi.
      *
      * `GET /v1/sdm/unit/pohon`
      *
@@ -144,6 +144,25 @@ final class Sdm extends Resource
     public function getUnitPohon(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/sdm/unit/pohon', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Laporan pemetaan unit kerja ke unit SIAKAD
+     *
+     * Admin SDM. Jumlah unit kerja SDM terpetakan per cara (lama, universitas, kode_fakultas, kode_prodi, kode, katalog, cermin), unit SDM lama yang belum terpetakan beserta jumlah pegawainya (dilaporkan, tidak ditebak), dan pemetaan ganda.
+     *
+     * `GET /v1/sdm/unit/pemetaan`
+     *
+     * scope: `sdm:admin` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUnitPemetaan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/unit/pemetaan', [], $query, null, $options, false, false);
     }
 
     /**
@@ -169,7 +188,7 @@ final class Sdm extends Resource
     /**
      * Unit kerja: daftar
      *
-     * Unit kerja bertingkat (universitas, fakultas, prodi, lembaga, biro, UPT, bagian). `induk_unit_id` = padanan di data induk (opsional).
+     * Unit kerja = unit organisasi SIAKAD (induk_unit, diatur Pustikom » Organisasi): nama, jenis, induk, aktif, dan kepala unit (pejabat Organisasi) dibaca dari SIAKAD; `induk_unit_id` = ID unit SIAKAD, `sumber` = siakad | sdm_lama (baris lama belum terpetakan). Tambah/ubah/hapus ditolak 422.
      *
      * `GET /v1/sdm/master/unit`
      *
@@ -827,7 +846,7 @@ final class Sdm extends Resource
     /**
      * Hari libur: daftar
      *
-     * Hari libur nasional dan cuti bersama (dipakai menghitung hari kerja cuti dan presensi).
+     * Hari libur yang berlaku untuk pegawai dari kalender akademik (libur bersama, hanya-baca di SDM; diubah BAAK di Kalender) dan libur khusus pegawai yang dicatat Biro SDM (sasaran pegawai). Dipakai menghitung hari kerja cuti, presensi, dan payroll. Baris: tanggal, selesai, nama, jenis, sasaran, sumber (kalender | sdm | kal_tahapan), bisa_ubah.
      *
      * `GET /v1/sdm/master/hari-libur`
      *
@@ -850,7 +869,7 @@ final class Sdm extends Resource
      *
      * scope: `sdm:admin`
      *
-     * @param array{tanggal: string|null, nama: string|null, jenis?: string, ...} $body
+     * @param array{tanggal: string|null, selesai?: string|null, nama: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -888,7 +907,7 @@ final class Sdm extends Resource
      * scope: `sdm:admin`
      *
      * @param int|string $id ID
-     * @param array{tanggal: string|null, nama: string|null, jenis?: string, ...} $body
+     * @param array{tanggal: string|null, selesai?: string|null, nama: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -7008,7 +7027,7 @@ final class Sdm extends Resource
     /**
      * Tambah honor manual
      *
-     * Kegiatan di luar perhitungan otomatis (panitia, narasumber, dll.).
+     * Kegiatan di luar perhitungan otomatis (panitia, narasumber, dll.). periode = bulan YYYY-MM atau semester (tahun_id terdaftar di m_tahun); format lain 422 berbahasa awam. Tarif dari Tarif honor yang berlaku (tarif isian hanya bila komponen belum bertarif); PPh selalu dari Pajak honor.
      *
      * `POST /v1/sdm/honor`
      *

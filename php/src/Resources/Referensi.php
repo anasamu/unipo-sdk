@@ -208,6 +208,28 @@ final class Referensi extends Resource
     }
 
     /**
+     * Beban tatap muka per SKS
+     *
+     * Menit tatap muka satu SKS kuliah per minggu yang berlaku untuk prodi dan periode, dari aturan kurikulum berversi
+     * ber-SK (`isi.mata_kuliah.menit_tatap_muka_sks`, katalog pedoman `kurikulum.menit_tatap_muka_sks`). Versi dasar yang
+     * cocok lingkup dan periode (angkatan diabaikan). Bawaan 50 menit bila belum diatur (`sumber` = `bawaan`).
+     * Token mahasiswa tanpa `prodi` memakai prodinya sendiri. Dipakai unipo-ui untuk tinggi sesi jadwal mingguan.
+     *
+     * `GET /v1/referensi/beban-sks`
+     *
+     * scope: `referensi:read`
+     *
+     * @param array{prodi?: string, tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getBebanSks(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/referensi/beban-sks', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Daftar grup kode referensi
      *
      * Grup tabel kode (r_kode). Contoh grup 05 = status mahasiswa.

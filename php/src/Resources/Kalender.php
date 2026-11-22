@@ -73,13 +73,13 @@ final class Kalender extends Resource
     /**
      * Hitung hari kerja
      *
-     * Jumlah hari kerja dalam rentang (Senin-Jumat, atau Senin-Sabtu bila `sabtu=1`), dikurangi kegiatan terbit yang libur.
+     * Jumlah hari kerja dalam rentang (Senin-Jumat, atau Senin-Sabtu bila `sabtu=1`), dikurangi kegiatan terbit yang libur. `sasaran=pegawai` hanya libur yang berlaku untuk pegawai (semua + khusus kepegawaian), `sasaran=mahasiswa` libur akademik.
      *
      * `GET /v1/kalender/hari-kerja`
      *
      * scope: `kalender:read`
      *
-     * @param array{dari?: string, sampai?: string, kode_prodi?: string, sabtu?: string, ...} $query
+     * @param array{dari?: string, sampai?: string, kode_prodi?: string, sabtu?: string, sasaran?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -98,7 +98,7 @@ final class Kalender extends Resource
      *
      * scope: `kalender:read`
      *
-     * @param array{dari?: string, hari?: int, kode_prodi?: string, sabtu?: string, ...} $query
+     * @param array{dari?: string, hari?: int, kode_prodi?: string, sabtu?: string, sasaran?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -775,13 +775,13 @@ final class Kalender extends Resource
     /**
      * Kegiatan kalender: daftar
      *
-     * Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
+     * Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja; `sasaran_libur` menentukan siapa yang libur (semua, pegawai, mahasiswa). Libur yang berlaku untuk pegawai dipakai presensi, cuti, dan payroll SDM. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
      *
      * `GET /v1/kalender/kegiatan`
      *
      * publik (tanpa token) · berhalaman
      *
-     * @param array{page?: int, per_page?: int, jenis?: string, libur?: string, tahun_id?: string, unit_id?: string, kode_prodi?: string, status?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{page?: int, per_page?: int, jenis?: string, libur?: string, sasaran_libur?: string, jenis_libur?: string, unit_id?: string, kode_prodi?: string, status?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -800,7 +800,7 @@ final class Kalender extends Resource
      *
      * scope: `kalender:write`
      *
-     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
+     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, sasaran_libur?: string, jenis_libur?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -813,7 +813,7 @@ final class Kalender extends Resource
     /**
      * Kegiatan kalender: detail
      *
-     * Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
+     * Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja; `sasaran_libur` menentukan siapa yang libur (semua, pegawai, mahasiswa). Libur yang berlaku untuk pegawai dipakai presensi, cuti, dan payroll SDM. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
      *
      * `GET /v1/kalender/kegiatan/{id}`
      *
@@ -840,7 +840,7 @@ final class Kalender extends Resource
      * scope: `kalender:write`
      *
      * @param int|string $id ID angka atau UUID
-     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, tahun_id?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
+     * @param array{judul: string, jenis?: string, keterangan?: string, mulai: string, selesai?: string, jam_mulai?: string, jam_selesai?: string, libur?: bool, sasaran_libur?: string, jenis_libur?: string, unit_id?: int, kode_prodi?: string, untuk?: string, lokasi?: string, tautan?: string, warna?: string, status?: string, lampiran?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -873,7 +873,7 @@ final class Kalender extends Resource
     /**
      * Kegiatan kalender: riwayat status
      *
-     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Kegiatan kalender akademik, libur, dan cuti bersama. Yang berstatus `terbit` bisa dibaca semua orang (juga tanpa token) sesuai `untuk` (level pengguna, dipisah koma; kosong = semua). `libur = true` membuat tanggalnya tidak dihitung sebagai hari kerja; `sasaran_libur` menentukan siapa yang libur (semua, pegawai, mahasiswa). Libur yang berlaku untuk pegawai dipakai presensi, cuti, dan payroll SDM. Semua pemilik token ber-scope kalender:read (selain pengelola hanya melihat status terbit).
      *
      * `GET /v1/kalender/kegiatan/{id}/riwayat`
      *

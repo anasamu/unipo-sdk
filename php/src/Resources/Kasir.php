@@ -575,7 +575,7 @@ final class Kasir extends Resource
     /**
      * Jenis biaya unit
      *
-     * Termasuk nonaktif; hanya terbitan unit dalam lingkup.
+     * Termasuk nonaktif; hanya terbitan unit dalam lingkup. pembagian = aturan biaya (sumber mahasiswa) yang berlaku, atau yang terbaru masih draf/diajukan/ditolak: {id, nama, status, komponen, sk, berlaku_mulai, berlaku_selesai}; null = belum ada.
      *
      * `GET /v1/kasir/kelola/jenis`
      *
@@ -594,7 +594,7 @@ final class Kasir extends Resource
     /**
      * Simpan jenis biaya unit
      *
-     * Body: {"kode_biaya", "nama" (wajib bila baru), "unit_id" (unit penerbit dalam lingkup; kosong = universitas/BAUK), "kategori", "perlakuan", "nominal_bawaan", "tagih_otomatis", "batasi_prodi", "potongan_kasir", "bayar_dimuka", "dimuka_hari", "urutan", "aktif", "keterangan"}.
+     * Body: {"kode_biaya", "nama" (wajib bila baru), "unit_id" (unit penerbit dalam lingkup; kosong = universitas/BAUK), "kategori", "perlakuan", "nominal_bawaan", "tagih_otomatis", "batasi_prodi", "potongan_kasir", "bayar_dimuka", "dimuka_hari", "urutan", "aktif", "keterangan"}. Jenis biaya baru tersimpan belum aktif sampai aturan pembagiannya berlaku (klop, ber-SK, disetujui WR bidang keuangan di /v1/biaya/aturan); menyalakan jenis biaya nonaktif sebelum itu -> 422 pembagian_belum_lengkap.
      *
      * `POST /v1/kasir/kelola/jenis`
      *
@@ -726,6 +726,83 @@ final class Kasir extends Resource
     public function postKelolaPerangkatByIdNama(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/kasir/kelola/perangkat/{id}/nama', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kode pemasangan aplikasi desktop
+     *
+     * Kode pemasangan UNIPO Kasir/Feeder (100 terbaru) dengan status aktif/dipakai/dicabut/kedaluwarsa, sidik komputer pemakai, dan aplikasi yang boleh diterbitkan pengguna (izin kasir.server.atur / feeder.server.atur) beserta alamat bawaan.
+     *
+     * `GET /v1/kasir/kelola/kode-pasang`
+     *
+     * scope: `kasir:read`
+     *
+     * @param array{aplikasi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKelolaKodePasang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/kasir/kelola/kode-pasang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Terbitkan kode pemasangan
+     *
+     * Body: {"aplikasi": "kasir|feeder", "siakad_url", "sso_url", "sso_client_id", "siakad_client_id", "bauk_url", "berlaku_jam" (1-72, bawaan 24), "catatan"}. Jawaban memuat "kode" (ABCD-EFGH-JKMN) dan "qr" yang hanya tampil sekali; server hanya menyimpan hash. Sekali pakai.
+     *
+     * `POST /v1/kasir/kelola/kode-pasang`
+     *
+     * scope: `kasir:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaKodePasang(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/kode-pasang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cabut kode pemasangan
+     *
+     * Kode yang belum dipakai tidak bisa ditukar lagi.
+     *
+     * `POST /v1/kasir/kelola/kode-pasang/{id}/cabut`
+     *
+     * scope: `kasir:write`
+     *
+     * @param int|string $id desktop_kode_pasang.id
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKelolaKodePasangByIdCabut(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/kelola/kode-pasang/{id}/cabut', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tukar kode pemasangan (publik)
+     *
+     * Dipakai aplikasi desktop UNIPO Kasir/Feeder di komputer baru. Body: {"aplikasi": "kasir|feeder", "kode", "sidik": {"nama_komputer", "os", "versi"}}. Jawaban: alamat server dan client ID. Sekali pakai; 404 kode tidak dikenal, 409 sudah dipakai/dicabut/kedaluwarsa; 10 percobaan gagal per jam per alamat IP (429).
+     *
+     * `POST /v1/kasir/pasang/tukar`
+     *
+     * publik (tanpa token)
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPasangTukar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/kasir/pasang/tukar', [], $query, null, $options, false, true);
     }
 
     /**

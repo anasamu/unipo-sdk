@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Concerns;
 use Unipo\Siakad\Resources;
 
 /**
- * Akses ke semua modul API (4636 endpoint).
+ * Akses ke semua modul API (4671 endpoint).
  */
 trait GeneratedResources
 {
@@ -37,7 +37,7 @@ trait GeneratedResources
         return $this->resource(Resources\Akademik::class);
     }
 
-    /** Akun pengguna (19 endpoint) */
+    /** Akun pengguna (23 endpoint) */
     public function akun(): Resources\Akun
     {
         return $this->resource(Resources\Akun::class);
@@ -193,7 +193,7 @@ trait GeneratedResources
         return $this->resource(Resources\Karier::class);
     }
 
-    /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Pengaturan unit, Kasir: Migrasi aplikasi lama (62 endpoint) */
+    /** Kasir: Sesi, Kasir: Pengaturan, Kasir: Penerimaan, Kasir: Laporan, Kasir: Pengaturan unit, Kasir: Migrasi aplikasi lama (66 endpoint) */
     public function kasir(): Resources\Kasir
     {
         return $this->resource(Resources\Kasir::class);
@@ -229,7 +229,7 @@ trait GeneratedResources
         return $this->resource(Resources\Keu::class);
     }
 
-    /** Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keuangan saya (mahasiswa), Keuangan: petunjuk bayar (BAUK) (221 endpoint) */
+    /** Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keuangan saya (mahasiswa), Keuangan: petunjuk bayar (BAUK) (222 endpoint) */
     public function keuangan(): Resources\Keuangan
     {
         return $this->resource(Resources\Keuangan::class);
@@ -277,7 +277,7 @@ trait GeneratedResources
         return $this->resource(Resources\Lms::class);
     }
 
-    /** LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File, LPPM: paket kebijakan hibah (185 endpoint) */
+    /** LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File, LPPM: paket kebijakan hibah (190 endpoint) */
     public function lppm(): Resources\Lppm
     {
         return $this->resource(Resources\Lppm::class);
@@ -289,7 +289,7 @@ trait GeneratedResources
         return $this->resource(Resources\Lulusan::class);
     }
 
-    /** Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan, Akademik: Sanggah nilai (18 endpoint) */
+    /** Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan, Akademik: Sanggah nilai (19 endpoint) */
     public function mahasiswa(): Resources\Mahasiswa
     {
         return $this->resource(Resources\Mahasiswa::class);
@@ -385,7 +385,7 @@ trait GeneratedResources
         return $this->resource(Resources\Plagiasi::class);
     }
 
-    /** PMB, PMB: kebijakan kelulusan seleksi, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (144 endpoint) */
+    /** PMB, PMB: kebijakan kelulusan seleksi, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan (145 endpoint) */
     public function pmb(): Resources\Pmb
     {
         return $this->resource(Resources\Pmb::class);
@@ -421,7 +421,7 @@ trait GeneratedResources
         return $this->resource(Resources\Rbac::class);
     }
 
-    /** Referensi (14 endpoint) */
+    /** Referensi (15 endpoint) */
     public function referensi(): Resources\Referensi
     {
         return $this->resource(Resources\Referensi::class);
@@ -445,7 +445,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sarpras::class);
     }
 
-    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: DUPAK, SDM: SKP, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (420 endpoint) */
+    /** SDM: Master, SDM: Pegawai, SDM: Laporan, SDM: Penghasilan, SDM: Cuti, SDM: Riwayat, SDM: File, SDM: Presensi, SDM: Kinerja, SDM: BKD, SDM: Usulan, SDM: Usulan pejabat, SDM: Aturan karier, SDM: DUPAK, SDM: SKP, SDM: PAK, SDM: Honor, SDM: SOP dan kebijakan, SDM: SISTER, SDM: Pegawai keluar (421 endpoint) */
     public function sdm(): Resources\Sdm
     {
         return $this->resource(Resources\Sdm::class);
@@ -463,7 +463,7 @@ trait GeneratedResources
         return $this->resource(Resources\Sk::class);
     }
 
-    /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File (264 endpoint) */
+    /** SPMI: Publik, SPMI: Umum, SPMI: Organisasi, SPMI: Penetapan, SPMI: aturan IKU 1, SPMI: Pelaksanaan, SPMI: AMI, SPMI: Pengendalian, SPMI: Peningkatan, SPMI: Survei, SPMI: Akreditasi, SPMI: Usulan akreditasi prodi, SPMI: Kelengkapan akreditasi, SPMI: Pelaporan, SPMI: File (278 endpoint) */
     public function spmi(): Resources\Spmi
     {
         return $this->resource(Resources\Spmi::class);
@@ -487,13 +487,13 @@ trait GeneratedResources
         return $this->resource(Resources\Ta::class);
     }
 
-    /** Tema, Tema: Halaman landing (13 endpoint) */
+    /** Tema, Tema: Halaman landing, Tema: Kerangka situs (20 endpoint) */
     public function tema(): Resources\Tema
     {
         return $this->resource(Resources\Tema::class);
     }
 
-    /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi, Tracer Study: aturan IKU 1 (91 endpoint) */
+    /** Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi, Tracer Study: aturan IKU 1 (87 endpoint) */
     public function tracer(): Resources\Tracer
     {
         return $this->resource(Resources\Tracer::class);

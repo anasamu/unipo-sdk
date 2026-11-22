@@ -4,6 +4,10 @@ Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sam
 
 Catatan: tag 1.18.0 sampai 1.23.0 sudah dibuat di GitHub, tetapi terbit ke npm gagal sejak 2026-11-18 (workflow Rilis: npm 403 "account has been temporarily suspended"); versi itu tidak diterbitkan ke npm (isinya sudah tercakup di 2.0.0, yang terbit 2026-11-22).
 
+## 3.0.0 (belum dirilis)
+
+- Spesifikasi diperbarui dari SIAKAD: 41 operasi baru, 6 operasi hilang (total 4678).
+
 ## 2.2.0 (2026-11-22)
 
 - Node: `proxySiakad`/`proxySiakadNode` (proxy server untuk komponen unipo-ui/siakad di browser: izin jalur & metode, GET saja secara bawaan, /v1/auth ditolak, mode data tiruan) dan opsi `getAccessToken` (token per permintaan; null = tanpa Authorization). PHP: `Unipo\Siakad\Proxy\ProxySiakad` untuk Laravel/PHP. README: contoh Next.js memakai `kode_prodi`/`nama_prodi` (sebelumnya `p.kode`/`p.nama` yang tidak ada di tipe Prodi).

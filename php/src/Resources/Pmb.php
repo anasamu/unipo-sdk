@@ -2054,9 +2054,9 @@ final class Pmb extends Resource
     }
 
     /**
-     * Simpan nilai USM akhir
+     * Tetapkan nilai akhir dan kelulusan
      *
-     * Ditulis ke t_pmb_periode_mahasiswa.nilai_usm lalu kelulusan tiap pilihan ditentukan aturan SIAKAD (nilai minimal prodi). Tanpa `nilai`: rata-rata nilai sesi tes.
+     * Bila aturan seleksi ber-SK (/v1/pmb/aturan-seleksi `bobot`) mengatur bobot untuk jalur pendaftar, nilai akhir dihitung dari bobot komponen (sesi tes per jenis, rubrik wawancara, rapor, prestasi): `nilai` kiriman ditolak 422 dan semua komponen wajib bernilai. Tanpa bobot: `nilai` atau rata-rata nilai sesi tes. Ditulis ke t_pmb_periode_mahasiswa.nilai_usm lalu kelulusan tiap pilihan ditentukan nilai lulus prodi. Jawaban {pilihan, nilai, rincian, peringatan}; kuota prodi terlampaui = peringatan (tidak memblokir).
      *
      * `POST /v1/pmb/admin/pendaftaran/{id}/nilai`
      *
@@ -2071,6 +2071,26 @@ final class Pmb extends Resource
     public function postAdminPendaftaranByIdNilai(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/pmb/admin/pendaftaran/{id}/nilai', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Rincian nilai akhir berbobot
+     *
+     * Pratinjau tanpa menyimpan: {berlaku, komponen [{kode, label, bobot, nilai, kontribusi}], kurang, nilai, aturan, peringatan_aturan, jalur, tersimpan}. berlaku false = jalur belum punya bobot di aturan seleksi.
+     *
+     * `GET /v1/pmb/admin/pendaftaran/{id}/nilai-akhir`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID pendaftaran (UUID)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminPendaftaranByIdNilaiAkhir(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/pendaftaran/{id}/nilai-akhir', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -2263,6 +2283,8 @@ final class Pmb extends Resource
 
     /**
      * Kehadiran dan nilai peserta
+     *
+     * Body {kehadiran?, nilai?, catatan?, rubrik?}. Sesi wawancara dengan rubrik di aturan seleksi: `rubrik` {kode aspek: skor 0-100} dan nilai = rata-rata berbobot skor aspek.
      *
      * `PATCH /v1/pmb/admin/sesi-tes/{id}/peserta/{peserta}`
      *
@@ -2531,7 +2553,7 @@ final class Pmb extends Resource
     /**
      * Lunasi manual (bayar di loket)
      *
-     * Tagihan biaya pendaftaran yang lunas menandai bayar = Y di SIAKAD.
+     * Body {berkas_id (UUID bukti dari /v1/berkas, WAJIB), referensi?, catatan?}; tanpa bukti 422. Bila gelombang mengaktifkan persetujuan kedua (lunas_manual_dua_orang), pembayaran dicatat menunggu dan tagihan menunggu_konfirmasi sampai petugas LAIN menyetujui lewat POST /pembayaran/{id}/konfirmasi (pencatat sendiri ditolak 403). Tagihan biaya pendaftaran yang lunas menandai bayar = Y di SIAKAD. Tercatat di jejak.
      *
      * `POST /v1/pmb/admin/tagihan/{id}/lunas`
      *
@@ -2567,9 +2589,9 @@ final class Pmb extends Resource
     }
 
     /**
-     * Konfirmasi bukti transfer
+     * Konfirmasi bukti transfer / persetujuan kedua lunas manual
      *
-     * Body `{"diterima": true}` atau `{"diterima": false, "catatan": "..."}`.
+     * Body `{"diterima": true}` atau `{"diterima": false, "catatan": "..."}`. Pelunasan manual yang menunggu persetujuan kedua hanya boleh disetujui petugas selain pencatatnya (403 persetujuan_kedua).
      *
      * `POST /v1/pmb/admin/pembayaran/{pembayaran}/konfirmasi`
      *

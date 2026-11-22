@@ -362,7 +362,7 @@ final class Dokumen extends Resource
     /**
      * Terbitkan KHS
      *
-     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/khs. Nilai yang belum boleh tampil ditulis "-". Aturan dinamis titik `khs.lihat` dan `khs.cetak` (/v1/aturan) diperiksa setelah hak akses; pelanggaran 409 aturan_dilanggar.
+     * Body {nim, tahun_id?}. Hak sama dengan GET /v1/mahasiswa/{nim}/khs. Nilai yang belum boleh tampil ditulis "-". Scope sempit `dokumen:khs-saya`: hanya mahasiswa pemilik token (nim = dirinya, selain itu 403), `bagian` diabaikan. Aturan dinamis titik `khs.lihat` dan `khs.cetak` (/v1/aturan) diperiksa setelah hak akses; pelanggaran 409 aturan_dilanggar.
      * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
      * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
      * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
@@ -702,7 +702,7 @@ final class Dokumen extends Resource
     /**
      * Dokumen terbit
      *
-     * Admin: semua; petugas unit (dengan `bagian`): dokumen unitnya; lainnya: dokumen miliknya atau yang dibuatnya.
+     * Admin: semua; petugas unit (dengan `bagian`): dokumen unitnya; lainnya: dokumen miliknya atau yang dibuatnya. Scope sempit `dokumen:khs-saya`: hanya KHS milik pemilik token.
      *
      * `GET /v1/dokumen/terbit`
      *
@@ -720,6 +720,8 @@ final class Dokumen extends Resource
 
     /**
      * Detail dokumen terbit
+     *
+     * Scope sempit `dokumen:khs-saya`: hanya KHS milik pemilik token (selain itu 403).
      *
      * `GET /v1/dokumen/terbit/{id}`
      *
@@ -739,7 +741,7 @@ final class Dokumen extends Resource
     /**
      * Unduh PDF
      *
-     * PDF dari penyimpanan (atau 302 ke URL sementara bucket). `?unduh=1` sebagai attachment.
+     * PDF dari penyimpanan (atau 302 ke URL sementara bucket). `?unduh=1` sebagai attachment. Scope sempit `dokumen:khs-saya`: hanya KHS milik pemilik token.
      *
      * `GET /v1/dokumen/terbit/{id}/unduh`
      *
