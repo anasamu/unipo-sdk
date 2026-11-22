@@ -79,6 +79,13 @@ export interface SiakadOptions {
    * dan tidak meminta token `client_credentials`.
    */
   accessToken?: string;
+  /**
+   * Ambil token akses untuk setiap permintaan, mis. dari sesi login aplikasi (`() => session.accessToken`).
+   * Kembalikan `null` untuk mengirim tanpa header Authorization, mis. bila `baseUrl` adalah proxy server milik
+   * aplikasi yang menempelkan token sendiri (`proxySiakad`). Dipakai bila `accessToken` kosong; menggantikan
+   * token client_credentials.
+   */
+  getAccessToken?: () => string | null | undefined | Promise<string | null | undefined>;
   /** Refresh token pasangan `accessToken`; dipakai otomatis saat token akses habis (butuh clientId + clientSecret). */
   refreshToken?: string;
   /** Kedaluwarsa `accessToken` (milidetik epoch), bila diketahui. */

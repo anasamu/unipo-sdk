@@ -28,6 +28,7 @@ export {
   type MetaPeristiwa,
 } from './webhook.js';
 export { VERSION } from './version.js';
+export { proxySiakad, proxySiakadNode, type OpsiProxySiakad, type PenanganProxy, type JawabanTiruan } from './proxy.js';
 export {
   verifikasiGerbang, tandaTanganGerbang, teksTandaGerbang, konsumsiAntrean, muatRahasia, terbitkanEvent,
   type IdentitasGerbang, type PermintaanGerbang, type OpsiVerifikasiGerbang, type AmplopEvent, type PesanAntrean,

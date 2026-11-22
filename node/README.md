@@ -272,6 +272,52 @@ const tokenStore: TokenStore = {
 };
 ```
 
+## Proxy untuk komponen di browser (`unipo-ui/siakad`)
+
+Komponen `unipo-ui/siakad` berjalan di browser, sedangkan `client_secret` hanya boleh ada di server. Pasang satu
+jalur proxy di backend yang sudah Anda punya (Next.js, NestJS, Express, Hono, Bun), lalu arahkan komponen ke jalur itu:
+`<UnipoProvider baseUrl="/api/siakad">`. Tidak perlu BFF PHP.
+
+`proxySiakad` menerima `Request` dan mengembalikan `Response` (standar Web); `proxySiakadNode` untuk server bergaya
+`(req, res)`. Bawaan hanya `GET` yang diteruskan dan `/v1/auth/*` selalu ditolak; persempit dengan `izinkan`.
+Tanpa `siakad` (belum punya client_id), proxy menjawab dari `tiruan` sehingga tampilan bisa dikembangkan lebih dulu.
+
+```ts
+// Next.js: app/api/siakad/[...jalur]/route.ts
+import { Siakad, proxySiakad } from 'unipo-siakad-sdk';
+
+const siakad = process.env.SIAKAD_CLIENT_ID
+  ? new Siakad({ clientId: process.env.SIAKAD_CLIENT_ID, clientSecret: process.env.SIAKAD_CLIENT_SECRET })
+  : undefined; // tanpa kredensial: data tiruan
+
+export const GET = proxySiakad({
+  siakad,
+  awalan: '/api/siakad',
+  izinkan: ['/v1/referensi/'],
+  tiruan: { 'GET /v1/referensi/prodi': [{ kode_prodi: '55201', nama_prodi: 'Informatika', kode_jenjang: 'C' }] },
+});
+```
+
+```ts
+// Express
+app.use('/api/siakad', proxySiakadNode({ siakad, awalan: '/api/siakad', izinkan: ['/v1/referensi/'] }));
+
+// NestJS
+@Controller('api/siakad')
+export class SiakadProxyController {
+  private readonly proxy = proxySiakadNode({ siakad, awalan: '/api/siakad', izinkan: ['/v1/referensi/'] });
+  @All('*') teruskan(@Req() req: Request, @Res() res: Response) { return this.proxy(req, res); }
+}
+```
+
+Data atas nama pengguna yang login: isi `siakad` dengan fungsi per permintaan, mis.
+`siakad: async (req) => { const t = await tokenDariSesi(req); return t ? dasar.withToken(t) : null; }` (null = 401).
+Templat lengkap per framework (Next.js, NestJS, Express, Vite, Laravel) ada di
+[api.unipo.ac.id/docs/panduan/integrasi](https://api.unipo.ac.id/docs/panduan/integrasi).
+
+Token dari luar SDK (mis. sesi NextAuth) bisa dipasang dengan `getAccessToken: () => session.accessToken`; bila
+mengembalikan `null`, permintaan dikirim tanpa header Authorization (untuk proxy yang menempelkan token sendiri).
+
 ## Contoh per framework
 
 ### Next.js (App Router)
@@ -291,7 +337,7 @@ import { siakad } from '@/lib/siakad';
 
 export default async function Page() {
   const { data } = await siakad.referensi.getProdi();
-  return <ul>{data.map((p) => <li key={String(p.kode)}>{String(p.nama)}</li>)}</ul>;
+  return <ul>{data.map((p) => <li key={p.kode_prodi ?? ''}>{p.nama_prodi}</li>)}</ul>;
 }
 ```
 
