@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File
+ * LPPM: Umum, LPPM: Tim LP2M, LPPM: Master, LPPM: Review, LPPM: Kegiatan, LPPM: Pelaksanaan, LPPM: Luaran, LPPM: Peneliti, LPPM: Rekap, LPPM: Kolaborasi, LPPM: Publikasi, LPPM: KKN, LPPM: File, LPPM: paket kebijakan hibah
  */
 final class Lppm extends Resource
 {
@@ -245,7 +245,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, username?: string, peran?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -339,7 +339,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, jenis?: string, username?: string, untuk?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -433,7 +433,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, jenis?: string, induk_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -527,7 +527,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, kategori?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -638,7 +638,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:write`
      *
-     * @param array{kode: string, nama: string, jenis: string, kelompok?: string, sumber_dana?: string, penyelenggara?: string, dana_maks?: float|int|null, durasi_tahun_maks?: int, tkt_min?: int, tkt_maks?: int, anggota_dosen_min?: int, anggota_dosen_maks?: int, mahasiswa_min?: int, mahasiswa_maks?: int, syarat_jabatan_ketua?: string, syarat_lain?: string, wajib_mitra?: bool, wajib_persetujuan_fakultas?: bool, maks_usulan_ketua?: int, keterangan?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, kelompok?: string, sumber_dana?: string, penyelenggara?: string, dana_maks?: float|int|null, durasi_tahun_maks?: int, tkt_min?: int, tkt_maks?: int, anggota_dosen_min?: int, anggota_dosen_maks?: int, mahasiswa_min?: int, mahasiswa_maks?: int, syarat_jabatan_ketua?: string, syarat_lain?: string, wajib_mitra?: bool, wajib_persetujuan_fakultas?: bool, maks_usulan_ketua?: int, keterangan?: string, aktif?: bool, urut?: int, mode_review?: string, konflik_kepentingan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -676,7 +676,7 @@ final class Lppm extends Resource
      * scope: `lppm:write`
      *
      * @param int|string $id ID
-     * @param array{kode: string, nama: string, jenis: string, kelompok?: string, sumber_dana?: string, penyelenggara?: string, dana_maks?: float|int|null, durasi_tahun_maks?: int, tkt_min?: int, tkt_maks?: int, anggota_dosen_min?: int, anggota_dosen_maks?: int, mahasiswa_min?: int, mahasiswa_maks?: int, syarat_jabatan_ketua?: string, syarat_lain?: string, wajib_mitra?: bool, wajib_persetujuan_fakultas?: bool, maks_usulan_ketua?: int, keterangan?: string, aktif?: bool, urut?: int, ...} $body
+     * @param array{kode: string, nama: string, jenis: string, kelompok?: string, sumber_dana?: string, penyelenggara?: string, dana_maks?: float|int|null, durasi_tahun_maks?: int, tkt_min?: int, tkt_maks?: int, anggota_dosen_min?: int, anggota_dosen_maks?: int, mahasiswa_min?: int, mahasiswa_maks?: int, syarat_jabatan_ketua?: string, syarat_lain?: string, wajib_mitra?: bool, wajib_persetujuan_fakultas?: bool, maks_usulan_ketua?: int, keterangan?: string, aktif?: bool, urut?: int, mode_review?: string, konflik_kepentingan?: string, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -715,7 +715,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, skema_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -903,7 +903,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, skema_id?: string, periode_id?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1091,7 +1091,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, jenis?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1185,7 +1185,7 @@ final class Lppm extends Resource
      *
      * scope: `lppm:read`
      *
-     * @param array{q?: string, aktif?: string, ...} $query
+     * @param array{q?: string, aktif?: string, peringkat?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -1498,6 +1498,26 @@ final class Lppm extends Resource
     public function getKegiatanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/lppm/kegiatan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan hibah & sisa pagu (layar penetapan)
+     *
+     * Tim LPPM. Paket kebijakan hibah yang mengikat usulan (versi terkunci, ber-SK atau tidak), reviewer minimum vs review selesai, ambang vs skor, termin, pencair, pagu/kuota skema-periode (sumber paket atau data induk, terpakai, sisa), dan masalah_penetapan (paket ber-SK memblokir, tanpa SK peringatan).
+     *
+     * `GET /v1/lppm/kegiatan/{id}/kebijakan-hibah`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID angka atau UUID kegiatan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getKegiatanByIdKebijakanHibah(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/kegiatan/{id}/kebijakan-hibah', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -3311,5 +3331,194 @@ final class Lppm extends Resource
     public function postFileByEntitasById(int|string $entitas, int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/lppm/file/{entitas}/{id}', ['entitas' => $entitas, 'id' => $id], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: ringkasan
+     *
+     * Kebijakan yang berlaku sekarang (versi terbit berdasar SK, atau nilai bawaan sistem beserta peringatan), nilai bawaan, daftar versi, dan boleh_kelola. Pemilik: pimpinan LP2M.
+     *
+     * `GET /v1/lppm/paket-hibah`
+     *
+     * scope: `lppm:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPaketHibah(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/paket-hibah', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: yang berlaku
+     *
+     * {sumber: aturan|bawaan, versi, isi, peringatan}. Query tanggal=YYYY-MM-DD (bawaan hari ini).
+     *
+     * `GET /v1/lppm/paket-hibah/berlaku`
+     *
+     * scope: `lppm:read`
+     *
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPaketHibahBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/paket-hibah/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: draf versi baru
+     *
+     * Body {nama, dasar_hukum?, berlaku_tanggal?, catatan_perubahan?, isi?, sk_id?}. Isi kosong = nilai bawaan.
+     *
+     * `POST /v1/lppm/paket-hibah/versi`
+     *
+     * scope: `lppm:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPaketHibahVersi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/paket-hibah/versi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: detail versi
+     *
+     * Isi, SK, riwayat, perubahan dari versi induk.
+     *
+     * `GET /v1/lppm/paket-hibah/versi/{id}`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPaketHibahVersiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/paket-hibah/versi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: ubah draf
+     *
+     * Versi terbit dikunci; salin menjadi versi baru untuk mengubah.
+     *
+     * `PUT /v1/lppm/paket-hibah/versi/{id}`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putPaketHibahVersiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/lppm/paket-hibah/versi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: salin jadi versi baru
+     *
+     * `POST /v1/lppm/paket-hibah/versi/{id}/salin`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPaketHibahVersiByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/paket-hibah/versi/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: banding versi
+     *
+     * Perubahan dibanding versi `dengan` (bawaan: yang berlaku; tanpa versi terbit: nilai bawaan).
+     *
+     * `GET /v1/lppm/paket-hibah/versi/{id}/banding`
+     *
+     * scope: `lppm:read`
+     *
+     * @param int|string $id ID versi
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPaketHibahVersiByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/lppm/paket-hibah/versi/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: Terbitkan (wajib alasan perubahan; SK dianjurkan)
+     *
+     * `POST /v1/lppm/paket-hibah/versi/{id}/terbitkan`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPaketHibahVersiByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/paket-hibah/versi/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: Arsipkan versi terbit
+     *
+     * `POST /v1/lppm/paket-hibah/versi/{id}/arsipkan`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPaketHibahVersiByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/paket-hibah/versi/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Paket kebijakan hibah penelitian & PkM: Hapus draf
+     *
+     * `POST /v1/lppm/paket-hibah/versi/{id}/hapus`
+     *
+     * scope: `lppm:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPaketHibahVersiByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/lppm/paket-hibah/versi/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 }

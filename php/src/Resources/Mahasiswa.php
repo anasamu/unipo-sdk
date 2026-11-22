@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan
+ * Mahasiswa, KRS, Nilai, Jadwal, Presensi, Keuangan, Lulusan, Akademik: Sanggah nilai
  */
 final class Mahasiswa extends Resource
 {
@@ -316,5 +316,66 @@ final class Mahasiswa extends Resource
     public function getByNimKelulusan(int|string $nim, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/mahasiswa/{nim}/kelulusan', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Sanggah nilai saya
+     *
+     * Masa sanggah periode (dijadwalkan, boleh, mulai/selesai dari aturan nilai.sanggah), mata kuliah bernilai beserta sanggahnya, riwayat sanggah.
+     *
+     * `GET /v1/mahasiswa/{nim}/sanggah-nilai`
+     *
+     * scope: `nilai:read` · hanya token pengguna
+     *
+     * @param int|string $nim NIM (hanya milik sendiri)
+     * @param array{tahun_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getByNimSanggahNilai(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/mahasiswa/{nim}/sanggah-nilai', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan sanggah nilai
+     *
+     * Mahasiswa sendiri. Body {idkrs, alasan (min. 20 karakter), berkas_id? (UUID berkas milik sendiri)}. 409 di_luar_masa bila di luar masa sanggah atau masa belum dibuka BAAK. Kabar ke dosen pengampu dan prodi.
+     *
+     * `POST /v1/mahasiswa/{nim}/sanggah-nilai`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $nim NIM (hanya milik sendiri)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByNimSanggahNilai(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/mahasiswa/{nim}/sanggah-nilai', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Batalkan sanggah
+     *
+     * Mahasiswa, selama belum diputuskan.
+     *
+     * `POST /v1/mahasiswa/{nim}/sanggah-nilai/{id}/batal`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $nim NIM (hanya milik sendiri)
+     * @param int|string $id UUID sanggah
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByNimSanggahNilaiByIdBatal(int|string $nim, int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/mahasiswa/{nim}/sanggah-nilai/{id}/batal', ['nim' => $nim, 'id' => $id], $query, null, $options, false, false);
     }
 }

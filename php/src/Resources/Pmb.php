@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * PMB, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan
+ * PMB, PMB: kebijakan kelulusan seleksi, PMB Publik, PMB Akun, PMB Pendaftar, PMB Admin, PMB Keuangan
  */
 final class Pmb extends Resource
 {
@@ -65,6 +65,195 @@ final class Pmb extends Resource
     public function getPendaftarByNoPmb(int|string $no_pmb, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/pmb/pendaftar/{no_pmb}', ['no_pmb' => $no_pmb], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: ringkasan
+     *
+     * Kebijakan yang berlaku sekarang (versi terbit berdasar SK, atau nilai bawaan sistem beserta peringatan), nilai bawaan, daftar versi, dan boleh_kelola. Pemilik: Ketua PMB.
+     *
+     * `GET /v1/pmb/aturan-seleksi`
+     *
+     * scope: `pmb:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanSeleksi(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/aturan-seleksi', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: yang berlaku
+     *
+     * {sumber: aturan|bawaan, versi, isi, peringatan}. Query tanggal=YYYY-MM-DD (bawaan hari ini).
+     *
+     * `GET /v1/pmb/aturan-seleksi/berlaku`
+     *
+     * scope: `pmb:read`
+     *
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanSeleksiBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/aturan-seleksi/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: draf versi baru
+     *
+     * Body {nama, dasar_hukum?, berlaku_tanggal?, catatan_perubahan?, isi?, sk_id?}. Isi kosong = nilai bawaan.
+     *
+     * `POST /v1/pmb/aturan-seleksi/versi`
+     *
+     * scope: `pmb:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanSeleksiVersi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/aturan-seleksi/versi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: detail versi
+     *
+     * Isi, SK, riwayat, perubahan dari versi induk.
+     *
+     * `GET /v1/pmb/aturan-seleksi/versi/{id}`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanSeleksiVersiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/aturan-seleksi/versi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: ubah draf
+     *
+     * Versi terbit dikunci; salin menjadi versi baru untuk mengubah.
+     *
+     * `PUT /v1/pmb/aturan-seleksi/versi/{id}`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAturanSeleksiVersiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/pmb/aturan-seleksi/versi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: salin jadi versi baru
+     *
+     * `POST /v1/pmb/aturan-seleksi/versi/{id}/salin`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanSeleksiVersiByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/aturan-seleksi/versi/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: banding versi
+     *
+     * Perubahan dibanding versi `dengan` (bawaan: yang berlaku; tanpa versi terbit: nilai bawaan).
+     *
+     * `GET /v1/pmb/aturan-seleksi/versi/{id}/banding`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID versi
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanSeleksiVersiByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/aturan-seleksi/versi/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: Terbitkan (wajib alasan perubahan; SK dianjurkan)
+     *
+     * `POST /v1/pmb/aturan-seleksi/versi/{id}/terbitkan`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanSeleksiVersiByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/aturan-seleksi/versi/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: Arsipkan versi terbit
+     *
+     * `POST /v1/pmb/aturan-seleksi/versi/{id}/arsipkan`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanSeleksiVersiByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/aturan-seleksi/versi/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kebijakan kelulusan seleksi PMB: Hapus draf
+     *
+     * `POST /v1/pmb/aturan-seleksi/versi/{id}/hapus`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanSeleksiVersiByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/aturan-seleksi/versi/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -1848,7 +2037,7 @@ final class Pmb extends Resource
     /**
      * Info daftar ulang
      *
-     * Pilihan yang lulus, kuota, jumlah sudah daftar ulang, dan NIM terakhir prodi (bantuan memberi NIM).
+     * Pilihan yang lulus, kuota, jumlah sudah daftar ulang, periode masuk (`tahun_id`, dari periode PMB gelombang), dan pratinjau NIM per pilihan lulus (`nim_usulan`: nim, pola, sumber aturan/format_prodi/tebakan, aturan, catatan; atau `galat`). Pratinjau tidak memesan nomor.
      *
      * `GET /v1/pmb/admin/pendaftaran/{id}/daftar-ulang`
      *
@@ -1868,14 +2057,14 @@ final class Pmb extends Resource
     /**
      * Proses daftar ulang (jadi mahasiswa)
      *
-     * Memakai logika halaman Daftar Ulang SIAKAD: membuat m_mahasiswa, status semester, data orang tua, dan akun MAHASISWA. Body: `id_pilihan`, `nim`, opsional `tahun_id` (default tahun akademik aktif).
+     * Memakai logika halaman Daftar Ulang SIAKAD: membuat m_mahasiswa, status semester, data orang tua, dan akun MAHASISWA. Body: `id_pilihan`, opsional `tahun_id` (bawaan periode masuk gelombang). NIM dihitung server dari aturan NIM berversi (/v1/admisi/aturan-nim, format prodi, atau pola NIM angkatan terakhir) di dalam kunci penetapan NIM sehingga aman dari petugas lain yang menetapkan bersamaan; `nim` hanya untuk penetapan manual. Aturan titik pmb.daftar_ulang (mis. wajib lunas) ditegakkan (409 aturan_dilanggar).
      *
      * `POST /v1/pmb/admin/pendaftaran/{id}/daftar-ulang`
      *
      * scope: `pmb:write`
      *
      * @param int|string $id ID pendaftaran (UUID)
-     * @param array{id_pilihan: int|null, nim: string|null, tahun_id?: string|null, ...} $body
+     * @param array{id_pilihan: int|null, nim?: string|null, tahun_id?: string|null, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -2172,7 +2361,7 @@ final class Pmb extends Resource
     /**
      * Tandai notifikasi terkirim/gagal
      *
-     * Body `{"berhasil": true}`.
+     * Untuk pesan yang dikirim manual (SMS, atau email/WA yang gagal otomatis). Body `{"berhasil": true}`. Pesan berstatus antre atau gagal.
      *
      * `POST /v1/pmb/admin/notifikasi/{id}/terkirim`
      *
@@ -2187,6 +2376,44 @@ final class Pmb extends Resource
     public function postAdminNotifikasiByIdTerkirim(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/pmb/admin/notifikasi/{id}/terkirim', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pesan email/WhatsApp/SMS pendaftar
+     *
+     * Semua pesan non-aplikasi beserta status kirim (antre, terkirim, gagal), percobaan, alasan gagal (`galat`), jadwal coba lagi (`kirim_setelah`). Email dan WhatsApp dikirim otomatis tugas penjadwal pmb-kirim-pesan lewat penyedia Integrasi (sampai 5 percobaan); SMS dikirim manual. meta: ringkasan per kanal/status, penyedia aktif {email, whatsapp}.
+     *
+     * `GET /v1/pmb/admin/notifikasi/pesan`
+     *
+     * scope: `pmb:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, kanal?: string, status?: string, q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminNotifikasiPesan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/notifikasi/pesan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Kirim ulang pesan gagal
+     *
+     * Body `{"id": [12, 13]}` (maks. 200). Pesan email/WA kembali ke antrean dengan percobaan dari nol; dikirim pada jalan penjadwal berikutnya.
+     *
+     * `POST /v1/pmb/admin/notifikasi/ulang`
+     *
+     * scope: `pmb:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAdminNotifikasiUlang(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/admin/notifikasi/ulang', [], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -2357,5 +2584,161 @@ final class Pmb extends Resource
     public function postPembayaranNotifikasi(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/pmb/pembayaran/notifikasi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia saya
+     *
+     * Apakah pengguna ketua/pengelola PMB (semua tugas) dan daftar tugasnya (konfigurasi, konten, verifikasi, seleksi, nim, keuangan) beserta batas gelombang/prodi. Untuk menampilkan atau menyembunyikan tombol di aplikasi PMB.
+     *
+     * `GET /v1/pmb/admin/tugas-saya`
+     *
+     * scope: `pmb:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminTugasSaya(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/tugas-saya', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Anggota panitia PMB
+     *
+     * Hanya ketua/pengelola PMB (izin pmb.panitia.atur). Akun yang perannya memegang izin pmb.panitia (penugasan aktif) beserta nama, peran, dan penanda ketua; ditambah akun yang sudah punya baris tugas. Untuk memilih anggota di layar Tugas panitia (tanpa mengetik username).
+     *
+     * `GET /v1/pmb/admin/panitia-anggota`
+     *
+     * scope: `pmb:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminPanitiaAnggota(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/panitia-anggota', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: daftar
+     *
+     * Pembagian wewenang panitia PMB per jenis tugas (konfigurasi, konten, verifikasi, seleksi, nim, keuangan), dibatasi gelombang dan/atau prodi bila diisi. Username `*` berlaku untuk semua anggota panitia. Ketua/pengelola PMB (izin pmb.panitia.atur) mengatur; anggota melihat tugasnya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/pmb/admin/tugas-panitia`
+     *
+     * scope: `pmb:read` · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, tugas?: string, gelombang_id?: string, kode_prodi?: string, aktif?: string, username?: string, q?: string, dari?: string, sampai?: string, urut?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminTugasPanitia(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/tugas-panitia', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: tambah
+     *
+     * Pengelola modul.
+     *
+     * `POST /v1/pmb/admin/tugas-panitia`
+     *
+     * scope: `pmb:write`
+     *
+     * @param array{username: string, tugas: string, gelombang_id?: int, kode_prodi?: string, mulai?: string, selesai?: string, aktif?: bool, nomor_sk?: string, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAdminTugasPanitia(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/pmb/admin/tugas-panitia', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: detail
+     *
+     * Pembagian wewenang panitia PMB per jenis tugas (konfigurasi, konten, verifikasi, seleksi, nim, keuangan), dibatasi gelombang dan/atau prodi bila diisi. Username `*` berlaku untuk semua anggota panitia. Ketua/pengelola PMB (izin pmb.panitia.atur) mengatur; anggota melihat tugasnya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/pmb/admin/tugas-panitia/{id}`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminTugasPanitiaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/tugas-panitia/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: ubah
+     *
+     * Pengelola modul. Kolom yang tidak dikirim tidak berubah.
+     *
+     * `PUT /v1/pmb/admin/tugas-panitia/{id}`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array{username: string, tugas: string, gelombang_id?: int, kode_prodi?: string, mulai?: string, selesai?: string, aktif?: bool, nomor_sk?: string, keterangan?: string, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAdminTugasPanitiaById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/pmb/admin/tugas-panitia/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: hapus
+     *
+     * Pengelola modul.
+     *
+     * `DELETE /v1/pmb/admin/tugas-panitia/{id}`
+     *
+     * scope: `pmb:write`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAdminTugasPanitiaById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/pmb/admin/tugas-panitia/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tugas panitia: riwayat status
+     *
+     * Linimasa baris dari jejak audit: diajukan, diubah, aksi alur kerja (proses, setujui, tolak, ...) beserta catatan/alasan, lampiran ditambah/dihapus, pelaku, dan waktu. Pembagian wewenang panitia PMB per jenis tugas (konfigurasi, konten, verifikasi, seleksi, nim, keuangan), dibatasi gelombang dan/atau prodi bila diisi. Username `*` berlaku untuk semua anggota panitia. Ketua/pengelola PMB (izin pmb.panitia.atur) mengatur; anggota melihat tugasnya sendiri. Pengelola melihat semua; pengguna lain hanya miliknya sendiri (username).
+     *
+     * `GET /v1/pmb/admin/tugas-panitia/{id}/riwayat`
+     *
+     * scope: `pmb:read`
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAdminTugasPanitiaByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/pmb/admin/tugas-panitia/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
     }
 }

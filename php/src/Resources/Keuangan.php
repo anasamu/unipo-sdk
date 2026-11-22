@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan
+ * Keuangan, Keuangan: Keringanan dan beasiswa, Keuangan: Beasiswa, Keuangan: Tagihan, Keuangan: Tarif, Keuangan: Denda, Keuangan: Pembayaran dan kwitansi, Keuangan: Kasir, Keuangan: Refund dan deposit, Keuangan: Potongan, Keuangan: Rekonsiliasi dan laporan, Keuangan: Mahasiswa, Keuangan: Pengaturan, Keuangan: UKT, Keuangan: Dispensasi, Keuangan: Cicilan, Keuangan: Keuangan saya (mahasiswa), Keuangan: petunjuk bayar (BAUK)
  */
 final class Keuangan extends Resource
 {
@@ -111,7 +111,7 @@ final class Keuangan extends Resource
     /**
      * Aturan pencairan program
      *
-     * Mode (ke_mahasiswa|ke_tagihan|campuran), komponen dana [{kode, label, nominal, tujuan: tagihan|mahasiswa|catat}], prioritas kode_biaya, lintas_periode, aturan_sisa, aturan_lulus, pagu (+ terpakai), persetujuan. Belum tersimpan = bawaan (KIP Kuliah: biaya pendidikan ke tagihan, sisa deposit).
+     * Mode (ke_mahasiswa|ke_tagihan|campuran|pembebasan), komponen [{kode, label, nominal, tujuan: tagihan|mahasiswa|catat|bebas, dasar?: nominal|persen, persen?, kode_biaya?: [..]}], prioritas kode_biaya, lintas_periode, aturan_sisa, aturan_lulus, pagu (+ terpakai), persetujuan, boleh_digabung (pembebasan di atas keringanan lain; bawaan tidak). Belum tersimpan = bawaan (KIP Kuliah: biaya pendidikan ke tagihan, sisa deposit). Pembebasan = beasiswa tanpa dana masuk: tagihan dikurangi sebagai keringanan.
      *
      * `GET /v1/keuangan/beasiswa/program/{id}/aturan`
      *
@@ -171,7 +171,7 @@ final class Keuangan extends Resource
     /**
      * Salurkan dana satu periode
      *
-     * Body {tahun_id, penerimaan_id?, pendaftar_id?: [..]}. Komponen ke tagihan = dana deposit bertujuan (menunggu bila tagihan periode belum terbit; alokasi berkwitansi berurutan prioritas), ke mahasiswa = rencana transfer, catat = hanya dicatat. Cek pagu. Idempoten.
+     * Body {tahun_id, penerimaan_id?, pendaftar_id?: [..], pratinjau?: bool}. Komponen ke tagihan = dana deposit bertujuan (menunggu bila tagihan periode belum terbit; alokasi berkwitansi berurutan prioritas), ke mahasiswa = rencana transfer, catat = hanya dicatat, bebas (mode pembebasan) = tagihan periode itu dikurangi sebagai keringanan keu_mhs_potongan tanpa dana/deposit/kwitansi (nominal berurutan jenis biaya atau persen per jenis biaya; tidak di atas keringanan lain kecuali boleh_digabung; tidak dobel dengan potongan UKT tahap 1 program yang sama). pratinjau = hitung tanpa menyimpan. Cek pagu. Idempoten.
      *
      * `POST /v1/keuangan/beasiswa/program/{id}/salurkan`
      *
@@ -186,6 +186,26 @@ final class Keuangan extends Resource
     public function postBeasiswaProgramByIdSalurkan(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/salurkan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Batalkan pembebasan biaya
+     *
+     * Body {tahun_id, pendaftar_id?: [..] (kosong = semua penerima), alasan}. Potongan pembebasan dikembalikan ke tagihan (tagihan kembali), baris keu_mhs_potongan berstatus dibatalkan, penyaluran batal (bisa diterapkan lagi). Izin beasiswa.cair atau beasiswa.cair.setujui; mahasiswa mendapat Kabar.
+     *
+     * `POST /v1/keuangan/beasiswa/program/{id}/pembebasan/batal`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID program
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postBeasiswaProgramByIdPembebasanBatal(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/beasiswa/program/{id}/pembebasan/batal', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**
@@ -545,7 +565,7 @@ final class Keuangan extends Resource
     /**
      * Hak akses keuangan saya
      *
-     * Pengelola keuangan (ADMIN, BAK, KEUANGAN, peran keuangan:kelola) atau mahasiswa, prodi yang boleh, tahun aktif, mode tagihan SIAKAD, dan sesi kasir terbuka.
+     * Pengelola keuangan (administrator, peran keuangan:kelola; level KEUANGAN lewat peran setara levelnya; level BAK hanya melihat ringkasan mahasiswa lewat izin baak.keuangan.lihat) atau mahasiswa, prodi yang boleh, tahun aktif, mode tagihan SIAKAD, dan sesi kasir terbuka.
      *
      * `GET /v1/keuangan/saya`
      *
@@ -889,9 +909,9 @@ final class Keuangan extends Resource
     }
 
     /**
-     * Catat pembayaran (kasir/offline)
+     * Catat pembayaran (loket web / integrasi)
      *
-     * Body: {"nim", "tahun_id", "kode_biaya", "jumlah", "potongan", "tanggal", "metode": "tunai|transfer|va|online|lainnya", "keterangan", "referensi"}. Ditulis ke t_mahasiswa_bayar dengan langkah popup input pembayaran (validasi nominal, cek_her_persen, m_log). Tidak boleh melebihi sisa tagihan. referensi sama = tidak dicatat dua kali. Pembayaran kasir masuk ke sesi kasir yang terbuka. Menghasilkan kwitansi digital.
+     * TOKEN PETUGAS = loket web BAUK, satu jalur dengan UNIPO Kasir (Kasir\Services\Penerimaan): izin kasir.terima untuk unit penerbit jenis biaya, aturan titik kasir.terima + jadwal aktif (422 aturan_penerimaan), peramban disetujui (query kasir_perangkat, kasir_waktu, kasir_tanda; 403 perangkat_belum_disetujui) dan sesi kasir terbuka di peramban itu (403 sesi_belum_dibuka). Body: {"uuid" (idempoten), "nim", "tahun_id", "kode_biaya", "jumlah", "potongan", "ket_potongan", "metode": "tunai|transfer|va|lainnya", "keterangan", "referensi"}; tanggal = hari ini. Jawaban transaksi + kwitansi + peringatan (aturan tanpa SK). TOKEN APLIKASI (integrasi, keuangan:write): jalur lama, body + "tanggal", metode online, referensi sama = tidak dicatat dua kali.
      *
      * `POST /v1/keuangan/transaksi`
      *
@@ -926,9 +946,9 @@ final class Keuangan extends Resource
     }
 
     /**
-     * Batalkan pembayaran
+     * Ajukan pembatalan pembayaran
      *
-     * Body: {"alasan"}. Baris t_mahasiswa_bayar yang dibuat transaksi ini dihapus (langkah hapus pembayaran menu Cek Pembayaran, tercatat di m_log); angsuran dan deposit dikembalikan.
+     * Body: {"alasan"} (min. 5 karakter). Pengelola keuangan prodi itu. TIDAK langsung membatalkan: membuat pengajuan pembatalan (status diajukan) yang harus disetujui pemegang izin bauk.pembatalan.setujui (bawaan Kepala BAUK) lewat /keuangan/pembatalan/{id}/setujui. Jawaban = transaksi + pembatalan. 409 bila sudah ada pengajuan yang menunggu.
      *
      * `POST /v1/keuangan/transaksi/{id}/batal`
      *
@@ -943,6 +963,65 @@ final class Keuangan extends Resource
     public function postTransaksiByIdBatal(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/keuangan/transaksi/{id}/batal', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pengajuan pembatalan pembayaran
+     *
+     * Yang boleh diputus pemilik token (izin bauk.pembatalan.setujui di unit penerbit jenis biaya), yang ia ajukan, dan milik prodi kelolanya. Saring status (diajukan|disetujui|ditolak), transaksi_id. Setiap baris: boleh_putus.
+     *
+     * `GET /v1/keuangan/pembatalan`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{status?: string, transaksi_id?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPembatalan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/pembatalan', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Setujui pembatalan pembayaran (storno)
+     *
+     * Body: {"catatan"?}. Pemegang izin bauk.pembatalan.setujui untuk unit penerbit jenis biaya, bukan pengaju. Baris pembayaran asli TIDAK dihapus: dibuat baris pembalik negatif (t_mahasiswa_bayar, ket STORNO), transaksi menjadi batal (kwitansi/QR = BATAL), angsuran/deposit/sesi kasir disesuaikan, jurnal pembalik dibuat. Jawaban {pembatalan, transaksi, jurnal}.
+     *
+     * `POST /v1/keuangan/pembatalan/{id}/setujui`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID/UUID/nomor pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPembatalanByIdSetujui(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/pembatalan/{id}/setujui', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tolak pembatalan pembayaran
+     *
+     * Body: {"catatan"} (alasan, min. 5 karakter). Penyetuju yang sama; pembayaran tetap sah.
+     *
+     * `POST /v1/keuangan/pembatalan/{id}/tolak`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID/UUID/nomor pengajuan
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPembatalanByIdTolak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/pembatalan/{id}/tolak', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -986,9 +1065,67 @@ final class Keuangan extends Resource
     }
 
     /**
+     * Loket: cari mahasiswa
+     *
+     * Token petugas berizin kasir.terima. NIM/nama (min. 3 huruf), maks. 30, hanya prodi yang dilayani jenis biaya terbitan unit petugas; per baris status_label, bisa_diproses, alasan, tunggakan (aturan kasir.terima jalur web).
+     *
+     * `GET /v1/keuangan/loket/mahasiswa`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{q?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLoketMahasiswa(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/loket/mahasiswa', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Loket: tagihan mahasiswa
+     *
+     * Token petugas berizin kasir.terima (baca saja, lingkup unit penerbit). Tagihan jenis biaya terbitan unit petugas dengan boleh/alasan (aturan kasir.terima + jadwal), tunggakan per periode, riwayat bayar, total.
+     *
+     * `GET /v1/keuangan/loket/mahasiswa/{nim}`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $nim NIM
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getLoketMahasiswaByNim(int|string $nim, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/loket/mahasiswa/{nim}', ['nim' => $nim], $query, null, $options, false, false);
+    }
+
+    /**
+     * Daftarkan peramban loket web
+     *
+     * Token petugas berizin kasir.terima. Body: {"perangkat_id", "kunci_publik" (PEM ECDSA P-256 dari WebCrypto), "nama", "sidik": {"nama_komputer", "os", "versi"}, "unit_id" (diminta), "catatan", "ajukan_ulang"}; ditandatangani kunci itu (query kasir_perangkat, kasir_waktu, kasir_tanda). Peramban berstatus menunggu sampai disetujui pemegang kasir.perangkat.setujui (sama dengan komputer UNIPO Kasir). Jawaban {perangkat, sesi_saya}.
+     *
+     * `POST /v1/keuangan/kasir/peramban`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKasirPeramban(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/kasir/peramban', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Buka sesi kasir
      *
-     * Body: {"saldo_awal", "loket"}. Satu sesi terbuka per kasir.
+     * Token petugas (loket web): sesi di peramban yang disetujui (bukti peramban di query), body {"saldo_awal", "catatan"}; satu sesi terbuka per peramban dan per petugas. Token aplikasi: body {"saldo_awal", "loket"}.
      *
      * `POST /v1/keuangan/kasir/buka`
      *
@@ -1007,7 +1144,7 @@ final class Keuangan extends Resource
     /**
      * Tutup sesi kasir
      *
-     * Body: {"setoran", "catatan"}. Selisih = setoran - (saldo awal + total tunai). Rekap per metode.
+     * Sesi peramban: body {"uang_fisik", "setoran", "catatan"} dengan bukti peramban; selisih = uang fisik - (saldo awal + tunai), rekap per metode & jenis biaya. Sesi lama tanpa perangkat: body {"setoran", "catatan"}, ditutup kasirnya.
      *
      * `POST /v1/keuangan/kasir/{id}/tutup`
      *
@@ -3056,7 +3193,7 @@ final class Keuangan extends Resource
     /**
      * Statistik keringanan dan beasiswa
      *
-     * Transparansi: per skema (pengajuan, menunggu, disetujui, ditolak, total potongan, kuota), per kategori, per unit penanggung biaya, per prodi, dan persentase potongan terhadap tagihan periode. Pengelola berlingkup unit hanya melihat prodinya.
+     * Transparansi: per skema (pengajuan, menunggu, disetujui, ditolak, total potongan, kuota), per kategori, per unit penanggung biaya, per prodi, dan persentase potongan terhadap tagihan periode. Hanya pengelola keuangan (berlingkup unit: prodinya) atau pimpinan bidang keuangan (izin dashboard.bidang.keuangan global); selain itu 403.
      *
      * `GET /v1/keuangan/keringanan/statistik`
      *
@@ -3841,5 +3978,293 @@ final class Keuangan extends Resource
     public function getPengaturanByIdRiwayat(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/keuangan/pengaturan/{id}/riwayat', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Cara bayar tagihan
+     *
+     * online = payment gateway aktif (Pustikom » Integrasi) beserta metode tiap penyedia; tanpa gateway: petunjuk bayar di loket.
+     *
+     * `GET /v1/keuangan/saya/cara-bayar`
+     *
+     * scope: `keuangan:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSayaCaraBayar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/saya/cara-bayar', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Bayar online invoice saya
+     *
+     * Body {metode: checkout|va|qris, kanal? (kode bank untuk va), penyedia?}. Jumlah dari invoice; transaksi menunggu untuk invoice yang sama dipakai ulang. Hasil: url_bayar / nomor_va / qr_string. 409 online_belum_tersedia bila gateway belum aktif.
+     *
+     * `POST /v1/keuangan/saya/invoice/{nomor}/bayar`
+     *
+     * scope: `keuangan:write` · hanya token pengguna
+     *
+     * @param int|string $nomor Nomor invoice (POST /v1/keuangan/invoice)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSayaInvoiceByNomorBayar(int|string $nomor, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/saya/invoice/{nomor}/bayar', ['nomor' => $nomor], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: ringkasan
+     *
+     * Kebijakan yang berlaku sekarang (versi terbit berdasar SK, atau nilai bawaan sistem beserta peringatan), nilai bawaan, daftar versi, dan boleh_kelola. Pemilik: BAUK.
+     *
+     * `GET /v1/keuangan/petunjuk-bayar`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPetunjukBayar(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/petunjuk-bayar', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: yang berlaku
+     *
+     * {sumber: aturan|bawaan, versi, isi, peringatan}. Query tanggal=YYYY-MM-DD (bawaan hari ini).
+     *
+     * `GET /v1/keuangan/petunjuk-bayar/berlaku`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPetunjukBayarBerlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/petunjuk-bayar/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: draf versi baru
+     *
+     * Body {nama, dasar_hukum?, berlaku_tanggal?, catatan_perubahan?, isi?, sk_id?}. Isi kosong = nilai bawaan.
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: detail versi
+     *
+     * Isi, SK, riwayat, perubahan dari versi induk.
+     *
+     * `GET /v1/keuangan/petunjuk-bayar/versi/{id}`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPetunjukBayarVersiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/petunjuk-bayar/versi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: ubah draf
+     *
+     * Versi terbit dikunci; salin menjadi versi baru untuk mengubah.
+     *
+     * `PUT /v1/keuangan/petunjuk-bayar/versi/{id}`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putPetunjukBayarVersiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/keuangan/petunjuk-bayar/versi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: salin jadi versi baru
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/salin`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: banding versi
+     *
+     * Perubahan dibanding versi `dengan` (bawaan: yang berlaku; tanpa versi terbit: nilai bawaan).
+     *
+     * `GET /v1/keuangan/petunjuk-bayar/versi/{id}/banding`
+     *
+     * scope: `keuangan:read`
+     *
+     * @param int|string $id ID versi
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getPetunjukBayarVersiByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/keuangan/petunjuk-bayar/versi/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: Terbitkan (wajib alasan perubahan; SK dianjurkan)
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/terbitkan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: Arsipkan versi terbit
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/arsipkan`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Petunjuk dan rekening bayar mahasiswa: Hapus draf
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/hapus`
+     *
+     * scope: `keuangan:write`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ajukan persetujuan rekening
+     *
+     * Body {catatan?}. Draf yang mengubah rekening dibanding yang berlaku tidak bisa diterbitkan langsung (409 perlu_persetujuan); kabar dikirim ke Kepala BAUK.
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/ajukan`
+     *
+     * scope: `keuangan:write` · hanya token pengguna
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdAjukan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/ajukan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Setujui rekening (Kepala BAUK)
+     *
+     * Versi langsung terbit. Pengusul tidak boleh menyetujui sendiri (409). Body {catatan?}.
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/setujui`
+     *
+     * scope: `keuangan:write` · hanya token pengguna
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdSetujui(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/setujui', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Tolak rekening (Kepala BAUK)
+     *
+     * Body {catatan} wajib. Pengusul mendapat kabar; draf bisa diperbaiki lalu diajukan ulang.
+     *
+     * `POST /v1/keuangan/petunjuk-bayar/versi/{id}/tolak`
+     *
+     * scope: `keuangan:write` · hanya token pengguna
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postPetunjukBayarVersiByIdTolak(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/keuangan/petunjuk-bayar/versi/{id}/tolak', ['id' => $id], $query, null, $options, false, false);
     }
 }

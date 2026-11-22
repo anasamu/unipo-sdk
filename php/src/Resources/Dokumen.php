@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Arsip terbit, Dokumen: Verifikasi publik
+ * Dokumen: Templat, Dokumen: Templat Word, Dokumen: Terbitkan, Dokumen: Desain KTM, Dokumen: Arsip terbit, Dokumen: Verifikasi publik
  */
 final class Dokumen extends Resource
 {
@@ -239,6 +239,25 @@ final class Dokumen extends Resource
     }
 
     /**
+     * Periksa berkas Word
+     *
+     * Multipart `berkas` (.docx, maks. 10 MB) + `jenis`. Tidak disimpan: mengembalikan placeholder yang ditemukan, yang dikenali untuk jenis ini (dengan label), yang tidak dikenal, serta ada/tidaknya QR dan baris tabel berulang. Untuk wizard unggah.
+     *
+     * `POST /v1/dokumen/templat-docx/periksa`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array<string, mixed> $body Field berkas: Upload::fromPath(), SplFileInfo, atau resource.
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTemplatDocxPeriksa(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/templat-docx/periksa', [], $options['query'] ?? [], $body, $options, true, false);
+    }
+
+    /**
      * Ubah templat Word
      *
      * Body {nama?, keterangan?, aktif?}.
@@ -416,6 +435,190 @@ final class Dokumen extends Resource
     public function postIjazah(array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/dokumen/ijazah', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Terbitkan kartu ujian
+     *
+     * Body {nim, tahun_id?, ujian? (UTS/UAS; kosong = ujian yang sedang berlangsung)}. Hanya saat masa ujian berlangsung dan mahasiswa boleh mencetak (syarat pembayaran/presensi SIAKAD + aturan dinamis ujian.uts/ujian.uas); selain itu 409. Oleh mahasiswa sendiri, admin dokumen, atau pengelola akademik prodinya. Templat Word kartu_ujian dipakai bila aktif (baris {uj.*} diulang per mata kuliah).
+     * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+     * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+     * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+     * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+     *
+     * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+     * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+     *
+     * `POST /v1/dokumen/kartu-ujian`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array{nim?: string, tahun_id?: string, transaksi_id?: int, surat?: string, bagian?: string, keluaran?: string, unduh?: bool, pratinjau?: bool, sertakan_pdf?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKartuUjian(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/kartu-ujian', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Terbitkan KTM
+     *
+     * Body {nim}. Kartu depan + belakang dengan pas foto dan QR verifikasi; KTM lama mahasiswa itu ditandai diganti, kedaluwarsa = masa berlaku (batas studi). Templat Word KTM aktif diutamakan; selain itu desain KTM aktif (prodi → fakultas → kampus) atau desain bawaan. Oleh mahasiswa sendiri, admin dokumen, atau pengelola akademik prodinya.
+     * Body umum: `keluaran` `json` (bawaan: data dokumen terbit + `url_verifikasi`; `sertakan_pdf: true` menambah `pdf_base64`)
+     * atau `pdf` (application/pdf langsung, header `X-Dokumen-Id` dan `X-Kode-Verifikasi`), `unduh: true` (attachment),
+     * `pratinjau: true` (PDF bertanda air PRATINJAU, tidak disimpan, tidak dicatat), `bagian` (kode unit penerbit; bawaan
+     * menurut aturan `bagian_penerbit` templat kampus jenis ini, lalu prodi mahasiswa/unit surat).
+     *
+     * PDF tersimpan di berkas terpusat (kategori `dokumen`) dan tercatat di arsip terbit. Menerbitkan ulang dokumen yang sama
+     * (mis. KRS NIM + periode yang sama) menandai versi lama `diganti`.
+     *
+     * `POST /v1/dokumen/ktm`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array{nim?: string, tahun_id?: string, transaksi_id?: int, surat?: string, bagian?: string, keluaran?: string, unduh?: bool, pratinjau?: bool, sertakan_pdf?: bool, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKtm(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/ktm', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Buat KTM massal
+     *
+     * Body {prodi?, angkatan?, status? (A = aktif bawaan, `semua`), nim?: list (maks. 300), tata?: `kartu` (halaman seukuran kartu) | `a4` (10 kartu per lembar, belakang dicerminkan untuk cetak bolak-balik), hitung?: true}. `hitung` hanya mengembalikan {jumlah}. Setiap kartu dicatat dengan QR sendiri. Keluaran application/pdf (header X-Jumlah); bila templat Word KTM aktif, application/zip berisi KTM per mahasiswa. Hanya admin dokumen atau pengelola akademik (prodi kelolaan).
+     *
+     * `POST /v1/dokumen/ktm/massal`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postKtmMassal(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/ktm/massal', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Desain KTM
+     *
+     * Desain tersimpan (atau `bagian` tertentu), desain bawaan siap pakai, katalog penanda {..} KTM, data contoh, pilihan huruf, ukuran kartu (mm), dan templat Word KTM yang aktif (bila ada, diutamakan saat buat KTM).
+     *
+     * `GET /v1/dokumen/desain-kartu`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array{bagian?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDesainKartu(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/desain-kartu', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Simpan desain KTM baru
+     *
+     * Body {nama, bagian?, keterangan?, desain: {orientasi: lanskap|potret, huruf, depan: {latar: {warna, warna2?, arah: polos|horizontal|vertikal|diagonal, gambar?: uuid}, elemen: [{id, jenis: teks|foto|qr|logo|gambar|kotak, x, y, w, h (mm), teks?, ukuran? (pt), warna?, tebal?, miring?, kapital?, rata?, latar?, garis?, sudut?, opasitas?, gambar?}]}, belakang: {...}}, aktif? (bawaan true; menonaktifkan desain lain bagian yang sama)}. Hak sama dengan templat Word KTM.
+     *
+     * `POST /v1/dokumen/desain-kartu`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDesainKartu(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/desain-kartu', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Pratinjau desain KTM
+     *
+     * Body {desain?: objek belum disimpan, id?: desain tersimpan, nim?, tata?: kartu|a4}. PDF (application/pdf) dengan data contoh atau data mahasiswa itu; QR menuju kode PRATINJAU. Tidak disimpan.
+     *
+     * `POST /v1/dokumen/desain-kartu/pratinjau`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDesainKartuPratinjau(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/desain-kartu/pratinjau', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Detail desain KTM
+     *
+     * `GET /v1/dokumen/desain-kartu/{id}`
+     *
+     * scope: `dokumen:read`
+     *
+     * @param int|string $id UUID desain kartu
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDesainKartuById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/dokumen/desain-kartu/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Ubah desain KTM
+     *
+     * Body sebagian: nama, keterangan, desain (menggantikan seluruh desain), aktif.
+     *
+     * `POST /v1/dokumen/desain-kartu/{id}`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param int|string $id UUID desain kartu
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDesainKartuById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/desain-kartu/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus desain KTM
+     *
+     * `POST /v1/dokumen/desain-kartu/{id}/hapus`
+     *
+     * scope: `dokumen:write`
+     *
+     * @param int|string $id UUID desain kartu
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postDesainKartuByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/dokumen/desain-kartu/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

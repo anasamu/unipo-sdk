@@ -793,13 +793,13 @@ final class Integrasi extends Resource
     /**
      * Kirim email
      *
-     * Lewat penyedia email utama (SMTP, Mailgun, SendGrid, Brevo) atau `penyedia` tertentu. `ke`: 1-50 alamat; `teks` dan/atau `html`.
+     * Lewat penyedia email utama (SMTP, Mailgun, SendGrid, Brevo) atau `penyedia` tertentu. `ke`: 1-50 alamat; `teks` dan/atau `html`. Dengan `templat` (kode templat email sistem, docs/SUREL.md) + `data`, subjek dan isi disusun dari templat yang diatur Pustikom; `subjek`/`teks`/`html` kiriman menjadi cadangan bila templat tidak dikenal.
      *
      * `POST /v1/integrasi/email/kirim`
      *
      * scope: `integrasi:pesan`
      *
-     * @param array{ke: list<mixed>, subjek: string|null, teks?: string|null, html?: string|null, balas_ke?: string|null, penyedia?: string|null, ...} $body
+     * @param array{ke: list<mixed>, subjek: string|null, teks?: string|null, html?: string|null, balas_ke?: string|null, penyedia?: string|null, templat?: string|null, data?: array<string, mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

@@ -565,7 +565,7 @@ final class Perpustakaan extends Resource
     /**
      * Pemeriksaan bebas pustaka
      *
-     * Pengelola perpustakaan, BAK, OPERATOR, PROGDI (mahasiswa prodinya), DIREKTUR, atau token aplikasi. bebas = tidak ada pinjaman aktif di SIAKAD dan tidak ada pinjaman/denda di SLiMS (bila tersambung). Juga dipakai syarat kelulusan jenis bebas_pustaka.
+     * Pengelola perpustakaan, BAK, OPERATOR, PROGDI (mahasiswa prodinya), pemegang izin perpustakaan.pantau, atau token aplikasi. bebas = tidak ada pinjaman aktif di SIAKAD dan tidak ada pinjaman/denda di SLiMS (bila tersambung). Juga dipakai syarat kelulusan jenis bebas_pustaka.
      *
      * `GET /v1/perpustakaan/bebas-pustaka/{username}`
      *
@@ -585,7 +585,7 @@ final class Perpustakaan extends Resource
     /**
      * Laporan perpustakaan
      *
-     * Pengelola dan DIREKTUR. Koleksi per status/katalog, peminjaman pada periode (per jenis anggota, prodi, bulan, terpopuler, denda), keterlambatan saat ini, kunjungan, reservasi, usulan. Filter dari/sampai (bawaan bulan berjalan), prodi.
+     * Pengelola dan pemegang izin perpustakaan.pantau (peran pemantau-perpustakaan). Koleksi per status/katalog, peminjaman pada periode (per jenis anggota, prodi, bulan, terpopuler, denda), keterlambatan saat ini, kunjungan, reservasi, usulan. Filter dari/sampai (bawaan bulan berjalan), prodi.
      *
      * `GET /v1/perpustakaan/laporan`
      *

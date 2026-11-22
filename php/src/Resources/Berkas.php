@@ -262,6 +262,25 @@ final class Berkas extends Resource
     }
 
     /**
+     * Drive saya (sidebar Kelola berkas)
+     *
+     * Berkas saya, lalu pohon unit dari unit tertinggi (universitas → fakultas → prodi/unit bagian) yang bisa dibuka pemanggil. Unit induk yang tidak bisa dibuka tetapi menjadi jalur ke unit yang bisa dibuka tampil sebagai penanda jalur (`hak` null). Setiap drive: `id`, `jenis` (pribadi|unit|arsip), `unit_id`, `induk` (id drive induk), `tingkat`, `nama`, `singkatan`, `hak` (pemilik|kelola|anggota|pembaca|null), `ruang` {unit, modul}, `pakai` {byte, jumlah}, `batas` (batas yang mengikat: kuota pribadi, ruang bersama, atau kolam unit termasuk kolam induk yang diwariskan; null = tanpa batas). Ruang arsip institusi ditambahkan modulnya lewat Drive::penyedia().
+     *
+     * `GET /v1/berkas/drive`
+     *
+     * scope: `berkas:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getDrive(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/drive', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Periode akademik berkas
      *
      * Periode akademik (m_tahun) yang dipakai berkas di ruang ini, dengan jumlah dan ukuran berkasnya, ditambah periode aktif. Ruang: `unit` (kode unit, mis. baak, bauk, fak-ft; ruang bersama anggota unit), `bagi` (UUID folder yang dibagikan ke saya), atau ruang pribadi per `modul`. Pakai `periode` di GET /v1/berkas dan /v1/berkas/folder untuk mengelompokkan berkas per periode.
@@ -474,6 +493,82 @@ final class Berkas extends Resource
     }
 
     /**
+     * Sampah saya
+     *
+     * Berkas yang dihapus dari ruang pribadi pemanggil, atau dari ruang unit `unit` (pengelola: semua; anggota: yang ia unggah), terbaru di atas. Setiap berkas memuat `dihapus_at`, `dihapus_oleh`, dan `permanen` {boleh, alasan} (arsip institusi, masih dirujuk modul, atau modul sensitif = tidak boleh dihapus permanen pengguna); meta `ukuran_total`, `hapus_otomatis` (selalu false: sampah tidak dihapus otomatis), `boleh_kosongkan` (admin Pustikom).
+     *
+     * `GET /v1/berkas/sampah`
+     *
+     * scope: `berkas:read` · berhalaman
+     *
+     * @param array{unit?: string, page?: int, per_page?: int, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSampah(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/berkas/sampah', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pulihkan dari sampah
+     *
+     * Body `id` (1-100 UUID). Pemilik berkas, pengunggah di ruang unit, pengelola unit, atau admin. Dipakai juga untuk "Urungkan" setelah menghapus. Berkas arsip institusi hanya pengelola arsip.
+     *
+     * `POST /v1/berkas/sampah/pulihkan`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{id: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSampahPulihkan(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/sampah/pulihkan', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus permanen dari sampah
+     *
+     * Body `id` (1-100 UUID berkas yang ada di sampah). Isi file ikut dihapus dari penyimpanan dan tidak bisa dipulihkan; tercatat di log. Hak sama dengan pulihkan. Ditolak per berkas (`gagal`, kode berkas_sensitif) untuk arsip institusi, berkas yang masih dirujuk modul ("Dipakai di …"), dan berkas modul sensitif (data akademik/kepegawaian/keuangan; hanya admin Pustikom).
+     *
+     * `POST /v1/berkas/sampah/hapus-permanen`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array{id: list<mixed>, ...} $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSampahHapusPermanen(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/sampah/hapus-permanen', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kosongkan sampah (admin Pustikom)
+     *
+     * Hanya admin Pustikom (berkas:admin atau pustikom.penyimpanan.kelola); selain itu 403. Body `unit`, `pemilik`, atau `semua: true`. Arsip institusi dan berkas yang masih dirujuk modul dilewati (`dilewati_rinci`). Tercatat di log.
+     *
+     * `POST /v1/berkas/sampah/kosongkan`
+     *
+     * scope: `berkas:write`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSampahKosongkan(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/berkas/sampah/kosongkan', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Detail berkas
      *
      * Termasuk `url` sementara, status sesi unggah bertahap (`sesi.diterima` untuk melanjutkan unggahan yang terputus), dan `dipakai` (data modul yang memakai berkas ini).
@@ -576,7 +671,7 @@ final class Berkas extends Resource
     /**
      * Hapus berkas (POST)
      *
-     * Soft delete: berkas pindah ke sampah dan tidak tampil lagi, isinya tetap di penyimpanan. Hapus permanen hanya admin lewat /hapus-permanen. Ditolak (409 berkas_dipakai) bila masih dipakai data modul; berkas:admin bisa `?paksa=1`.
+     * Soft delete: berkas pindah ke sampah dan tidak tampil lagi, isinya tetap di penyimpanan. Ditolak (409 berkas_dipakai, "Dipakai di …") bila masih dirujuk modul (berkas_pakai atau lampiran pusat data aktif); berkas:admin bisa `?paksa=1`.
      *
      * `POST /v1/berkas/{id}/hapus`
      *
@@ -1068,7 +1163,7 @@ final class Berkas extends Resource
     /**
      * Simpan kebijakan
      *
-     * Body: `lingkup` (bawaan, unit, kelompok, peran, pengguna), `kunci` (kode unit/peran/username), untuk kelompok `unit`+`kelompok`+`mode`; nilai: `kuota_byte`, `bersama_byte`, `boleh_lebih`, `kapasitas_byte` (bawaan), `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`, `maks_jumlah`, `sampah_hari`, `bagi_publik`, `tautan_maks_hari`, `wajib_enkripsi`, `retensi_versi`, `catatan`. null = ikut tingkat di atasnya. Hanya Pustikom: izin RBAC `pustikom.penyimpanan.kelola` atau administrator.
+     * Body: `lingkup` (bawaan, unit, kelompok, peran, pengguna, aplikasi), `kunci` (kode unit/peran/username; aplikasi: client_id, hanya `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`), untuk kelompok `unit`+`kelompok`+`mode`; nilai: `kuota_byte`, `bersama_byte`, `boleh_lebih`, `kapasitas_byte` (bawaan), `maks_berkas_byte`, `ekstensi_izin`, `ekstensi_larang`, `mime_larang`, `maks_jumlah`, `sampah_hari`, `bagi_publik`, `tautan_maks_hari`, `wajib_enkripsi`, `retensi_versi`, `catatan`. null = ikut tingkat di atasnya. Hanya Pustikom: izin RBAC `pustikom.penyimpanan.kelola` atau administrator.
      *
      * `POST /v1/berkas/penyimpanan/kebijakan`
      *
@@ -1106,13 +1201,13 @@ final class Berkas extends Resource
     /**
      * Simulasi kebijakan efektif
      *
-     * Kebijakan efektif untuk `username` (ruang pribadi) atau `unit` (ruang bersama) beserta asal setiap nilai dan kolam unit yang membatasinya.
+     * Kebijakan efektif untuk kombinasi `username` × `klien` (aplikasi) × ruang (`unit` = ruang bersama unit; kosong = ruang pribadi) beserta asal setiap nilai, `batas_unggah` (ukuran/jenis dan sumbernya), dan kolam unit yang membatasinya.
      *
      * `GET /v1/berkas/penyimpanan/simulasi`
      *
      * scope: `berkas:read` · hanya token pengguna
      *
-     * @param array{username?: string, unit?: string, ...} $query
+     * @param array{username?: string, unit?: string, klien?: string, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

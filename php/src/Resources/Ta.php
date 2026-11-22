@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan, Ujian TA: Kelayakan & pengajuan, Ujian TA: Penjadwalan, Ujian TA: Penetapan SK Dekan, Ujian TA: Pelaksanaan & hasil
+ * Tugas akhir: Pengajuan judul, Tugas akhir: Validasi, Tugas akhir: Progres dan pengaturan, Ujian TA: Kelayakan & pengajuan, Ujian TA: Penjadwalan, Ujian TA: Pelaksanaan & hasil, Ujian TA: Penetapan SK Dekan
  */
 final class Ta extends Resource
 {
@@ -535,6 +535,45 @@ final class Ta extends Resource
     public function getUjianRuang(array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/ta/ujian/ruang', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Konfirmasi nilai sidang
+     *
+     * Sidang skripsi lulus yang nilai skripsinya di KHS sudah ada: nilai lama vs nilai hasil sidang. Untuk penyusun jadwal ujian prodi (kaprodi/sekprodi/operator prodi) di lingkup prodinya.
+     *
+     * `GET /v1/ta/ujian/konfirmasi-nilai`
+     *
+     * scope: `ta:read`
+     *
+     * @param array{status?: string, prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getUjianKonfirmasiNilai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/ta/ujian/konfirmasi-nilai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Putuskan konfirmasi nilai sidang
+     *
+     * Body {keputusan: terapkan|biarkan, catatan?}. Terapkan = nilai sidang menggantikan nilai skripsi di KRS/KHS dan judul TA; biarkan = nilai lama tetap. Tercatat di riwayat ujian.
+     *
+     * `POST /v1/ta/ujian/konfirmasi-nilai/{id}`
+     *
+     * scope: `ta:write`
+     *
+     * @param int|string $id UUID konfirmasi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postUjianKonfirmasiNilaiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/ta/ujian/konfirmasi-nilai/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

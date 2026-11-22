@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi
+ * Tracer Study: kuesioner, Tracer Study: periode & responden, Tracer Study: pengisian, Tracer Study: dasbor & dosen, Tracer Study: alumni, Tracer Study: referensi & karir, Tracer Study: publikasi, Tracer Study: aturan IKU 1
  */
 final class Tracer extends Resource
 {
@@ -1573,5 +1573,194 @@ final class Tracer extends Resource
     public function deletePublikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('DELETE', '/v1/tracer/publikasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: ringkasan
+     *
+     * Kebijakan yang berlaku sekarang (versi terbit berdasar SK, atau nilai bawaan sistem beserta peringatan), nilai bawaan, daftar versi, dan boleh_kelola. Pemilik: pengelola tracer study (LPM).
+     *
+     * `GET /v1/tracer/aturan-iku1`
+     *
+     * scope: `tracer:read`
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/aturan-iku1', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: yang berlaku
+     *
+     * {sumber: aturan|bawaan, versi, isi, peringatan}. Query tanggal=YYYY-MM-DD (bawaan hari ini).
+     *
+     * `GET /v1/tracer/aturan-iku1/berlaku`
+     *
+     * scope: `tracer:read`
+     *
+     * @param array{tanggal?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1Berlaku(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/aturan-iku1/berlaku', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: draf versi baru
+     *
+     * Body {nama, dasar_hukum?, berlaku_tanggal?, catatan_perubahan?, isi?, sk_id?}. Isi kosong = nilai bawaan.
+     *
+     * `POST /v1/tracer/aturan-iku1/versi`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1Versi(array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/aturan-iku1/versi', [], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: detail versi
+     *
+     * Isi, SK, riwayat, perubahan dari versi induk.
+     *
+     * `GET /v1/tracer/aturan-iku1/versi/{id}`
+     *
+     * scope: `tracer:read`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1VersiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/aturan-iku1/versi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: ubah draf
+     *
+     * Versi terbit dikunci; salin menjadi versi baru untuk mengubah.
+     *
+     * `PUT /v1/tracer/aturan-iku1/versi/{id}`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function putAturanIku1VersiById(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('PUT', '/v1/tracer/aturan-iku1/versi/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: salin jadi versi baru
+     *
+     * `POST /v1/tracer/aturan-iku1/versi/{id}/salin`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdSalin(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/aturan-iku1/versi/{id}/salin', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: banding versi
+     *
+     * Perubahan dibanding versi `dengan` (bawaan: yang berlaku; tanpa versi terbit: nilai bawaan).
+     *
+     * `GET /v1/tracer/aturan-iku1/versi/{id}/banding`
+     *
+     * scope: `tracer:read`
+     *
+     * @param int|string $id ID versi
+     * @param array{dengan?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getAturanIku1VersiByIdBanding(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/tracer/aturan-iku1/versi/{id}/banding', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Terbitkan (wajib alasan perubahan; SK dianjurkan)
+     *
+     * `POST /v1/tracer/aturan-iku1/versi/{id}/terbitkan`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdTerbitkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/aturan-iku1/versi/{id}/terbitkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Arsipkan versi terbit
+     *
+     * `POST /v1/tracer/aturan-iku1/versi/{id}/arsipkan`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdArsipkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/aturan-iku1/versi/{id}/arsipkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Definisi IKU 1 lulusan: Hapus draf
+     *
+     * `POST /v1/tracer/aturan-iku1/versi/{id}/hapus`
+     *
+     * scope: `tracer:manage`
+     *
+     * @param int|string $id ID versi
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postAturanIku1VersiByIdHapus(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/tracer/aturan-iku1/versi/{id}/hapus', ['id' => $id], $query, null, $options, false, false);
     }
 }

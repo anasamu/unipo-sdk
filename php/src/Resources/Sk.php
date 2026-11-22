@@ -35,13 +35,13 @@ final class Sk extends Resource
     /**
      * Catat atau ajukan SK
      *
-     * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", penandatangan opsional: "penandatangan_pejabat_id" | ("penandatangan_jabatan_id" + "penandatangan_unit_id") | ("penandatangan_jabatan" + "penandatangan_nama" teks, belum tertaut), "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas dipindah ke ruang Berkas unit penerbit (folder SK).
+     * Body: {"nomor", "tanggal"?, "perihal"?, "jenis"?, "penerbit_unit_id" | "penerbit_luar", penandatangan opsional: "penandatangan_pejabat_id" | ("penandatangan_jabatan_id" + "penandatangan_unit_id") | ("penandatangan_jabatan" + "penandatangan_nama" teks, belum tertaut), "tempat"?, "berkas_id"?, "ttd_berkas_id"?, "keamanan"?: "biasa"|"terbatas", "catatan"?, "mengubah"?: [uuid], "mencabut"?: [uuid], "abaikan_mirip"?: true}. Pemegang sk.catat di unit penerbit: status terbit; selain itu: draf (ajuan pencatatan) yang diverifikasi penerbit. Nomor sama di penerbit sama: 409 kode sk_sudah_tercatat beserta SK yang ada (pilih SK itu). Nomor sama di penerbit lain: 409 sk_mirip kecuali abaikan_mirip. Berkas (dan gambar tanda tangan) dipindah ke arsip institusi: Arsip universitas (SK Yayasan, Rektor, unit, instansi luar) atau Arsip fakultas (SK Dekan/prodi), folder Arsip SK/<penerbit>/<tahun>, bukan ruang pribadi pengunggah; tidak dihitung ke kuota pribadi.
      *
      * `POST /v1/sk`
      *
      * scope: `berkas:write` · hanya token pengguna
      *
-     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
+     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, pihak?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -409,7 +409,7 @@ final class Sk extends Resource
      * scope: `berkas:write` · hanya token pengguna
      *
      * @param int|string $id UUID SK
-     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, ...} $body
+     * @param array{nomor?: string|null, tanggal?: string|null, perihal?: string|null, jenis?: string|null, penerbit_unit_id?: int|null, penerbit_luar?: string|null, penandatangan_pejabat_id?: int|null, penandatangan_jabatan_id?: int|null, penandatangan_unit_id?: int|null, penandatangan_jabatan?: string|null, penandatangan_nama?: string|null, tempat?: string|null, berkas_id?: string|null, ttd_berkas_id?: string|null, keamanan?: string, catatan?: string|null, mengubah?: list<mixed>, mencabut?: list<mixed>, abaikan_mirip?: bool, status?: string, pihak?: list<mixed>, ...} $body
      * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException
@@ -457,6 +457,26 @@ final class Sk extends Resource
     public function postByIdCabut(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/sk/{id}/cabut', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Hapus SK dicabut dari registri
+     *
+     * Body: {"alasan" (wajib, min. 5 karakter)}. Izin sk.registri.hapus (bawaan admin-pustikom, superadmin). Hanya SK berstatus dicabut; ditolak (409 sk_masih_dirujuk, alasan[]) bila masih dirujuk modul (Dipakai di), terhubung SK lain di riwayat perubahan/pencabutan, atau menjadi dasar pengurus Yayasan/kampus/usulan akreditasi. Catatan dihapus lunak; berkas SK masuk sampah arsip (bisa dipulihkan selama masa sampah); tercatat di log.
+     *
+     * `POST /v1/sk/{id}/hapus`
+     *
+     * scope: `berkas:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID SK
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postByIdHapus(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sk/{id}/hapus', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

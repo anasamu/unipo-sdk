@@ -16,13 +16,13 @@ final class Dosen extends Resource
     /**
      * Cari dosen
      *
-     * Objek `pribadi` hanya dengan scope `dosen:pii` (token dosen: hanya dirinya).
+     * Bawaan hanya dosen aktif (m_dosen.status_aktif A, sama dengan portal dan statistik). `status=nonaktif|semua|<kode r_kode 15>` hanya untuk token aplikasi dan staf (token mahasiswa/dosen: 403). Tiap baris membawa `aktif` dan `status_label`. Objek `pribadi` hanya dengan scope `dosen:pii` (token dosen: hanya dirinya).
      *
      * `GET /v1/dosen`
      *
      * scope: `dosen:read` · berhalaman
      *
-     * @param array{prodi?: string, status?: string, q?: string, page?: int, per_page?: int, ...} $query
+     * @param array{prodi?: string, kode_fakultas?: string, status?: string, q?: string, page?: int, per_page?: int, ...} $query
      * @param array{headers?: array<string, string>, max_retries?: int} $options
      * @return ApiResponse
      * @throws \Unipo\Siakad\Exceptions\SiakadException

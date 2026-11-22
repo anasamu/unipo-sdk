@@ -9,7 +9,7 @@ namespace Unipo\Siakad\Resources;
 use Unipo\Siakad\Http\ApiResponse;
 
 /**
- * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Ujian, Akademik: Konversi dan riwayat nilai, Akademik: Pengajuan status, Akademik: Perbaikan nilai, Akademik: Periode, Akademik: Her-registrasi
+ * Akademik: Jadwal dan kelas, Akademik: Persetujuan KRS, Akademik: Nilai, Akademik: Batas waktu input, Akademik: Presensi dan jurnal, Akademik: Dokumen dan laporan, Akademik: Ujian, Akademik: Konversi dan riwayat nilai, Akademik: Pengajuan status, Akademik: Perbaikan nilai, Akademik: Sanggah nilai, Akademik: Periode, Akademik: Her-registrasi
  */
 final class Akademik extends Resource
 {
@@ -641,7 +641,7 @@ final class Akademik extends Resource
     /**
      * Monitoring presensi per kelas
      *
-     * Pengelola. Semua kelas (jadwal) satu prodi atau semua prodi kelolaan (tanpa prodi) pada periode: prodi, mata kuliah, kelas, dosen, peserta, jumlah_pertemuan (t_dosen_presensi), pertemuan_terakhir, persen_hadir (status H dari presensi mahasiswa yang tercatat). ringkasan: kelas, belum_ada_pertemuan, rata_pertemuan. Maks. 3000 kelas. Hanya baca.
+     * Hasil memuat ambang_hadir {nilai, sumber: aturan|periode|bawaan, keterangan, aturan} = kehadiran minimal dari aturan syarat ikut UAS. Pengelola. Semua kelas (jadwal) satu prodi atau semua prodi kelolaan (tanpa prodi) pada periode: prodi, mata kuliah, kelas, dosen, peserta, jumlah_pertemuan (t_dosen_presensi), pertemuan_terakhir, persen_hadir (status H dari presensi mahasiswa yang tercatat). ringkasan: kelas, belum_ada_pertemuan, rata_pertemuan. Maks. 3000 kelas. Hanya baca.
      *
      * `GET /v1/akademik/presensi/monitoring`
      *
@@ -660,7 +660,7 @@ final class Akademik extends Resource
     /**
      * Presensi dan jurnal kelas
      *
-     * Pertemuan (tanggal, jam, dosen, bahasan/jurnal) dan rekap hadir/izin/sakit/alpa per mahasiswa.
+     * Hasil memuat ambang_hadir {nilai, sumber: aturan|periode|bawaan, keterangan, aturan} = kehadiran minimal dari aturan syarat ikut UAS. Pertemuan (tanggal, jam, dosen, bahasan/jurnal) dan rekap hadir/izin/sakit/alpa per mahasiswa.
      *
      * `GET /v1/akademik/presensi/kelas/{idj}`
      *
@@ -1822,6 +1822,65 @@ final class Akademik extends Resource
     public function postNilaiPerbaikanByIdBatalkan(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/akademik/nilai/perbaikan/{id}/batalkan', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Antrean sanggah (dosen/prodi)
+     *
+     * untuk=saya: kelas yang diampu dosen pemilik token; untuk=prodi: prodi yang dikelola (pengelola akademik atau izin fakultas.nilai.perbaikan). meta.menunggu = jumlah berstatus diajukan.
+     *
+     * `GET /v1/akademik/sanggah-nilai`
+     *
+     * scope: `nilai:read` · hanya token pengguna · berhalaman
+     *
+     * @param array{page?: int, per_page?: int, untuk?: string, status?: string, tahun_id?: string, prodi?: string, ...} $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSanggahNilai(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/sanggah-nilai', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Detail sanggah
+     *
+     * Pemilik, dosen pengampu, atau pengelola prodi.
+     *
+     * `GET /v1/akademik/sanggah-nilai/{id}`
+     *
+     * scope: `nilai:read` · hanya token pengguna
+     *
+     * @param int|string $id UUID sanggah
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getSanggahNilaiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/akademik/sanggah-nilai/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Putuskan sanggah
+     *
+     * Body {keputusan: terima|tolak, tanggapan}. Dosen pengampu kelas atau pengelola nilai prodi. Diterima: perbaiki nilai lewat input nilai/perbaikan nilai. Kabar ke mahasiswa.
+     *
+     * `POST /v1/akademik/sanggah-nilai/{id}/putuskan`
+     *
+     * scope: `akademik:write` · hanya token pengguna
+     *
+     * @param int|string $id UUID sanggah
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSanggahNilaiByIdPutuskan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/akademik/sanggah-nilai/{id}/putuskan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**

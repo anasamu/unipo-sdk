@@ -993,7 +993,7 @@ final class Sdm extends Resource
     /**
      * Daftar pegawai
      *
-     * Dosen dan tendik yang boleh Anda lihat. Data pribadi (NIK, alamat, rekening, dll.) hanya tampil di detail untuk yang berhak.
+     * Dosen dan tendik yang boleh Anda lihat. Bawaan hanya yang masih bekerja (status_aktif=bekerja: aktif, cuti, tugas/izin belajar, diperbantukan); status_aktif=semua untuk semua, tidak_bekerja untuk yang keluar/nonaktif. Data pribadi (NIK, alamat, rekening, dll.) hanya tampil di detail untuk yang berhak.
      *
      * `GET /v1/sdm/pegawai`
      *
@@ -6847,6 +6847,25 @@ final class Sdm extends Resource
     }
 
     /**
+     * Hak saya atas honor
+     *
+     * Dihitung server dengan aturan yang sama dengan proses: kelola (pengelola gaji BAUK: tambah, hitung, bayar), setujui (Kepala BAUK/admin gaji: setujui, kembalikan, batalkan). Untuk menampilkan tombol di aplikasi.
+     *
+     * `GET /v1/sdm/honor/hak`
+     *
+     * scope: `gaji:read` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function getHonorHak(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('GET', '/v1/sdm/honor/hak', [], $query, null, $options, false, false);
+    }
+
+    /**
      * Setujui, bayar, kembalikan, atau batalkan honor
      *
      * Massal sampai 1000 baris; baris yang statusnya tidak cocok dilewati. setujui/kembalikan/batal: Kepala BAUK (admin gaji); bayar: pengelola gaji.
@@ -7077,7 +7096,7 @@ final class Sdm extends Resource
     /**
      * Tambah dokumen SDM
      *
-     * Admin SDM. Isian dokumen mutu SPMI: jenis, nomor, judul, versi, ringkasan, status (draf|ditinjau|disahkan|kedaluwarsa|dicabut), tanggal_penetapan, berlaku_mulai, tinjau_berikutnya, ditetapkan_oleh, nomor_penetapan, tautan, publik, menggantikan_id. Unit selalu SDM; penulis dicatat sebagai pengelola SPMI unit SDM.
+     * Admin SDM. Isian dokumen mutu SPMI: jenis, nomor, judul, versi, ringkasan, tanggal_penetapan, berlaku_mulai, tinjau_berikutnya, ditetapkan_oleh, nomor_penetapan, tautan, publik, menggantikan_id. Dokumen baru berstatus draf; disahkan lewat /sop/{id}/ajukan lalu alur pengesahan (setelah sah hanya bisa ditandai kedaluwarsa/dicabut). Unit selalu SDM; penulis dicatat sebagai pengelola SPMI unit SDM.
      *
      * `POST /v1/sdm/sop`
      *
@@ -7111,6 +7130,66 @@ final class Sdm extends Resource
     public function putSopById(int|string $id, array $body, array $options = []): ApiResponse
     {
         return $this->send('PUT', '/v1/sdm/sop/{id}', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Ajukan dokumen SDM untuk disahkan
+     *
+     * Admin SDM. Draf/dikembalikan masuk alur pengesahan dokumen mutu yang berlaku untuk unit SDM (diatur LPM di /v1/spmi/alur; bawaan: admin SDM -> validasi LPM -> pemegang izin sdm.setujui/Kepala Biro SDM). Body opsional: catatan.
+     *
+     * `POST /v1/sdm/sop/{id}/ajukan`
+     *
+     * scope: `sdm:admin`
+     *
+     * @param int|string $id ID dokumen
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSopByIdAjukan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sop/{id}/ajukan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Setujui/sahkan dokumen SDM
+     *
+     * Pelaku tahap berjalan alur pengesahan (mis. LPM lalu Kepala Biro SDM). Tahap terakhir = disahkan (berlaku dan terlihat semua pegawai). Pengusul tidak memutus usulannya sendiri. Body opsional: catatan.
+     *
+     * `POST /v1/sdm/sop/{id}/setujui`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID dokumen
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSopByIdSetujui(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sop/{id}/setujui', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
+    }
+
+    /**
+     * Kembalikan dokumen SDM ke pengusul
+     *
+     * Pelaku tahap berjalan. Body: catatan (wajib, alasan).
+     *
+     * `POST /v1/sdm/sop/{id}/kembalikan`
+     *
+     * scope: `sdm:write`
+     *
+     * @param int|string $id ID dokumen
+     * @param array<string, mixed> $body
+     * @param array{query?: array<string, mixed>, headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postSopByIdKembalikan(int|string $id, array $body, array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/sdm/sop/{id}/kembalikan', ['id' => $id], $options['query'] ?? [], $body, $options, false, false);
     }
 
     /**

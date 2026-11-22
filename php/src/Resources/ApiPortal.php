@@ -136,9 +136,9 @@ final class ApiPortal extends Resource
     }
 
     /**
-     * Batalkan pengajuan
+     * Tarik pengajuan
      *
-     * Hanya pemohon, selama belum diputuskan. Body opsional `{"catatan": "..."}`.
+     * Hanya pemohon, selama belum diputuskan. Status menjadi `dibatalkan` (dibatalkan pengaju) dan pengajuan keluar dari antrean Pustikom. Body opsional `{"catatan": "..."}`.
      *
      * `POST /v1/api-portal/pengajuan/{id}/batal`
      *
@@ -212,6 +212,33 @@ final class ApiPortal extends Resource
     public function getAplikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('GET', '/v1/api-portal/aplikasi/{id}', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Hapus aplikasi
+     *
+     * Hanya pemilik. Aplikasi dihapus dari portal (jejaknya tetap ada untuk Pustikom), dan sekaligus:
+     *
+     * * klien API dinonaktifkan dan secret-nya diganti: semua token aplikasi langsung tidak berlaku;
+     * * secret yang belum diambil dibuang;
+     * * pengajuan aplikasi ini yang masih menunggu ditarik (status `dibatalkan`);
+     * * klien SSO (bila ada) tetap aktif sampai dinonaktifkan Pustikom.
+     *
+     * Body opsional `{"alasan": "..."}`. Jawaban: `pengajuan_ditarik` (nomor), `klien_api_dinonaktifkan`, `klien_sso`.
+     *
+     * `DELETE /v1/api-portal/aplikasi/{id}`
+     *
+     * scope: `apiportal:write` · hanya token pengguna
+     *
+     * @param int|string $id ID angka atau UUID
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function deleteAplikasiById(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('DELETE', '/v1/api-portal/aplikasi/{id}', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
@@ -331,6 +358,65 @@ final class ApiPortal extends Resource
     public function postTinjauByIdTolak(int|string $id, array $query = [], array $options = []): ApiResponse
     {
         return $this->send('POST', '/v1/api-portal/tinjau/{id}/tolak', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Arsipkan
+     *
+     * Hapus lunak pengajuan yang ditolak, dibatalkan, atau disetujui tetapi aplikasinya sudah dihapus pemilik. Status tidak berubah; pengajuan hanya tampil di filter `diarsipkan` dan bisa dipulihkan. Body opsional `{"catatan": "..."}`.
+     *
+     * `POST /v1/api-portal/tinjau/{id}/arsip`
+     *
+     * scope: `apiportal:write` · hanya token pengguna
+     *
+     * @param int|string $id ID angka, UUID, atau nomor pengajuan (API-2026-00001)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTinjauByIdArsip(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/api-portal/tinjau/{id}/arsip', ['id' => $id], $query, null, $options, false, false);
+    }
+
+    /**
+     * Arsipkan banyak
+     *
+     * `{"ids": ["API-2026-00001", ...], "catatan": "..."}` (maks. 200). Yang tidak memenuhi syarat dilewati. Jawaban: `{"diarsipkan": [nomor], "dilewati": [{"id", "alasan"}]}`.
+     *
+     * `POST /v1/api-portal/tinjau/arsip-massal`
+     *
+     * scope: `apiportal:write` · hanya token pengguna
+     *
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTinjauArsipMassal(array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/api-portal/tinjau/arsip-massal', [], $query, null, $options, false, false);
+    }
+
+    /**
+     * Pulihkan dari arsip
+     *
+     * Mengembalikan pengajuan yang diarsipkan ke daftar sesuai statusnya.
+     *
+     * `POST /v1/api-portal/tinjau/{id}/pulihkan`
+     *
+     * scope: `apiportal:write` · hanya token pengguna
+     *
+     * @param int|string $id ID angka, UUID, atau nomor pengajuan (API-2026-00001)
+     * @param array<string, mixed> $query
+     * @param array{headers?: array<string, string>, max_retries?: int} $options
+     * @return ApiResponse
+     * @throws \Unipo\Siakad\Exceptions\SiakadException
+     */
+    public function postTinjauByIdPulihkan(int|string $id, array $query = [], array $options = []): ApiResponse
+    {
+        return $this->send('POST', '/v1/api-portal/tinjau/{id}/pulihkan', ['id' => $id], $query, null, $options, false, false);
     }
 
     /**
