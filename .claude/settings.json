@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "googlechrome": {
+      "source": { "source": "github", "repo": "googlechrome/modern-web-guidance" }
+    },
+    "heydamir": {
+      "source": { "source": "github", "repo": "heydamir/unslop" }
+    }
+  },
+  "enabledPlugins": {
+    "modern-web-guidance@googlechrome": true,
+    "unslop@heydamir": true
+  }
+}
