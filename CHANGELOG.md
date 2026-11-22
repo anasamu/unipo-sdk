@@ -2,9 +2,9 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-Catatan: tag 1.18.0 sampai 1.23.0 sudah dibuat di GitHub, tetapi terbit ke npm gagal sejak 2026-11-18 (workflow Rilis: npm 403 "account has been temporarily suspended"); di npm versi terakhir masih 1.17.0.
+Catatan: tag 1.18.0 sampai 1.23.0 sudah dibuat di GitHub, tetapi terbit ke npm gagal sejak 2026-11-18 (workflow Rilis: npm 403 "account has been temporarily suspended"); versi itu tidak diterbitkan ke npm (isinya sudah tercakup di 2.0.0, yang terbit 2026-11-22).
 
-## 2.0.0 (belum dirilis)
+## 2.0.0 (2026-11-22)
 
 Versi mayor karena ada metode yang dihapus mengikuti API SIAKAD. Lihat **Migrasi dari 1.x** di bawah.
 
@@ -19,32 +19,32 @@ Versi mayor karena ada metode yang dihapus mengikuti API SIAKAD. Lihat **Migrasi
 4. Selain itu tidak ada yang berubah: konstruktor, autentikasi/token, `ApiResult`, galat, dan nama metode lain tetap sama.
 5. Naikkan rentang versi: npm `"unipo-siakad-sdk": "^2.0.0"` (`npm install unipo-siakad-sdk@^2.0.0`), Composer `"unipo/siakad-sdk": "^2.0"`. Workflow *Perbarui library UNIPO* di aplikasi tidak memasang versi mayor baru secara otomatis (hanya dilaporkan), jadi rentang versi di `package.json`/`package-lock.json` aplikasi dinaikkan manual setelah 2.0.0 terbit di npm. `unipo-ui` menerima SDK `^1.0.0 || ^2.0.0` sebagai peer dependency.
 
-## 1.23.0 (tag 2026-11-19; npm belum terbit)
+## 1.23.0 (tag 2026-11-19; tidak diterbitkan ke npm)
 
 - Spesifikasi diperbarui dari SIAKAD: 316 operasi baru, 0 operasi hilang (total 4411).
 
-## 1.22.0 (tag 2026-11-18; npm belum terbit)
+## 1.22.0 (tag 2026-11-18; tidak diterbitkan ke npm)
 
 - Spesifikasi diperbarui dari SIAKAD: 214 operasi baru, 0 operasi hilang (total 4095).
 
-## 1.21.0 (tag 2026-11-18; npm belum terbit)
+## 1.21.0 (tag 2026-11-18; tidak diterbitkan ke npm)
 
 - Spesifikasi diperbarui dari SIAKAD: 96 operasi baru, 0 operasi hilang (total 3881).
 
-## 1.20.0 (tag 2026-11-18; npm belum terbit)
+## 1.20.0 (tag 2026-11-18; tidak diterbitkan ke npm)
 
 - Registri SK tunggal (/v1/sk, SIAKAD docs/SK.md): klien bertipe registriSK(siakad) di Node (cari, periksa nomor ganda, detail, catat/ajukan pencatatan, catatAtauPakai, ubah, verifikasi, cabut, gabung, penerbit, penandatangan, urlBerkas sementara, dariSurat) dan siakad.sk.* / $siakad->sk() (13 operasi; tipe SkRegistri, SkDetail, SkCatat, SkPeriksa, SkPenerbit, SkPenandatangan). Modul lain merujuk SK lewat sk_id.
 - Penandatangan SK tanpa ketergantungan melingkar: `registriSK().bawaan()` (penerbit/perihal/penandatangan bawaan menurut jenis SK dan jabatan yang diangkat), `jabatanPenandatangan()`; tipe `PenandatanganSK` (`tautan`: pejabat, jabatan, teks), `JabatanPenandatanganSK`, `BawaanSK`; `SkCatat` menerima `penandatangan_jabatan_id`/`penandatangan_unit_id` atau teks jabatan + nama.
 - Profil Yayasan dan kewenangan penerbitan SK: `registriSK().yayasan()`, `simpanYayasan()`, `kewenangan()`, `simpanKewenangan()` (tipe `ProfilYayasan`, `PengurusYayasan`, `KewenanganSK`); `aturan.list({ tanpa_sk: 1 })` untuk aturan bawaan aktif tanpa SK.
 - Spesifikasi diperbarui dari SIAKAD gabungan dev (branch claude/project-thread-asy9g9-dev + -sk-tunggal): 112 operasi baru, 0 hilang (total 3785). Selain /v1/sk: periode dan tahapan kalender (/v1/kalender/periode*, /v1/kalender/status, /v1/kalender/batas*), organisasi & pejabat Pustikom (/v1/induk/organisasi*), dan tambahan akademik/fakultas dari branch yang belum di-merge; rilis setelah branch-branch itu masuk main.
 
-## 1.19.0 (tag 2026-11-18; npm belum terbit)
+## 1.19.0 (tag 2026-11-18; tidak diterbitkan ke npm)
 
 - Log terpadu semua proses untuk Pustikom: `logSistem(siakad)` bertipe (`daftar` dengan paginasi kursor, `semua`, `detail`, `sumber`, `ringkasan`, `eksporCsv`) dan tipe `BarisLog`, `DetailLog`, `SumberLog`, `RingkasanLog`, `SaringanLog`. Endpoint mentah juga tersedia di `siakad.sistem.*` (GET /v1/sistem/log, /sumber, /ringkasan, /ekspor, /{sumber}/{id}); hak izin `pustikom.log`.
 - Tugas terjadwal (penjadwal SIAKAD): `siakad.sistem.*` untuk /v1/sistem/jadwal (status penjadwal, daftar tugas, ubah, jalankan, hentikan, riwayat jalan); 9 operasi baru.
 - Spesifikasi diperbarui dari SIAKAD: 14 operasi baru dibanding 1.18.0 (semuanya /v1/sistem/log dan /v1/sistem/jadwal), 0 operasi hilang (total 3673).
 
-## 1.18.0 (tag 2026-11-17; npm belum terbit)
+## 1.18.0 (tag 2026-11-17; tidak diterbitkan ke npm)
 
 - Spesifikasi diperbarui dari SIAKAD: 54 operasi baru, 0 operasi hilang (total 3659). Di antaranya pengumuman lintas aplikasi (/v1/notif/pita: tayang, tutup, kelola, hak, tautan konten portal, perkiraan penerima), pemicu notifikasi per peran/unit (/v1/notif/pemicu), obrolan (foto grup, bersihkan, hapus obrolan, hapus untuk saya, pindah ke enkripsi server), daftar pegawai ringkas untuk gaji/honor (/v1/gaji/pegawai), pengaturan dan statistik honor (/v1/sdm/honor), tunjangan jabatan (/v1/sdm/master/jabatan/{id}/tunjangan); scope honor kini gaji:*.
 
