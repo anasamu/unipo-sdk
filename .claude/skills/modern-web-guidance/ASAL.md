@@ -1,0 +1,1 @@
+Disalin dari GoogleChrome/modern-web-guidance (paket npm modern-web-guidance, Apache-2.0), versi skill 2026_11_10-47b4c80e. Skill menjalankan `npx -y modern-web-guidance@latest`; perbarui berkas ini dengan `npx skills add GoogleChrome/modern-web-guidance` atau salin ulang SKILL.md dari paket terbaru.
