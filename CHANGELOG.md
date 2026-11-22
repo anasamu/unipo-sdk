@@ -2,7 +2,7 @@
 
 Versi paket PHP (`unipo/siakad-sdk`) dan Node.js (`unipo-siakad-sdk`) selalu sama dan dirilis bersamaan.
 
-## 2.0.0 (belum dirilis)
+## 2.0.0 (2026-11-22)
 
 - Registri SK tunggal (/v1/sk, SIAKAD docs/SK.md): klien bertipe registriSK(siakad) di Node (cari, periksa nomor ganda, detail, catat/ajukan pencatatan, catatAtauPakai, ubah, verifikasi, cabut, gabung, penerbit, penandatangan, urlBerkas sementara, dariSurat) dan siakad.sk.* / $siakad->sk() (13 operasi; tipe SkRegistri, SkDetail, SkCatat, SkPeriksa, SkPenerbit, SkPenandatangan). Modul lain merujuk SK lewat sk_id.
 - Penandatangan SK tanpa ketergantungan melingkar: `registriSK().bawaan()` (penerbit/perihal/penandatangan bawaan menurut jenis SK dan jabatan yang diangkat), `jabatanPenandatangan()`; tipe `PenandatanganSK` (`tautan`: pejabat, jabatan, teks), `JabatanPenandatanganSK`, `BawaanSK`; `SkCatat` menerima `penandatangan_jabatan_id`/`penandatangan_unit_id` atau teks jabatan + nama.
